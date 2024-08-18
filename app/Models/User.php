@@ -3,13 +3,15 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable , SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +22,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'studentPhoNum',
+        'parentPhoNum',
+        'grade_id',
+        'governorate',
+        'email_verified_at',
     ];
 
     /**
@@ -44,4 +51,56 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    protected $cast = [
+        'password'=>'hashed'
+    ];
+      /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function grade()
+    {
+        return $this->belongsTo(Grade::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Parnt::class);
+    }
+
+
+
+    public function contactUs()
+    {
+        return $this->hasMany(ContactUs::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 }
+
