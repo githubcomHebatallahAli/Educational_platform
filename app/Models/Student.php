@@ -29,7 +29,7 @@ class Student extends Model
     {
         return $this->belongsToMany(Lesson::class, 'student_lessons');
     }
-    
+
     public function exams()
     {
         return $this->belongsToMany(Exam::class)
