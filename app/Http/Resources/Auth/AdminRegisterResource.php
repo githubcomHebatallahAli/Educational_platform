@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Auth;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\Admin\RoleResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AdminRegisterResource extends JsonResource
@@ -14,6 +15,14 @@ class AdminRegisterResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id'=>$this->id,
+            'name'=>$this->name,
+            'email'=>$this->email,
+            'role' => new RoleResource($this->role),
+            'subject' => $this -> subject ,
+            'adminPhoNum' => $this -> adminPhoNum ,
+            'status' => $this -> status
+        ];
     }
 }
