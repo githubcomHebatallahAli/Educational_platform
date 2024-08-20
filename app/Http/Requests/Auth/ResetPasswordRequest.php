@@ -3,10 +3,11 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Rules\EmailExistsInUsersOrAdminsOrParentsRule;
 
-class StudentRegisterRequest extends FormRequest
+class ResetPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,17 +25,11 @@ class StudentRegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
-            'parentPhoNum' =>'required|string',
-            'studentPhoNum' =>'required|string',
-            'governorate' => 'required|string',
-            'grade_id' => 'required|exists:grades,id',
-            'parnt_id' => 'nullable|exists:parnts,id'
+            'email' => ['required','email',new EmailExistsInUsersOrAdminsOrParentsRule()],
+            'otp' =>['required','max:6'],
+            'password' =>['required','min:6']
         ];
     }
-
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

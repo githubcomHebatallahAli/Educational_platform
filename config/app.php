@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+
 return [
 
     /*
@@ -122,5 +124,15 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+
+
+    'aliases' => Facade::defaultAliases()->merge([
+        // 'Example' => App\Facades\Example::class,
+        // 'Socialite' => Laravel\Socialite\Facades\Socialite::class,
+        'Otp' =>  Ichtrojan\Otp\Otp::class,
+    ])->toArray(),
+
+
 
 ];

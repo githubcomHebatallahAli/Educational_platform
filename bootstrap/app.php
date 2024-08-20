@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\Admin;
 use Illuminate\Http\Request;
+use App\Policies\AdminPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Application;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,14 +17,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+
+            'auth' => \App\Http\Middleware\AuthenticateMiddleware::class,
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                ], 401);
-            }
-        });
+        // $exceptions->render(function (AuthenticationException $e, Request $request) {
+        //     if ($request->is('api/*')) {
+        //         return response()->json([
+        //             'message' => $e->getMessage(),
+        //         ], 401);
+        //     }
+        // });
+    })
+        ->booted(function() {
+
+            Gate::policy(Admin::class, AdminPolicy::class);
+
     })->create();

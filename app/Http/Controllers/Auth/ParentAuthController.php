@@ -35,14 +35,8 @@ class ParentAuthController extends Controller
         if (!$token = auth()->guard('parnt')->attempt($validator->validated())) {
             return response()->json(['message' => 'Invalid data'], 422);
 
-            $parent = auth()->guard('parnt')->user();
-
-            // if (is_null($user->email_verified_at)) {
-            //     return response()->json([
-            //         'message' => 'Email not verified. Please verify it.'
-            //     ], 403);
-            // }
         }
+        // $parent = auth()->guard('parnt')->user();
 
         return $this->createNewToken($token);
     }
@@ -90,9 +84,9 @@ class ParentAuthController extends Controller
      */
     public function logout()
     {
-        if (!Gate::allows('logout', Parnt::class)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        // if (!Gate::allows('logout', Parnt::class)) {
+        //     return response()->json(['message' => 'Unauthorized'], 403);
+        // }
         auth()->guard('parnt')->logout();
         return response()->json([
             'message' => 'Parent successfully signed out']);
@@ -105,7 +99,7 @@ class ParentAuthController extends Controller
      */
     public function refresh()
     {
-        return $this->createNewToken(auth()->refresh());
+        return $this->createNewToken(auth()->guard('parnt')->refresh());
     }
 
     /**
@@ -115,7 +109,7 @@ class ParentAuthController extends Controller
      */
     public function userProfile()
     {
-        return response()->json(["data" => auth()->user()]);
+        return response()->json(["data" => auth()->guard('parnt')->user()]);
     }
 
     /**
@@ -133,8 +127,8 @@ class ParentAuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->guard('parnt')->factory()->getTTL() * 60,
-            // 'admin' => auth()->guard('admin')->user(),
-            //   'admin' => Admin::with('role:id,name')->find(auth()->id()),
+            // 'parent' => auth()->guard('parnt')->user(),
+           
             'parent' => $parent,
         ]);
     }

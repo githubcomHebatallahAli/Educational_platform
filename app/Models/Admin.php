@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
-// use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -22,7 +22,7 @@ class Admin  extends Authenticatable  implements JWTSubject
         'subject',
         'email_verified_at'
     ];
-    
+
     public function users()
     {
         return $this->hasMany(User::class);
@@ -60,5 +60,10 @@ class Admin  extends Authenticatable  implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+      public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }

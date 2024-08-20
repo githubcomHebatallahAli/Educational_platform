@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
-use Log;
+use Illuminate\Support\Facades\Log;
+
+
 
 trait ManagesModelsTrait
 {
@@ -65,33 +67,33 @@ trait ManagesModelsTrait
     {
         $this->authorize('manage_users');
 
-        \Log::info('Reached forceDeleteModel method for model: ' . $modelClass . ' with ID: ' . $id);
+        Log::info('Reached forceDeleteModel method for model: ' . $modelClass . ' with ID: ' . $id);
 
         $modelInstance = $modelClass::withTrashed()->where('id', $id)->first();
 
         if (!$modelInstance) {
-            \Log::info('Model not found: ' . $id);
+            Log::info('Model not found: ' . $id);
             return response()->json([
                 'message' => class_basename($modelClass) . " not found."
             ], 404);
         }
 
-        \Log::info('Model found, attempting to force delete: ' . $id);
+        Log::info('Model found, attempting to force delete: ' . $id);
 
         try {
             $modelInstance->forceDelete();
-            \Log::info('Force delete called for model: ' . $id);
+            Log::info('Force delete called for model: ' . $id);
 
             // Check if the model still exists
             $stillExists = $modelClass::withTrashed()->where('id', $id)->exists();
             if ($stillExists) {
-                \Log::info('Model still exists after force delete attempt: ' . $id);
+                Log::info('Model still exists after force delete attempt: ' . $id);
                 return response()->json([
                     'message' => 'Failed to force delete ' . class_basename($modelClass),
                 ], 500);
             }
         } catch (\Exception $e) {
-            \Log::error('Error during force delete: ' . $e->getMessage());
+            Log::error('Error during force delete: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error: ' . $e->getMessage(),
             ], 500);

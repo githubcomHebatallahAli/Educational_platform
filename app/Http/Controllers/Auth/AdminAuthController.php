@@ -13,11 +13,7 @@ use App\Http\Resources\Auth\AdminRegisterResource;
 
 class AdminAuthController extends Controller
 {
-        // public function __construct()
-    // {
-    //     $this->middleware('auth:admin',
-    //      ['except' => ['register','login','verify','logout']]);
-    // }
+ 
 
     /**
      * Get a JWT via given credentials.
@@ -106,7 +102,7 @@ class AdminAuthController extends Controller
      */
     public function refresh()
     {
-        return $this->createNewToken(auth()->refresh());
+        return $this->createNewToken(auth()->guard('admin')->refresh());
     }
 
     /**
@@ -116,7 +112,7 @@ class AdminAuthController extends Controller
      */
     public function userProfile()
     {
-        return response()->json(["data" => auth()->user()]);
+        return response()->json(["data" => auth()->guard('admin')->user()]);
     }
 
     /**
@@ -134,8 +130,6 @@ class AdminAuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->guard('admin')->factory()->getTTL() * 60,
-            // 'admin' => auth()->guard('admin')->user(),
-            //   'admin' => Admin::with('role:id,name')->find(auth()->id()),
             'admin' => $admin,
         ]);
     }
