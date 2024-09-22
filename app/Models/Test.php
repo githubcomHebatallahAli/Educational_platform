@@ -6,18 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Choice extends Model
+class Test extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = [
-        'question_id',
-        'choiceText',
-        'is_correct',
+        'name',
     ];
 
-    public function question()
+    public function exams()
     {
-        return $this->belongsTo(Question::class);
+        return $this->hasMany(Exam::class);
     }
 
 }

@@ -11,7 +11,12 @@ class Question extends Model
     use HasFactory, SoftDeletes;
     protected $fillable = [
         'question',
-        'exam_id'
+        'exam_id',
+        'choice_1',
+        'choice_2',
+        'choice_3',
+        'choice_4',
+        'correct_choice'
     ];
 
     public function exam()
@@ -21,10 +26,10 @@ class Question extends Model
 
 
 
-    public function choices()
-    {
-        return $this->hasMany(Choice::class);
-    }
+public function answers()
+{
+    return $this->hasMany(Answer::class, 'question_id');
+}
 
 
 }

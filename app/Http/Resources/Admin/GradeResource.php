@@ -17,6 +17,7 @@ class GradeResource extends JsonResource
         return [
             "id" => $this -> id,
             'grade' => $this -> grade,
+            'main_courses' => MainCourseResource::collection($this->whenLoaded('mainCourses')),
         ];
     }
 }

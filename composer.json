@@ -10,6 +10,10 @@
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "php-ffmpeg/php-ffmpeg": "^1.2",
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6",
+        "smalot/pdfparser": "^2.11",
         "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {

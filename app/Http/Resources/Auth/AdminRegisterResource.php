@@ -3,7 +3,7 @@
 namespace App\Http\Resources\Auth;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\Admin\RoleResource;
+use App\Http\Resources\Admin\MainResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AdminRegisterResource extends JsonResource
@@ -19,10 +19,11 @@ class AdminRegisterResource extends JsonResource
             'id'=>$this->id,
             'name'=>$this->name,
             'email'=>$this->email,
-            'role' => new RoleResource($this->role),
+            'role' => new MainResource($this->role),
             'subject' => $this -> subject ,
             'adminPhoNum' => $this -> adminPhoNum ,
-            'status' => $this -> status
+            'status' => $this -> status,
+            'img' => $this -> img
         ];
     }
 }

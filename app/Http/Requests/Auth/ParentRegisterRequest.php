@@ -29,6 +29,8 @@ class ParentRegisterRequest extends FormRequest
             'email' => 'required|string|email|max:100|unique:parnts',
             'password' => 'required|string|confirmed|min:6',
             'parentPhoNum' =>'required|string',
+            'code' => 'nullable|string',
+            'img.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
         ];
     }
 

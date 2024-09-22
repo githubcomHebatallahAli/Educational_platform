@@ -12,7 +12,7 @@ class GradeController extends Controller
 {
     public function showAll()
     {
-        // $this->authorize('manage_users');
+        $this->authorize('manage_users');
 
         $Grades = Grade::get();
         return response()->json([
@@ -24,7 +24,7 @@ class GradeController extends Controller
 
     public function create(GradeRequest $request)
     {
-        // $this->authorize('manage_users');
+        $this->authorize('manage_users');
 
            $Grade =Grade::create ([
 
@@ -42,7 +42,8 @@ class GradeController extends Controller
     public function edit(string $id)
     {
         $this->authorize('manage_users');
-        $Grade = Grade::find($id);
+        // $Grade = Grade::find($id);
+        $Grade = Grade::with('mainCourses')->findOrFail($id);
 
         if (!$Grade) {
             return response()->json([
@@ -116,6 +117,7 @@ public function restore(string $id)
     $this->authorize('restore', $Grade);
     $Grade->restore();
     return response()->json([
+        'data' =>new GradeResource($Grade),
         'message' => "Restore Grade By Id Successfully."
     ]);
 }

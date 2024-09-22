@@ -9,8 +9,14 @@ class StudentExam extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'student_id',
-        'exam_id'
-
+        'user_id',
+        'exam_id',
+        'score',
+        'has_attempted'
     ];
+
+    public function isAbsent()
+    {
+        return $this->score === null;
+    }
 }

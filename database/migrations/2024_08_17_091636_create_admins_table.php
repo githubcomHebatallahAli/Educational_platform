@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'notActive'])->default('active')->nullable();
             $table->string('adminPhoNum');
             $table->string('subject');
+            $table->string('img')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

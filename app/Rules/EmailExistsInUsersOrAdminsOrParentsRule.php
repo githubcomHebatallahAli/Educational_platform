@@ -3,6 +3,7 @@
 namespace App\Rules;
 
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class EmailExistsInUsersOrAdminsOrParentsRule implements ValidationRule
@@ -23,4 +24,4 @@ class EmailExistsInUsersOrAdminsOrParentsRule implements ValidationRule
     }
 }
     }
-}
+

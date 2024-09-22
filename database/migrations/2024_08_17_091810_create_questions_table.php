@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->text('question');
+            $table->string('choice_1');
+            $table->string('choice_2');
+            $table->string('choice_3');
+            $table->string('choice_4');
+            $table->enum('correct_choice', ['choice_1', 'choice_2', 'choice_3', 'choice_4']);
             $table->foreignId('exam_id')->constrained('exams')->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();

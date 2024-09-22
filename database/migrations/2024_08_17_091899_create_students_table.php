@@ -12,10 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $isPay =Student::isPay;
-        Schema::create('students', function (Blueprint $table)use ($isPay) {
+
+        Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->enum('isPay',$isPay)->default($isPay[0]);
+            $table->enum('isPay',['pay','notPay'])->default('notPay')->nullable();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();

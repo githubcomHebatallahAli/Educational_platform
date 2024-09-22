@@ -22,8 +22,12 @@ class StudentRegisterResource extends JsonResource
             'studentPhoNum' => $this -> studentPhoNum ,
             'parentPhoNum' => $this -> parentPhoNum ,
             'governorate' => $this -> governorate ,
+            'parent_code'  => $this -> parent_code,
+            'img' => $this -> img,
             'grade' => new GradeResource($this->grade),
             'parnt' => new ParentRegisterResource($this->parent),
+
+
         ];
     }
 }

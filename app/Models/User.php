@@ -27,7 +27,11 @@ class User extends Authenticatable implements JWTSubject
         'parentPhoNum',
         'grade_id',
         'governorate',
+        'parnt_id',
+        'img',
+        'parent_code',
         'email_verified_at',
+
     ];
 
     /**
@@ -79,24 +83,43 @@ class User extends Authenticatable implements JWTSubject
 
     public function student()
     {
-        return $this->hasOne(Student::class);
+        return $this->hasMany(Student::class);
     }
+
+    public function courses()
+{
+    return $this->belongsToMany(Course::class, 'student_courses')
+                ->withPivot('purchase_date', 'status');
+}
 
     public function grade()
     {
         return $this->belongsTo(Grade::class);
     }
 
+
     public function parent()
-    {
-        return $this->belongsTo(Parnt::class);
-    }
+{
+    return $this->belongsTo(Parnt::class, 'parnt_id');
+}
 
 
 
     public function contactUs()
     {
         return $this->hasMany(ContactUs::class);
+    }
+
+    public function exams()
+    {
+        return $this->belongsToMany(Exam::class,'student_exams')
+                    ->withPivot('score', 'has_attempted')
+                    ->withTimestamps();
+    }
+
+    public function Answers()
+    {
+        return $this->hasMany(Answer::class, 'user_id');
     }
 
 

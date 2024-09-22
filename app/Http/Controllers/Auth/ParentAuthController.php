@@ -69,7 +69,7 @@ class ParentAuthController extends Controller
         // $admin->notify(new EmailVerificationNotification());
 
         return response()->json([
-            'message' => 'Admin Registration successful',
+            'message' => 'Parent Registration successful',
             'parent' =>new ParentRegisterResource($parent)
         ]);
     }
@@ -128,7 +128,7 @@ class ParentAuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => auth()->guard('parnt')->factory()->getTTL() * 60,
             // 'parent' => auth()->guard('parnt')->user(),
-           
+
             'parent' => $parent,
         ]);
     }

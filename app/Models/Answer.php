@@ -10,15 +10,15 @@ class Answer extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = [
-        'student_id',
+        'user_id',
         'exam_id',
         'question_id',
-        'choice_id',
+        'selected_choice'
     ];
 
     public function student()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function exam()
@@ -29,13 +29,8 @@ class Answer extends Model
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Question::class, 'question_id');
     }
 
-
-    public function choice()
-    {
-        return $this->belongsTo(Choice::class);
-    }
 
 }

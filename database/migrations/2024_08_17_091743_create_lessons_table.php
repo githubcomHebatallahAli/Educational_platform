@@ -17,7 +17,13 @@ return new class extends Migration
             $table->string('poster')->nullable();
             $table->string('video')->nullable();
             $table->string('ExplainPdf')->nullable();
+            $table->text('description')->nullable();
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
+            $table->foreignId('lec_id')->constrained('lecs')->cascadeOnDelete();
+            $table->time('duration')->nullable();
+            $table->integer('numOfPdf')->nullable();
+            $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
+            // $table->foreignId('month_id')->constrained('months')->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

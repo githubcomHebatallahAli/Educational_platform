@@ -6,8 +6,8 @@ use App\Models\Role;
 
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\RoleRequest;
-use App\Http\Resources\Admin\RoleResource;
+use App\Http\Requests\Admin\MainRequest;
+use App\Http\Resources\Admin\MainResource;
 
 class RoleController extends Controller
 {
@@ -19,26 +19,24 @@ class RoleController extends Controller
 
       $Roles = Role::get();
       return response()->json([
-          'data' => RoleResource::collection($Roles),
+          'data' => MainResource::collection($Roles),
           'message' => "Show All Roles Successfully."
       ]);
   }
 
 
-  public function create(RoleRequest $request)
+  public function create(MainRequest $request)
   {
-      // $this->authorize('manage_users');
+      $this->authorize('manage_users');
 
          $Role =Role::create ([
-
               "name" => $request->name
           ]);
          $Role->save();
          return response()->json([
-          'data' =>new RoleResource($Role),
+          'data' =>new MainResource($Role),
           'message' => "Role Created Successfully."
       ]);
-
       }
 
 
@@ -54,14 +52,14 @@ class RoleController extends Controller
       }
 
       return response()->json([
-          'data' =>new RoleResource($Role),
+          'data' =>new MainResource($Role),
           'message' => "Edit Role By ID Successfully."
       ]);
   }
 
 
 
-  public function update(RoleRequest $request, string $id)
+  public function update(MainRequest $request, string $id)
   {
       $this->authorize('manage_users');
      $Role =Role::findOrFail($id);
@@ -77,7 +75,7 @@ class RoleController extends Controller
 
      $Role->save();
      return response()->json([
-      'data' =>new RoleResource($Role),
+      'data' =>new MainResource($Role),
       'message' => " Update Role By Id Successfully."
   ]);
 
@@ -87,18 +85,33 @@ class RoleController extends Controller
 
   public function destroy(string $id)
   {
-      return $this->destroyModel(Role::class, RoleResource::class, $id);
+      return $this->destroyModel(Role::class, MainResource::class, $id);
   }
 
-  public function showDeleted()
-  {
-      return $this->showDeletedModels(Role::class, RoleResource::class);
-  }
+  public function showDeleted(){
+    $this->authorize('manage_users');
+$Roles=Role::onlyTrashed()->get();
+return response()->json([
+    'data' =>MainResource::collection($Roles),
+    'message' => "Show Deleted Roles Successfully."
+]);
+}
 
-  public function restore(string $id)
-  {
-      return $this->restoreModel(Role::class, $id);
-  }
+public function restore(string $id)
+{
+   $this->authorize('manage_users');
+$Role = Role::withTrashed()->where('id', $id)->first();
+if (!$Role) {
+    return response()->json([
+        'message' => "Role not found."
+    ], 404);
+}
+$Role->restore();
+return response()->json([
+    'data' =>new MainResource($Role),
+    'message' => "Restore Role By Id Successfully."
+]);
+}
 
   public function forceDelete(string $id)
   {

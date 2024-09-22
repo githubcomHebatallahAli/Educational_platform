@@ -23,13 +23,20 @@ class Grade extends Model
     {
         return $this->hasMany(User::class);
     }
+
     public function lessons()
     {
         return $this->hasMany(Lesson::class);
     }
+
     public function exams()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Exam::class);
+    }
+
+    public function mainCourses()
+    {
+        return $this->hasMany(MainCourse::class);
     }
 
 }

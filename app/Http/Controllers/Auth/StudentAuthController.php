@@ -50,7 +50,7 @@ class StudentAuthController extends Controller
                 ));
                 // $user->notify(new EmailVerificationNotification());
         return response()->json([
-            'message' => 'Registration successful!',
+            'message' => 'Student Registration successful',
             'student' =>new StudentRegisterResource($user)
         ], 201);
     }

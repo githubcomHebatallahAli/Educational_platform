@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('parentPhoNum');
+            $table->string('img')->nullable();
+            $table->string('code', 10)->unique()->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

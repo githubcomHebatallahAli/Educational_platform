@@ -15,9 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->integer('totalMarke');
-            $table->decimal('duration',5 ,2);
+            $table->time('duration')->nullable();
             $table->string('examNumber');
+            $table->integer('numOfQ');
+            $table->timestamp('deadLineExam')->nullable();
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
+            $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
+            $table->foreignId('lesson_id')->nullable()->constrained('lessons')->cascadeOnDelete();
+            $table->foreignId('test_id')->constrained('tests')->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

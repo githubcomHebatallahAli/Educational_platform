@@ -19,7 +19,8 @@ class ParentRegisterResource extends JsonResource
             'name'=>$this->name,
             'email'=>$this->email,
             'parentPhoNum' => $this -> parentPhoNum ,
-           
+            'code' => $this -> code,
+            'img' => $this -> img
         ];
     }
 }

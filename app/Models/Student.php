@@ -15,31 +15,21 @@ class Student extends Model
 
     ];
 
-    const isPay = [
-        'pay',
-        'notPay'
-    ];
-
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
+
+
 
     public function lessons()
     {
         return $this->belongsToMany(Lesson::class, 'student_lessons');
     }
 
-    public function exams()
-    {
-        return $this->belongsToMany(Exam::class)
-                    ->withPivot('score', 'has_attempted')
-                    ->withTimestamps();
-    }
 
 
-    public function Answers()
-    {
-        return $this->hasMany(Answer::class);
-    }
+
+   
 }

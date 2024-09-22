@@ -30,6 +30,8 @@ class StudentRegisterRequest extends FormRequest
             'parentPhoNum' =>'required|string',
             'studentPhoNum' =>'required|string',
             'governorate' => 'required|string',
+            'parent_code' => 'nullable|string',
+            'img.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
             'grade_id' => 'required|exists:grades,id',
             'parnt_id' => 'nullable|exists:parnts,id'
         ];
