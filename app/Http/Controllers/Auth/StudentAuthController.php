@@ -45,15 +45,15 @@ class StudentAuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        $defaultProfilePicture = 'default_profile_picture.png';
+        // $defaultProfilePicture = 'default_profile_picture.png';
 
         if ($request->hasFile('img')) {
 
             $imagePath = $request->file('img')->store(User::storageFolder);
-        } else {
+        // } else {
 
-            $imagePath = $defaultProfilePicture;
-        }
+        //     $imagePath = $defaultProfilePicture;
+        // }
 
 
         $user = User::create(array_merge(
