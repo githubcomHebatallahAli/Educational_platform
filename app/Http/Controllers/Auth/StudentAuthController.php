@@ -53,7 +53,7 @@ class StudentAuthController extends Controller
         // } else {
 
         //     $imagePath = $defaultProfilePicture;
-        // }
+        }
 
 
         $user = User::create(array_merge(
