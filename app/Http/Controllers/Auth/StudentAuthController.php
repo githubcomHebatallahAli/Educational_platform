@@ -37,37 +37,65 @@ class StudentAuthController extends Controller
 
 
 
-    public function register(StudentRegisterRequest $request) {
-        $validator = Validator::make($request->all(), $request->rules()
+    // public function register(StudentRegisterRequest $request) {
+    //     $validator = Validator::make($request->all(), $request->rules()
 
-        );
-        if($validator->fails()){
+    //     );
+    //     if($validator->fails()){
+    //         return response()->json($validator->errors()->toJson(), 400);
+    //     }
+
+
+
+    //     if ($request->hasFile('img')) {
+
+    //         $imagePath = $request->file('img')->store(User::storageFolder);
+    //     }
+
+
+    //     $user = User::create(array_merge(
+    //                 $validator->validated(),
+    //                 ['password' => bcrypt($request->password)],
+    //                 ['img' => $imagePath]
+    //             ));
+    //             // $user->notify(new EmailVerificationNotification());
+    //     return response()->json([
+    //         'message' => 'Student Registration successful',
+    //         'student' =>new StudentRegisterResource($user)
+    //     ], 201);
+    // }
+
+    public function register(StudentRegisterRequest $request) {
+        $validator = Validator::make($request->all(), $request->rules());
+
+        if ($validator->fails()) {
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        // $defaultProfilePicture = 'default_profile_picture.png';
-
+        // التحقق من وجود صورة في الطلب
         if ($request->hasFile('img')) {
-
             $imagePath = $request->file('img')->store(User::storageFolder);
-        // } else {
-
-        //     $imagePath = $defaultProfilePicture;
         }
 
+        // إعداد بيانات المستخدم
+        $userData = array_merge(
+            $validator->validated(),
+            ['password' => bcrypt($request->password)]
+        );
 
-        $user = User::create(array_merge(
-                    $validator->validated(),
-                    ['password' => bcrypt($request->password)],
-                    ['img' => $imagePath]
-                ));
-                // $user->notify(new EmailVerificationNotification());
+        // إضافة الصورة إذا كانت موجودة
+        if (isset($imagePath)) {
+            $userData['img'] = $imagePath;
+        }
+
+        // إنشاء المستخدم
+        $user = User::create($userData);
+
         return response()->json([
             'message' => 'Student Registration successful',
-            'student' =>new StudentRegisterResource($user)
+            'student' => new StudentRegisterResource($user)
         ], 201);
     }
-
 
     public function logout() {
         auth()->guard('api')->logout();
