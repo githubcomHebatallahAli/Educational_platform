@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ImgRequest;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\Auth\UpdateStudentRequest;
+
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class UpdateController extends Controller
