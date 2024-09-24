@@ -35,22 +35,18 @@ class UpdateController extends Controller
     $Student= auth()->guard('api')->user();
     $Student = User::findOrFail($id);
 
+    $Student->update([
+        "parent_code" => $request->parent_code
+        ]);
 
-    if ($request->filled('parent_code')) {
-        $Student->parent_code = $request->parent_code;
         $Student->save();
 
         return response()->json([
             'data' => new StudentRegisterResource($Student),
             'message' => "Parent code updated successfully."
         ]);
-    }
 
-    return response()->json([
-        'message' => "No parent code provided."
-    ], 400);
 }
-
 
 }
 
