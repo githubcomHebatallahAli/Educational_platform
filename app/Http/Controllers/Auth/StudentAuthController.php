@@ -44,9 +44,22 @@ class StudentAuthController extends Controller
         if($validator->fails()){
             return response()->json($validator->errors()->toJson(), 400);
         }
+
+        $defaultProfilePicture = 'default_profile_picture.png';
+        
+        if ($request->hasFile('img')) {
+
+            $imagePath = $request->file('img')->store(User::storageFolder);
+        } else {
+
+            $imagePath = $defaultProfilePicture;
+        }
+
+
         $user = User::create(array_merge(
                     $validator->validated(),
-                    ['password' => bcrypt($request->password)]
+                    ['password' => bcrypt($request->password)],
+                    ['profile_picture' => $imagePath]
                 ));
                 // $user->notify(new EmailVerificationNotification());
         return response()->json([

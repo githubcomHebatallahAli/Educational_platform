@@ -15,11 +15,13 @@ class CheckCourseAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
+
         $user = auth()->guard('api')->user();
 
         $courseId = $request->route('id');
-        {
-            // dd($request->course_id);
+
+         
+
         if ($user && $user->courses()->where('course_id', $courseId)->wherePivot('status', 'paid')->exists()) {
             return $next($request);
         }
@@ -29,4 +31,4 @@ class CheckCourseAccess
     }
     }
 
-}
+

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Exam;
+use App\Models\User;
 use App\Models\Parnt;
 use App\Models\Answer;
 use App\Models\Student;
@@ -17,6 +18,7 @@ use App\Http\Resources\Admin\StudentResource;
 use App\Http\Requests\Admin\StudentExamRequest;
 use App\Http\Resources\Admin\LessonCourseResource;
 use App\Http\Resources\Admin\ExamQuestionsResource;
+use App\Http\Resources\Auth\StudentRegisterResource;
 
 class ExamController extends Controller
 {
@@ -111,7 +113,7 @@ public function showExamResults($examId, $studentId)
 {
     $this->authorize('manage_users');
 
-    $student = Student::find($studentId);
+    $student = User::find($studentId);
     if (!$student) {
         return response()->json([
             'message' => 'الطالب غير موجود.'
@@ -119,11 +121,9 @@ public function showExamResults($examId, $studentId)
     }
 
 
-
-    // استرجاع بيانات الامتحان والإجابات
     $answers = Answer::with('question.exam')
         ->where('exam_id', $examId)
-        ->where('student_id', $studentId)
+        ->where('user_id', $studentId)
         ->get();
 
     if ($answers->isEmpty()) {
@@ -170,7 +170,7 @@ public function showExamResults($examId, $studentId)
     $score = ($correctAnswers / $totalQuestions) * 100;
 
     // استرجاع تفاصيل الطالب
-    $studentResource = new StudentResource($student);
+    $studentResource = new StudentRegisterResource($student);
 
     return response()->json([
         'exam' => $exam,

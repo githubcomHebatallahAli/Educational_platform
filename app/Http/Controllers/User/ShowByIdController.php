@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use Log;
 use App\Models\Exam;
 use App\Models\User;
 use App\Models\Answer;
@@ -27,70 +28,78 @@ class ShowByIdController extends Controller
         ]);
     }
 
-    public function create(AnswerRequest $request)
+
+    public function showExamResults($examId, $studentId)
 {
-    $exam = Exam::find($request->exam_id);
+    $student = User::find($studentId);
 
-    if (!$exam) {
-        return response()->json(['message' => 'Exam not found.'], 404);
-    }
+if (!$student) {
+    return response()->json(['message' => 'الطالب غير موجود.'], 404);
+}
 
-    $courseId = $exam->course_id;
-
-    // التحقق من الدفع
-    $studentPaid = StudentCourse::where('user_id', $request->user_id)
-                               ->where('course_id', $courseId) // استخدم $courseId المستخرج من الامتحان
-                               ->where('status', 'paid') // تأكيد حالة الدفع
-                               ->first();
-
-    if (!$studentPaid) {
+// تحقق من توثيق الطالب
+$user = auth()->guard('api')->user();
+if ($user) {
+    if ($user->id !== $student->id) {
         return response()->json([
-            'message' => 'You have not paid for this course and cannot take the exam.'
+            'message' => 'Unauthorized access.',
+            'user_id' => $user->id,
+            'student_id' => $student->id,
+            'parnt_id' => $student->parnt_id,
         ], 403);
     }
-    $studentExam = StudentExam::where('user_id', $request->user_id)
-                              ->where('exam_id', $request->exam_id)
-                              ->where('has_attempted', true)
-                              ->first();
-    if ($studentExam) {
+} else {
+    // تحقق من توثيق ولي الأمر
+    $parnt = auth()->guard('parnt')->user();
+    if (!$parnt) {
+        return response()->json(['message' => 'Unauthenticated parent.'], 401);
+    }
+
+    if ($parnt->id !== $student->parnt_id) {
         return response()->json([
-            'message' => 'You have already taken this exam and cannot take it again.'
+            'message' => 'Unauthorized access.',
+            'user_id' => $parnt->id,
+            'student_id' => $student->id,
+            'parnt_id' => $student->parnt_id,
         ], 403);
     }
 
+    return response()->json([
+        'message' => 'Parent authenticated.', 'parnt_id' => $parnt->id
+    ]);
+}
 
+    $answers = Answer::with('question.exam')
+        ->where('exam_id', $examId)
+        ->where('user_id', $studentId)
+        ->get();
+
+    if ($answers->isEmpty()) {
+        return response()->json([
+            'message' => 'لا توجد إجابات لهذا الامتحان.'
+        ], 404);
+    }
+
+    // حساب عدد الإجابات الصحيحة والدرجة
+    $correctAnswers = 0;
+    $totalQuestions = $answers->count();
     $exam = null;
-    $answers = [];
-    $student = null;
-    $correctAnswers = 0; // عدد الإجابات الصحيحة
-    $totalQuestions = count($request->answers); // العدد الإجمالي للأسئلة
+    $answersDetail = [];
 
-    foreach ($request->answers as $answer) {
-        $createdAnswer = Answer::create([
-            'user_id' => $request->user_id,
-            'exam_id' => $request->exam_id,
-            'question_id' => $answer['question_id'],
-            'selected_choice' => $answer['selected_choice'],
-        ]);
+    foreach ($answers as $answer) {
+        $question = $answer->question;
+        $is_correct = $question->correct_choice === $answer->selected_choice;
 
-        // الحصول على السؤال ومقارنته بالإجابة الصحيحة
-        $question = Question::with('exam')->find($answer['question_id']);
-        $is_correct = $question->correct_choice === $answer['selected_choice'];
-
-        // إذا كانت الإجابة صحيحة، يتم زيادة عدد الإجابات الصحيحة
         if ($is_correct) {
             $correctAnswers++;
         }
 
+        // أول مرة، نجلب تفاصيل الامتحان
         if (!$exam) {
             $exam = new ExamResource($question->exam);
         }
 
-        if (!$student) {
-            $student = new StudentRegisterResource(User::find($request->user_id));
-        }
-
-        $answers[] = [
+        $answersDetail[] = [
             'question_id' => $question->id,
             'question_text' => $question->question,
             'choices' => [
@@ -100,7 +109,7 @@ class ShowByIdController extends Controller
                 'choice_4' => $question->choice_4,
             ],
             'correct_choice' => $question->correct_choice,
-            'student_choice' => $answer['selected_choice'],
+            'student_choice' => $answer->selected_choice,
             'is_correct' => $is_correct,
         ];
     }
@@ -108,19 +117,132 @@ class ShowByIdController extends Controller
     // حساب النسبة المئوية للدرجة
     $score = ($correctAnswers / $totalQuestions) * 100;
 
-    // تحديث جدول student_exams لتسجيل درجة الطالب وحالة المحاولة
-    StudentExam::updateOrCreate(
-        ['user_id' => $request->user_id, 'exam_id' => $request->exam_id],
-        ['score' => $score, 'has_attempted' => true]
-    );
+    // استرجاع تفاصيل الطالب
+    $studentResource = new StudentRegisterResource($student);
 
     return response()->json([
         'exam' => $exam,
-        'student' => $student,
-        'data' => $answers,
+        'student' => $studentResource,
+        'data' => $answersDetail,
         'score' => $score, // عرض الدرجة في الـ API
-        'message' => 'Answers submitted and scored successfully.',
+        'message' => 'تم عرض نتائج الامتحان بنجاح.',
+    ]);
+
+}
+
+
+public function showExamResults1($examId, $studentId, $parntId)
+{
+    $student = User::find($studentId);
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
+
+    // تحقق من توثيق الطالب
+    $user = auth()->guard('api')->user();
+    if ($user) {
+        if ($user->id !== $student->id) {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+    } else {
+        // تحقق من توثيق ولي الأمر
+        $parnt = auth()->guard('parnt')->user();
+        if (!$parnt) {
+            return response()->json(['message' => 'Unauthorized access parent.'], 403);
+        }
+
+        // تحقق من المطابقة مع ID ولي الأمر المدخل
+        if ($parnt->id !== $parntId) {
+            return response()->json([
+                'message' => 'Unauthorized access parent.',
+                'entered_parent_id' => $parntId,
+                'student_id' => $student->id,
+                'expected_parent_id' => $parnt->id
+            ], 403);
+        }
+
+        return response()->json(['message' => 'Parent authenticated.', 'parnt_id' => $parnt->id]);
+    }
+
+
+    $answers = Answer::with('question.exam')
+        ->where('exam_id', $examId)
+        ->where('user_id', $studentId)
+        ->get();
+
+    if ($answers->isEmpty()) {
+        return response()->json([
+            'message' => 'لا توجد إجابات لهذا الامتحان.'
+        ], 404);
+    }
+
+    // حساب عدد الإجابات الصحيحة والدرجة
+    $correctAnswers = 0;
+    $totalQuestions = $answers->count();
+    $exam = null;
+    $answersDetail = [];
+
+    foreach ($answers as $answer) {
+        $question = $answer->question;
+        $is_correct = $question->correct_choice === $answer->selected_choice;
+
+        if ($is_correct) {
+            $correctAnswers++;
+        }
+
+        // أول مرة، نجلب تفاصيل الامتحان
+        if (!$exam) {
+            $exam = new ExamResource($question->exam);
+        }
+
+        $answersDetail[] = [
+            'question_id' => $question->id,
+            'question_text' => $question->question,
+            'choices' => [
+                'choice_1' => $question->choice_1,
+                'choice_2' => $question->choice_2,
+                'choice_3' => $question->choice_3,
+                'choice_4' => $question->choice_4,
+            ],
+            'correct_choice' => $question->correct_choice,
+            'student_choice' => $answer->selected_choice,
+            'is_correct' => $is_correct,
+        ];
+    }
+
+    // حساب النسبة المئوية للدرجة
+    $score = ($correctAnswers / $totalQuestions) * 100;
+
+    // استرجاع تفاصيل الطالب
+    $studentResource = new StudentRegisterResource($student);
+
+    return response()->json([
+        'exam' => $exam,
+        'student' => $studentResource,
+        'data' => $answersDetail,
+        'score' => $score, // عرض الدرجة في الـ API
+        'message' => 'تم عرض نتائج الامتحان بنجاح.',
+    ]);
+
+}
+
+
+
+
+public function testAuth()
+{
+    $user = auth()->guard('api')->user();
+    $parnt = auth()->guard('parnt')->user();
+
+    return response()->json([
+        'user' => $user,
+        'parnt' => $parnt
     ]);
 }
+
+
+
+
+
 
 }

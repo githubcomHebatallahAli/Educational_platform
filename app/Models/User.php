@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable , SoftDeletes;
+    const storageFolder= 'Student';
 
     /**
      * The attributes that are mass assignable.

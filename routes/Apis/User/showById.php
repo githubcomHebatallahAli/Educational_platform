@@ -12,5 +12,18 @@ Route::controller(ShowByIdController::class)
     function () {
 
    Route::get('/show/course/{id}/with/all/lessonsAndExams','studentShowCourse');
-   Route::post('/create/answer', 'create');
+
+});
+
+Route::controller(ShowByIdController::class)
+->prefix('/student')
+// ->middleware('auth:api')
+
+->group(
+    function () {
+
+        Route::get('show/exam/{examId}/student/{studentId}/results', 'showExamResults');
+        Route::get('show/exam/{examId}/student/{studentId}/parent/{parentId}/results', 'showExamResults1');
+        Route::get('show', 'testAuth');
+
 });
