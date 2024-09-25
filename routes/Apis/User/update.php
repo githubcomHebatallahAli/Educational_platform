@@ -28,7 +28,7 @@ Route::controller(UpdateController::class)
 
 Route::controller(UpdateController::class)
 ->prefix('/parent')
-->middleware('auth:parnt')
+->middleware('parent')
 ->group(
     function () {
 
