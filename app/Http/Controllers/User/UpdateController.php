@@ -12,7 +12,7 @@ use App\Http\Resources\Auth\StudentRegisterResource;
 
 class UpdateController extends Controller
 {
-    public function updateProfilePicture(ImgRequest $request)
+    public function studentUpdateProfilePicture(ImgRequest $request)
 {
     $Student= auth()->guard('api')->user();
     if ($request->hasFile('img')) {
@@ -47,6 +47,41 @@ class UpdateController extends Controller
         ]);
 
 }
+
+public function adminUpdateProfilePicture(ImgRequest $request)
+{
+    $Admin= auth()->guard('admin')->user();
+    if ($request->hasFile('img')) {
+        if ($Admin->img) {
+            Storage::disk('public')->delete($Admin->img);
+        }
+        $imgPath = $request->file('img')->store('Admin', 'public');
+        $Admin->img = $imgPath;
+
+    }
+    $Admin->save();
+        return response()->json([
+            'message' => 'Profile picture updated successfully'
+        ]);
+    }
+
+
+    public function parentUpdateProfilePicture(ImgRequest $request)
+{
+    $Parent= auth()->guard('parnt')->user();
+    if ($request->hasFile('img')) {
+        if ($Parent->img) {
+            Storage::disk('public')->delete($Parent->img);
+        }
+        $imgPath = $request->file('img')->store('Parent', 'public');
+        $Parent->img = $imgPath;
+
+    }
+    $Parent->save();
+        return response()->json([
+            'message' => 'Profile picture updated successfully'
+        ]);
+    }
 
 }
 

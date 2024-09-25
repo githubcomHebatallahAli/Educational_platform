@@ -2,10 +2,10 @@
 
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\mainCourseController;
+use App\Http\Controllers\Admin\MainCourseController;
 
 
-Route::controller(mainCourseController::class)->prefix('/admin')->middleware('admin')->group(
+Route::controller(MainCourseController::class)->prefix('/admin')->middleware('admin')->group(
     function () {
 
    Route::get('/showAll/mainCourse','showAll');

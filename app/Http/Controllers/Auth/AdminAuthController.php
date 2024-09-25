@@ -13,7 +13,7 @@ use App\Http\Resources\Auth\AdminRegisterResource;
 
 class AdminAuthController extends Controller
 {
- 
+
 
     /**
      * Get a JWT via given credentials.
@@ -62,11 +62,20 @@ class AdminAuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        $admin = Admin::create(array_merge(
-            $validator->validated(),
-            ['password' => bcrypt($request->password), ]
+        if ($request->hasFile('img')) {
+            $imagePath = $request->file('img')->store(Admin::storageFolder);
+        }
 
-        ));
+        $adminData = array_merge(
+            $validator->validated(),
+            ['password' => bcrypt($request->password)]
+        );
+
+        if (isset($imagePath)) {
+            $adminData['img'] = $imagePath;
+        }
+
+        $admin = Admin::create($adminData);
 
         $admin->save();
         // $admin->notify(new EmailVerificationNotification());

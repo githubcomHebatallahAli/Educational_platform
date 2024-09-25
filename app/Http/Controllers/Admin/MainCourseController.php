@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\User;
+
 use App\Models\Grade;
 use App\Models\MainCourse;
 use App\Traits\ManagesModelsTrait;
@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Requests\Admin\MainCourseRequest;
 use App\Http\Resources\Admin\MainCourseResource;
-use App\Http\Requests\Admin\StudentCourseRequest;
-use App\Http\Resources\Admin\StudentCourseResource;
-use App\Http\Resources\Auth\StudentRegisterResource;
+
 
 class MainCourseController extends Controller
 {

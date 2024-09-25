@@ -72,23 +72,19 @@ class StudentAuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        // التحقق من وجود صورة في الطلب
         if ($request->hasFile('img')) {
             $imagePath = $request->file('img')->store(User::storageFolder);
         }
 
-        // إعداد بيانات المستخدم
         $userData = array_merge(
             $validator->validated(),
             ['password' => bcrypt($request->password)]
         );
 
-        // إضافة الصورة إذا كانت موجودة
         if (isset($imagePath)) {
             $userData['img'] = $imagePath;
         }
 
-        // إنشاء المستخدم
         $user = User::create($userData);
 
         return response()->json([
@@ -96,6 +92,7 @@ class StudentAuthController extends Controller
             'student' => new StudentRegisterResource($user)
         ], 201);
     }
+
 
     public function logout() {
         auth()->guard('api')->logout();

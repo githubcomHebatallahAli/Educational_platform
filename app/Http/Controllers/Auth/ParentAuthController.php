@@ -59,11 +59,20 @@ class ParentAuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        $parent = Parnt::create(array_merge(
-            $validator->validated(),
-            ['password' => bcrypt($request->password), ]
+        if ($request->hasFile('img')) {
+            $imagePath = $request->file('img')->store(Parnt::storageFolder);
+        }
 
-        ));
+        $parentData = array_merge(
+            $validator->validated(),
+            ['password' => bcrypt($request->password)]
+        );
+
+        if (isset($imagePath)) {
+            $parentData['img'] = $imagePath;
+        }
+
+        $parent = Parnt::create($parentData);
 
         $parent->save();
         // $admin->notify(new EmailVerificationNotification());

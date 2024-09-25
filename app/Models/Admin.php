@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Admin  extends Authenticatable  implements JWTSubject
 {
     use HasFactory , Notifiable, SoftDeletes ;
+    const storageFolder= 'Admin';
 
     protected $fillable = [
         'name',
