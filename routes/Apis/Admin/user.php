@@ -10,7 +10,6 @@ Route::controller(UserController::class)->prefix('/admin')->middleware('admin')-
     function () {
 
    Route::get('/showAll/user','showAll');
-   Route::post('/create/user', 'create');
    Route::get('/edit/user/{id}','edit');
    Route::post('/update/user/{id}', 'update');
    Route::delete('/delete/user/{id}', 'destroy');
