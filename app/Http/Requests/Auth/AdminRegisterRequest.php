@@ -28,7 +28,7 @@ class AdminRegisterRequest extends FormRequest
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:admins',
             'password' => 'required|string|confirmed|min:6',
-            'role_id' => 'required|string',
+            'role_id' => 'nullable|exists:roles,id',
             'adminPhoNum' =>'required|string',
             'status' => 'nullable|in:active,notActive',
             'subject' => 'nullable|string',
