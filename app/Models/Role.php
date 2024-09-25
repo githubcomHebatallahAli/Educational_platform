@@ -11,6 +11,10 @@ class Role extends Model
     use HasFactory, SoftDeletes;
     protected $fillable = [
         'name',
-
     ];
+
+    public function admin()
+    {
+        return $this->hasMany(Admin::class);
+    }
 }

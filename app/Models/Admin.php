@@ -22,6 +22,7 @@ class Admin  extends Authenticatable  implements JWTSubject
         'status',
         'subject',
         'img',
+        'role_id',
         'email_verified_at'
     ];
 
