@@ -30,7 +30,7 @@ class AdminRegisterRequest extends FormRequest
             'password' => 'required|string|confirmed|min:6',
             'role_id' => 'required|string',
             'adminPhoNum' =>'required|string',
-            'status' => 'nullable|string',
+            'status' => 'nullable|in:active,notActive',
             'subject' => 'nullable|string',
             'img.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
         ];
