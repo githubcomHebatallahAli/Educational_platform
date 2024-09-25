@@ -14,8 +14,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Parnt  extends Authenticatable  implements JWTSubject
 {
     use HasFactory , Notifiable, SoftDeletes ;
-    const storageFolder= 'Parent';
+
     protected $table = 'parnts';
+    const storageFolder= 'Parent';
 
     protected $fillable = [
         'name',
@@ -23,6 +24,7 @@ class Parnt  extends Authenticatable  implements JWTSubject
         'password',
         'parentPhoNum',
         'code',
+        'img',
         'email_verified_at'
     ];
 

@@ -61,6 +61,7 @@ class ParentAuthController extends Controller
 
         if ($request->hasFile('img')) {
             $imagePath = $request->file('img')->store(Parnt::storageFolder);
+            // dd($imagePath);
         }
 
         $parentData = array_merge(
@@ -72,9 +73,11 @@ class ParentAuthController extends Controller
             $parentData['img'] = $imagePath;
         }
 
+        // dd($parentData);
+
         $parent = Parnt::create($parentData);
 
-        $parent->save();
+        // $parent->save();
         // $admin->notify(new EmailVerificationNotification());
 
         return response()->json([
