@@ -16,15 +16,15 @@ Route::controller(UpdateController::class)
    Route::post('/update/code/{id}', 'updateCode');
 });
 
-Route::controller(UpdateController::class)
-->prefix('/admin')
-->middleware('admin')
-->group(
-    function () {
+// Route::controller(UpdateController::class)
+// ->prefix('/admin')
+// ->middleware('admin')
+// ->group(
+//     function () {
 
-   Route::post('/update/photo/{id}', 'adminUpdateProfilePicture');
+//    Route::post('/update/photo/{id}', 'adminUpdateProfilePicture');
 
-});
+// });
 
 Route::controller(UpdateController::class)
 ->prefix('/parent')

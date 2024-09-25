@@ -16,6 +16,7 @@ require __DIR__ . '/Apis/Admin/test.php';
 require __DIR__ . '/Apis/Admin/question.php';
 require __DIR__ . '/Apis/Admin/answer.php';
 require __DIR__ . '/Apis/Admin/user.php';
+require __DIR__ . '/Apis/Admin/admin.php';
 require __DIR__ . '/Apis/User/showById.php';
 require __DIR__ . '/Apis/User/create.php';
 require __DIR__ . '/Apis/User/update.php';

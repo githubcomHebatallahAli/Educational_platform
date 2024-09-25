@@ -48,22 +48,22 @@ class UpdateController extends Controller
 
 }
 
-public function adminUpdateProfilePicture(ImgRequest $request)
-{
-    $Admin= auth()->guard('admin')->user();
-    if ($request->hasFile('img')) {
-        if ($Admin->img) {
-            Storage::disk('public')->delete($Admin->img);
-        }
-        $imgPath = $request->file('img')->store('Admin', 'public');
-        $Admin->img = $imgPath;
+// public function adminUpdateProfilePicture(ImgRequest $request)
+// {
+//     $Admin= auth()->guard('admin')->user();
+//     if ($request->hasFile('img')) {
+//         if ($Admin->img) {
+//             Storage::disk('public')->delete($Admin->img);
+//         }
+//         $imgPath = $request->file('img')->store('Admin', 'public');
+//         $Admin->img = $imgPath;
 
-    }
-    $Admin->save();
-        return response()->json([
-            'message' => 'Profile picture updated successfully'
-        ]);
-    }
+//     }
+//     $Admin->save();
+//         return response()->json([
+//             'message' => 'Profile picture updated successfully'
+//         ]);
+//     }
 
 
     public function parentUpdateProfilePicture(ImgRequest $request)

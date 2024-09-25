@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Admin;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ImgRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Auth\UpdaAdminudentRequest;
 use App\Http\Resources\Auth\AdminRegisterResource;
 
@@ -106,6 +108,24 @@ class AdminController extends Controller
         return response()->json([
             'data' => new AdminRegisterResource($admin),
             'message' => 'Admin has been Active.'
+        ]);
+    }
+
+    public function adminUpdateProfilePicture(ImgRequest $request)
+{
+    $Admin= auth()->guard('admin')->user();
+    if ($request->hasFile('img')) {
+        if ($Admin->img) {
+            Storage::disk('public')->delete($Admin->img);
+        }
+        $imgPath = $request->file('img')->store('Admin', 'public');
+        $Admin->img = $imgPath;
+
+    }
+    $Admin->save();
+        return response()->json([
+            'message' => 'Profile picture updated successfully',
+            'data' => new AdminRegisterResource($Admin),
         ]);
     }
 
