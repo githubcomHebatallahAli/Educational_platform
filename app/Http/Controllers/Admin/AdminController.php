@@ -124,7 +124,7 @@ class AdminController extends Controller
     }
     $Admin->save();
         return response()->json([
-            'message' => 'Profile picture updated successfully',
+            'message' => 'Profile photo updated successfully',
             'data' => new AdminRegisterResource($Admin),
         ]);
     }

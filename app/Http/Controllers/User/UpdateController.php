@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ImgRequest;
 use Illuminate\Support\Facades\Storage;
 
+use App\Http\Resources\Auth\ParentRegisterResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class UpdateController extends Controller
@@ -25,6 +26,7 @@ class UpdateController extends Controller
     }
     $Student->save();
         return response()->json([
+         'data' => new StudentRegisterResource($Student),
             'message' => 'Profile picture updated successfully'
         ]);
     }
@@ -48,22 +50,7 @@ class UpdateController extends Controller
 
 }
 
-// public function adminUpdateProfilePicture(ImgRequest $request)
-// {
-//     $Admin= auth()->guard('admin')->user();
-//     if ($request->hasFile('img')) {
-//         if ($Admin->img) {
-//             Storage::disk('public')->delete($Admin->img);
-//         }
-//         $imgPath = $request->file('img')->store('Admin', 'public');
-//         $Admin->img = $imgPath;
 
-//     }
-//     $Admin->save();
-//         return response()->json([
-//             'message' => 'Profile picture updated successfully'
-//         ]);
-//     }
 
 
     public function parentUpdateProfilePicture(ImgRequest $request)
@@ -79,6 +66,7 @@ class UpdateController extends Controller
     }
     $Parent->save();
         return response()->json([
+            'data' => new ParentRegisterResource($Parent),
             'message' => 'Profile picture updated successfully'
         ]);
     }
