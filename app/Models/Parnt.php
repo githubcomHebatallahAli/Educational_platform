@@ -48,6 +48,11 @@ class Parnt  extends Authenticatable  implements JWTSubject
         return $this->hasMany(User::class, 'parnt_id');
     }
 
+//     public function hasStudent($studentId)
+// {
+//     return $this->users()->where('id', $studentId)->exists();
+// }
+
     public function students()
 {
     return $this->hasMany(Student::class, 'parent_id', 'id'); // assuming parent_id is foreign key

@@ -6,10 +6,13 @@ use App\Models\Exam;
 use App\Models\User;
 use App\Models\Answer;
 use App\Models\Question;
+use App\Models\ContactUs;
 use App\Models\StudentExam;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ContactRequest;
+use App\Http\Resources\ContactResource;
 use App\Http\Requests\Admin\AnswerRequest;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
@@ -114,4 +117,19 @@ class CreateController extends Controller
 
 
 }
+
+public function createContactUs(ContactRequest $request)
+{
+       $Contact =ContactUs::create ([
+            "name" => $request->name,
+            "phoneNumber" => $request->phoneNumber,
+            "message" => $request->message,
+        ]);
+       $Contact->save();
+       return response()->json([
+        'data' =>new ContactResource($Contact),
+        'message' => "Contact Created Successfully."
+    ]);
+
+    }
 }

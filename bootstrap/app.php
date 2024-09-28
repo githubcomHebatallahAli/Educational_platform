@@ -22,7 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \App\Http\Middleware\AuthenticateMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'parent' => \App\Http\Middleware\ParentMiddleware::class,
-            'checkCourseAccess' => \App\Http\Middleware\CheckCourseAccess::class
+            'checkCourseAccess' => \App\Http\Middleware\CheckCourseAccess::class,
+            'general' => \App\Http\Middleware\GeneralMiddleware::class
         ]);
 
     })

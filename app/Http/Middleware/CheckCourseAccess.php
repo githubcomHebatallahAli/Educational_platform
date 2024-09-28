@@ -20,7 +20,7 @@ class CheckCourseAccess
 
         $courseId = $request->route('id');
 
-         
+
 
         if ($user && $user->courses()->where('course_id', $courseId)->wherePivot('status', 'paid')->exists()) {
             return $next($request);
@@ -29,6 +29,7 @@ class CheckCourseAccess
 
         return response()->json(['error' => 'Unauthorized access to this course.'], 403);
     }
+
     }
 
 

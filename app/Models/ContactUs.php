@@ -10,18 +10,17 @@ class ContactUs extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = [
+        'name',
         'phoneNumber',
-        'message',
-        'user_id',
-        'parnt_id'
+        'message'
     ];
 
-       public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-       public function parnt()
-    {
-        return $this->belongsTo(Parnt::class);
-    }
+    //    public function user()
+    // {
+    //     return $this->belongsTo(User::class);
+    // }
+    //    public function parnt()
+    // {
+    //     return $this->belongsTo(Parnt::class);
+    // }
 }

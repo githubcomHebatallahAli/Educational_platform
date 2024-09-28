@@ -30,6 +30,7 @@ class ResetPasswordRequest extends FormRequest
             'password' =>['required','min:6']
         ];
     }
+    
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

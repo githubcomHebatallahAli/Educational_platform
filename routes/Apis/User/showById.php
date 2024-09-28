@@ -16,14 +16,12 @@ Route::controller(ShowByIdController::class)
 });
 
 Route::controller(ShowByIdController::class)
-->prefix('/student')
-// ->middleware('auth:api')
+//   ->middleware(['auth:api', 'auth:parent', 'general'])
 
 ->group(
     function () {
 
         Route::get('show/exam/{examId}/student/{studentId}/results', 'showExamResults');
-        Route::get('show/exam/{examId}/student/{studentId}/parent/{parentId}/results', 'showExamResults1');
-        Route::get('show', 'testAuth');
+        
 
 });

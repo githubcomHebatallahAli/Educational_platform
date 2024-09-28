@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Contracts\Validation\Validator;
 
 class UpdateStudentRequest extends FormRequest
 {
@@ -32,5 +34,14 @@ class UpdateStudentRequest extends FormRequest
             'grade_id' => 'required|exists:grades,id',
             'parnt_id' => 'nullable|exists:parnts,id'
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Validation errors',
+            'data'      => $validator->errors()
+        ]));
     }
 }

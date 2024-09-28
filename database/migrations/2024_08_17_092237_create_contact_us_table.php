@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('contact_us', function (Blueprint $table) {
             $table->id();
-            $table->text('message');
+            $table->string('name');
             $table->string('phoneNumber');
-            $table->foreignId('parnt_id')->nullable()->constrained('parnts')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->text('message');
             $table->softDeletes();
             $table->timestamps();
         });

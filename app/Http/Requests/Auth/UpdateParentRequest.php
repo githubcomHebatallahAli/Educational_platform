@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class UpdaAdminudentRequest extends FormRequest
+class UpdateParentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,11 +25,8 @@ class UpdaAdminudentRequest extends FormRequest
     {
         return [
             'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:admins,email,' . $this->route('id'),
-            'role_id' => 'required|string',
-            'adminPhoNum' =>'required|string',
-            'status' => 'nullable|string',
-            'subject' => 'nullable|string',
+            'email' => 'required|string|email|max:100|unique:parnts,email,' . $this->route('id'),
+            'parentPhoNum' =>'required|string',
         ];
     }
 

@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Auth\UpdateStudentRequest;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
@@ -85,27 +83,27 @@ class UserController extends Controller
 
     public function showDeleted(){
         $this->authorize('manage_users');
-    $categories=User::onlyTrashed()->get();
+    $Users=User::onlyTrashed()->get();
     return response()->json([
-        'data' =>StudentRegisterResource::colTesttion($categories),
-        'message' => "Show Deleted Categories Successfully."
+        'data' =>StudentRegisterResource::collection($Users),
+        'message' => "Show Deleted Students Successfully."
     ]);
     }
 
     public function restore(string $id)
     {
     $this->authorize('manage_users');
-    $Test = User::withTrashed()->where('id', $id)->first();
-    if (!$Test) {
+    $User = User::withTrashed()->where('id', $id)->first();
+    if (!$User) {
         return response()->json([
-            'message' => "Test not found."
+            'message' => "Student not found."
         ], 404);
     }
 
-    $Test->restore();
+    $User->restore();
     return response()->json([
-        'data' =>new StudentRegisterResource($Test),
-        'message' => "Restore Test By Id Successfully."
+        'data' =>new StudentRegisterResource($User),
+        'message' => "Restore Student By Id Successfully."
     ]);
     }
     public function forceDelete(string $id)
