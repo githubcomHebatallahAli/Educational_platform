@@ -14,6 +14,7 @@ Route::controller(UpdateController::class)
 
    Route::post('/update/photo/{id}', 'studentUpdateProfilePicture');
    Route::post('/update/code/{id}', 'updateCode');
+   Route::post('/update/profile/{id}', 'studentUpdateProfile');
 });
 
 
@@ -22,7 +23,7 @@ Route::controller(UpdateController::class)
 ->middleware('parent')
 ->group(
     function () {
-
    Route::post('/update/photo/{id}', 'parentUpdateProfilePicture');
+   Route::post('/update/profile/{id}', 'parentUpdateProfile');
 
 });

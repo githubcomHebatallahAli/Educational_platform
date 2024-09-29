@@ -111,9 +111,14 @@ class AdminController extends Controller
         ]);
     }
 
-    public function adminUpdateProfilePicture(ImgRequest $request)
+    public function adminUpdateProfilePicture(ImgRequest $request ,string $id)
 {
     $Admin= auth()->guard('admin')->user();
+    if ($Admin->id != $id) {
+        return response()->json([
+            'message' => "Unauthorized to update this profile."
+        ], 403);
+    }
     if ($request->hasFile('img')) {
         if ($Admin->img) {
             Storage::disk('public')->delete($Admin->img);

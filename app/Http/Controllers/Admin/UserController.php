@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateStudentRequest;
@@ -40,33 +41,17 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(UpdateStudentRequest $request, string $id)
+    public function update(Request $request, string $id)
     {
         $this->authorize('manage_users');
         $Student = User::findOrFail($id);
 
-        if ($request->filled('name')) {
-            $Student->name = $request->name;
-        }
-
-        if ($request->filled('email')) {
-            $Student->email = $request->email;
-        }
-        if ($request->filled('parentPhoNum')) {
-            $Student->parentPhoNum = $request->parentPhoNum;
-        }
-        if ($request->filled('studentPhoNum')) {
-            $Student->studentPhoNum = $request->studentPhoNum;
-        }
-        if ($request->filled('governorate')) {
-            $Student->governorate = $request->governorate;
-        }
-        if ($request->filled('grade_id')) {
-            $Student->grade_id = $request->grade_id;
+        if ($request->filled('parent_code')) {
+            $Student->parent_code = $request->parent_code;
         }
 
         $Student->parnt_id = $request->parnt_id;
-        $Student->parent_code = $request->parent_code;
+
 
         $Student->save();
 

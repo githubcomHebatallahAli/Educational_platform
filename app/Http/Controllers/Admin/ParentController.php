@@ -41,29 +41,29 @@ class ParentController extends Controller
         ]);
     }
 
-    public function update(UpdateParentRequest $request, string $id)
-    {
-        $this->authorize('manage_users');
-        $Parent = Parnt::findOrFail($id);
+    // public function update(UpdateParentRequest $request, string $id)
+    // {
+    //     $this->authorize('manage_users');
+    //     $Parent = Parnt::findOrFail($id);
 
-        if ($request->filled('name')) {
-            $Parent->name = $request->name;
-        }
+    //     if ($request->filled('name')) {
+    //         $Parent->name = $request->name;
+    //     }
 
-        if ($request->filled('email')) {
-            $Parent->email = $request->email;
-        }
-        if ($request->filled('parentPhoNum')) {
-            $Parent->parentPhoNum = $request->parentPhoNum;
-        }
-      
-        $Parent->save();
+    //     if ($request->filled('email')) {
+    //         $Parent->email = $request->email;
+    //     }
+    //     if ($request->filled('parentPhoNum')) {
+    //         $Parent->parentPhoNum = $request->parentPhoNum;
+    //     }
 
-        return response()->json([
-            'data' => new ParentRegisterResource($Parent),
-            'message' => "Update Parent By Id Successfully."
-        ]);
-    }
+    //     $Parent->save();
+
+    //     return response()->json([
+    //         'data' => new ParentRegisterResource($Parent),
+    //         'message' => "Update Parent By Id Successfully."
+    //     ]);
+    // }
 
     public function destroy(string $id)
     {
