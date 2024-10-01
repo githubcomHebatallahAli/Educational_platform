@@ -27,7 +27,6 @@ class StudentRegisterResource extends JsonResource
             'grade' => new GradeResource($this->grade),
             'parnt' => new ParentRegisterResource($this->parent),
 
-
         ];
     }
 }

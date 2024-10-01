@@ -14,6 +14,7 @@ use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AnswerRequest;
 use App\Http\Resources\Admin\ExamResource;
+use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 
@@ -123,112 +124,123 @@ protected function authorizeStudentOrParent($student)
     return false;
 }
 
-// public function showExamResults1($examId, $studentId, $parntId)
-// {
-//     $student = User::find($studentId);
-//     if (!$student) {
-//         return response()->json(['message' => 'الطالب غير موجود.'], 404);
-//     }
 
-//     // تحقق من توثيق الطالب
-//     $user = auth()->guard('api')->user();
-//     if ($user) {
-//         if ($user->id !== $student->id) {
-//             return response()->json(['message' => 'Unauthorized access.'], 403);
-//         }
-//     } else {
-//         // تحقق من توثيق ولي الأمر
-//         $parnt = auth()->guard('parnt')->user();
-//         if (!$parnt) {
-//             return response()->json(['message' => 'Unauthorized access parent.'], 403);
-//         }
+public function getStudentExamResults($studentId, $courseId)
+{
 
-//         // تحقق من المطابقة مع ID ولي الأمر المدخل
-//         if ($parnt->id !== $parntId) {
-//             return response()->json([
-//                 'message' => 'Unauthorized access parent.',
-//                 'entered_parent_id' => $parntId,
-//                 'student_id' => $student->id,
-//                 'expected_parent_id' => $parnt->id
-//             ], 403);
-//         }
+    $student = User::find($studentId);
 
-//         return response()->json(['message' => 'Parent authenticated.', 'parnt_id' => $parnt->id]);
-//     }
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
 
 
-//     $answers = Answer::with('question.exam')
-//         ->where('exam_id', $examId)
-//         ->where('user_id', $studentId)
-//         ->get();
-
-//     if ($answers->isEmpty()) {
-//         return response()->json([
-//             'message' => 'لا توجد إجابات لهذا الامتحان.'
-//         ], 404);
-//     }
-
-//     // حساب عدد الإجابات الصحيحة والدرجة
-//     $correctAnswers = 0;
-//     $totalQuestions = $answers->count();
-//     $exam = null;
-//     $answersDetail = [];
-
-//     foreach ($answers as $answer) {
-//         $question = $answer->question;
-//         $is_correct = $question->correct_choice === $answer->selected_choice;
-
-//         if ($is_correct) {
-//             $correctAnswers++;
-//         }
-
-//         // أول مرة، نجلب تفاصيل الامتحان
-//         if (!$exam) {
-//             $exam = new ExamResource($question->exam);
-//         }
-
-//         $answersDetail[] = [
-//             'question_id' => $question->id,
-//             'question_text' => $question->question,
-//             'choices' => [
-//                 'choice_1' => $question->choice_1,
-//                 'choice_2' => $question->choice_2,
-//                 'choice_3' => $question->choice_3,
-//                 'choice_4' => $question->choice_4,
-//             ],
-//             'correct_choice' => $question->correct_choice,
-//             'student_choice' => $answer->selected_choice,
-//             'is_correct' => $is_correct,
-//         ];
-//     }
-
-//     // حساب النسبة المئوية للدرجة
-//     $score = ($correctAnswers / $totalQuestions) * 100;
-
-//     // استرجاع تفاصيل الطالب
-//     $studentResource = new StudentRegisterResource($student);
-
-//     return response()->json([
-//         'exam' => $exam,
-//         'student' => $studentResource,
-//         'data' => $answersDetail,
-//         'score' => $score, // عرض الدرجة في الـ API
-//         'message' => 'تم عرض نتائج الامتحان بنجاح.',
-//     ]);
-
-// }
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json(['message' => 'Unauthorized access.'], 403);
+    }
 
 
-// public function testAuth()
-// {
-//     $user = auth()->guard('api')->user();
-//     $parnt = auth()->guard('parnt')->user();
+$student = User::with(['exams' => function ($query) use ($courseId) {
+    $query->where('course_id', $courseId);
+}])->findOrFail($studentId);
 
-//     return response()->json([
-//         'user' => $user,
-//         'parnt' => $parnt
-//     ]);
-// }
+$fourExams = $student->exams->take(4);
 
+$fourExamResults = $fourExams->map(function ($exam) {
+    return [
+        'exam_id' => $exam->id,
+        'title' => $exam->title,
+        'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+        'has_attempted' => $exam->pivot->has_attempted,
+    ];
+})->toArray();
+
+$finalExam = $student->exams->last();
+$finalExamResult = [
+    'exam_id' => $finalExam->id,
+    'title' => $finalExam->title,
+    'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+    'has_attempted' => $finalExam->pivot->has_attempted,
+];
+$totalScore = 0;
+$attemptedCount = 0;
+
+foreach ($fourExams as $exam) {
+    if ($exam->pivot->has_attempted) {
+        $totalScore += $exam->pivot->score;
+        $attemptedCount++;
+    }
+}
+
+
+$totalPercentageForFourExams = $attemptedCount > 0 ? ($totalScore / ($attemptedCount * 100)) * 100 : 0;
+
+
+$overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ? $finalExam->pivot->score : 0);
+$totalExamsCount = $attemptedCount + ($finalExam->pivot->has_attempted ? 1 : 0);
+$overallTotalPercentage = $totalExamsCount > 0 ? ($overallTotalScore / ($totalExamsCount * 100)) * 100 : 0;
+
+return response()->json([
+    'student' => new StudentResultResource($student),
+    'four_exam_results' => $fourExamResults,
+    'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+    'final_exam_result' => $finalExamResult,
+    'overall_total_percentage' => round($overallTotalPercentage, 2),
+]);
+
+}
+
+public function getStudent4ExamsResult($studentId, $courseId)
+{
+    $student = User::find($studentId);
+
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
+
+
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json(['message' => 'Unauthorized access.'], 403);
+    }
+    
+    $student = User::with(['grade', 'parent'])->findOrFail($studentId);
+
+
+    $fourExams = $student->exams()->where('course_id', $courseId)->take(4)->get();
+
+    $fourExamResults = $fourExams->map(function ($exam) {
+        $score = $exam->pivot->score;
+        $hasAttempted = $exam->pivot->has_attempted;
+
+
+        $resultScore = ($score === null && $hasAttempted == 0) ? 'absent' : ($hasAttempted ? $score : 'absent');
+
+        return [
+            'exam_id' => $exam->id,
+            'title' => $exam->title,
+            'score' => $resultScore,
+            'has_attempted' => $hasAttempted,
+        ];
+    });
+
+    $totalScore = 0;
+    $attemptedCount = 0;
+
+    foreach ($fourExams as $exam) {
+        if ($exam->pivot->has_attempted) {
+            $totalScore += $exam->pivot->score ?? 0;
+            $attemptedCount++;
+        }
+    }
+
+    $totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
+
+    return response()->json([
+        'student' => new StudentRegisterResource($student),
+        'four_exam_results' => $fourExamResults,
+        'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+    ]);
+
+}
 
 }

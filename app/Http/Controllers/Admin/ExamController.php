@@ -15,9 +15,11 @@ use App\Http\Requests\Admin\ExamRequest;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\AnswerResource;
 use App\Http\Resources\Admin\StudentResource;
+use App\Http\Resources\StudentResultResource;
 use App\Http\Requests\Admin\StudentExamRequest;
 use App\Http\Resources\Admin\LessonCourseResource;
 use App\Http\Resources\Admin\ExamQuestionsResource;
+use App\Http\Resources\Auth\ParentRegisterResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class ExamController extends Controller
@@ -146,7 +148,7 @@ public function showExamResults($examId, $studentId)
             $correctAnswers++;
         }
 
-        // أول مرة، نجلب تفاصيل الامتحان
+
         if (!$exam) {
             $exam = new ExamResource($question->exam);
         }
@@ -166,36 +168,20 @@ public function showExamResults($examId, $studentId)
         ];
     }
 
-    // حساب النسبة المئوية للدرجة
+
     $score = ($correctAnswers / $totalQuestions) * 100;
 
-    // استرجاع تفاصيل الطالب
+
     $studentResource = new StudentRegisterResource($student);
 
     return response()->json([
         'exam' => $exam,
         'student' => $studentResource,
         'data' => $answersDetail,
-        'score' => $score, // عرض الدرجة في الـ API
+        'score' => $score,
         'message' => 'تم عرض نتائج الامتحان بنجاح.',
     ]);
-    // $answers = Answer::with([
-    //     'exam',
-    //     'exam.questions',
-    //     'student',
-    //     'exam.questions.answers' => function ($query) use ($studentId) {
-    //         $query->where('student_id', $studentId);
-    //     }
-    // ])
-    // ->where('exam_id', $examId)
-    // ->where('student_id', $studentId)
-    // ->get();
 
-    // if ($answers->isEmpty()) {
-    //     return response()->json(['message' => 'No answers found for this exam.'], 404);
-    // }
-
-    // return AnswerResource::collection($answers);
 }
 
 
@@ -267,5 +253,112 @@ return response()->json([
   {
       return $this->forceDeleteModel(Exam::class, $id);
   }
+
+  public function getStudentExamResults($studentId, $courseId)
+{
+    $this->authorize('manage_users');
+    $student = User::find($studentId);
+
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
+
+
+$student = User::with(['exams' => function ($query) use ($courseId) {
+    $query->where('course_id', $courseId);
+}])->findOrFail($studentId);
+
+$fourExams = $student->exams->take(4);
+
+$fourExamResults = $fourExams->map(function ($exam) {
+    return [
+        'exam_id' => $exam->id,
+        'title' => $exam->title,
+        'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+        'has_attempted' => $exam->pivot->has_attempted,
+    ];
+})->toArray();
+
+$finalExam = $student->exams->last();
+$finalExamResult = [
+    'exam_id' => $finalExam->id,
+    'title' => $finalExam->title,
+    'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+    'has_attempted' => $finalExam->pivot->has_attempted,
+];
+$totalScore = 0;
+$attemptedCount = 0;
+
+foreach ($fourExams as $exam) {
+    if ($exam->pivot->has_attempted) {
+        $totalScore += $exam->pivot->score;
+        $attemptedCount++;
+    }
+}
+
+
+$totalPercentageForFourExams = $attemptedCount > 0 ? ($totalScore / ($attemptedCount * 100)) * 100 : 0;
+
+
+$overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ? $finalExam->pivot->score : 0);
+$totalExamsCount = $attemptedCount + ($finalExam->pivot->has_attempted ? 1 : 0);
+$overallTotalPercentage = $totalExamsCount > 0 ? ($overallTotalScore / ($totalExamsCount * 100)) * 100 : 0;
+
+return response()->json([
+    'student' => new StudentResultResource($student),
+    'four_exam_results' => $fourExamResults,
+    'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+    'final_exam_result' => $finalExamResult,
+    'overall_total_percentage' => round($overallTotalPercentage, 2),
+]);
+
+}
+
+
+
+
+public function getStudent4ExamsResult($studentId, $courseId)
+{
+    $this->authorize('manage_users');
+    $student = User::with(['grade', 'parent'])->findOrFail($studentId);
+
+
+    $fourExams = $student->exams()->where('course_id', $courseId)->take(4)->get();
+
+    $fourExamResults = $fourExams->map(function ($exam) {
+        $score = $exam->pivot->score;
+        $hasAttempted = $exam->pivot->has_attempted;
+
+
+        $resultScore = ($score === null && $hasAttempted == 0) ? 'absent' : ($hasAttempted ? $score : 'absent');
+
+        return [
+            'exam_id' => $exam->id,
+            'title' => $exam->title,
+            'score' => $resultScore,
+            'has_attempted' => $hasAttempted,
+        ];
+    });
+
+    $totalScore = 0;
+    $attemptedCount = 0;
+
+    foreach ($fourExams as $exam) {
+        if ($exam->pivot->has_attempted) {
+            $totalScore += $exam->pivot->score ?? 0;
+            $attemptedCount++;
+        }
+    }
+
+    $totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
+
+    return response()->json([
+        'student' => new StudentRegisterResource($student),
+        'four_exam_results' => $fourExamResults,
+        'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+    ]);
+
+}
+
 
 }

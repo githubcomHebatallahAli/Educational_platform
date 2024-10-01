@@ -58,6 +58,13 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    public function exams()
+    {
+        return $this->belongsToMany(Exam::class,'student_exams')
+                    ->withPivot('score', 'has_attempted')
+                    ->withTimestamps();
+    }
+
     // protected $cast = [
     //     'password'=>'hashed'
     // ];
@@ -106,17 +113,6 @@ class User extends Authenticatable implements JWTSubject
 
 
 
-    // public function contactUs()
-    // {
-    //     return $this->hasMany(ContactUs::class);
-    // }
-
-    public function exams()
-    {
-        return $this->belongsToMany(Exam::class,'student_exams')
-                    ->withPivot('score', 'has_attempted')
-                    ->withTimestamps();
-    }
 
     public function Answers()
     {
