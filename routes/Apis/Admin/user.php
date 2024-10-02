@@ -16,4 +16,5 @@ Route::controller(UserController::class)->prefix('/admin')->middleware('admin')-
    Route::get('/showDeleted/user', 'showDeleted');
 Route::get('/restore/user/{id}','restore');
 Route::delete('/forceDelete/user/{id}','forceDelete');
+Route::get('/show/overAllResults/user/{id}','getStudentOverallResults');
    });

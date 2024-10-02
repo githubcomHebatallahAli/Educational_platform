@@ -14,6 +14,7 @@ use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AnswerRequest;
 use App\Http\Resources\Admin\ExamResource;
+use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
@@ -202,7 +203,7 @@ public function getStudent4ExamsResult($studentId, $courseId)
     if (!$this->authorizeStudentOrParent($student)) {
         return response()->json(['message' => 'Unauthorized access.'], 403);
     }
-    
+
     $student = User::with(['grade', 'parent'])->findOrFail($studentId);
 
 
@@ -241,6 +242,51 @@ public function getStudent4ExamsResult($studentId, $courseId)
         'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
     ]);
 
+}
+
+
+public function getStudentOverallResults($studentId)
+{
+
+    $student = User::findOrFail($studentId);
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
+
+
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json(['message' => 'Unauthorized access.'], 403);
+    }
+
+    $totalOverallScore = 0;
+    $totalMaxScore = 0;
+
+    $courses = $student->courses()->with('exams')->get();
+
+    foreach ($courses as $course) {
+        foreach ($course->exams as $exam) {
+
+            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+
+            if ($studentExam && !is_null($studentExam->pivot->score)) {
+                $totalOverallScore += $studentExam->pivot->score;
+            }
+            $totalMaxScore += 100;
+        }
+    }
+
+
+    $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+    return response()->json([
+        'student' => [
+            'id' => $student->id,
+            'name' => $student->name,
+            'email' => $student->email,
+            'img' => $student->img,
+            'grade' => new GradeResource($student->grade),
+        ],
+        'overall_score_percentage' => round($overallScorePercentage, 2),
+    ]);
 }
 
 }

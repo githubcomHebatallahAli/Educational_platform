@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\GradeResource;
 use App\Http\Requests\Auth\UpdateStudentRequest;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
@@ -95,5 +96,44 @@ class UserController extends Controller
     {
         return $this->forceDeleteModel(User::class, $id);
     }
+
+
+    public function getStudentOverallResults($studentId)
+    {
+        $this->authorize('manage_users');
+
+        $student = User::findOrFail($studentId);
+
+        $totalOverallScore = 0;
+        $totalMaxScore = 0;
+
+        $courses = $student->courses()->with('exams')->get();
+
+        foreach ($courses as $course) {
+            foreach ($course->exams as $exam) {
+
+                $studentExam = $exam->students()->where('user_id', $studentId)->first();
+
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $totalOverallScore += $studentExam->pivot->score;
+                }
+                $totalMaxScore += 100;
+            }
+        }
+
+
+        $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+        return response()->json([
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'email' => $student->email,
+                'img' => $student->img,
+                'grade' => new GradeResource($student->grade),
+            ],
+            'overall_score_percentage' => round($overallScorePercentage, 2),
+        ]);
+    }
+
 }
 

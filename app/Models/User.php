@@ -65,6 +65,12 @@ class User extends Authenticatable implements JWTSubject
                     ->withTimestamps();
     }
 
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'student_courses')
+                    ->withPivot('purchase_date', 'status');
+    }
+
     // protected $cast = [
     //     'password'=>'hashed'
     // ];
@@ -94,11 +100,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Student::class);
     }
 
-    public function courses()
-{
-    return $this->belongsToMany(Course::class, 'student_courses')
-                ->withPivot('purchase_date', 'status');
-}
+
 
     public function grade()
     {
