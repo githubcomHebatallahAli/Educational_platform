@@ -8,6 +8,7 @@ use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateParentRequest;
 use App\Http\Resources\Auth\ParentRegisterResource;
+use App\Http\Resources\Admin\ParentWithSonsResource;
 
 class ParentController extends Controller
 {
@@ -27,7 +28,7 @@ class ParentController extends Controller
     public function edit(string $id)
     {
         $this->authorize('manage_users');
-        $Parent = Parnt::find($id);
+        $Parent = Parnt::with('users')->find($id);
 
         if (!$Parent) {
             return response()->json([
@@ -36,7 +37,7 @@ class ParentController extends Controller
         }
 
         return response()->json([
-            'data' => new ParentRegisterResource($Parent),
+            'data' => new ParentWithSonsResource($Parent),
             'message' => "Edit Parent By ID Successfully."
         ]);
     }
