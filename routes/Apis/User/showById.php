@@ -16,7 +16,7 @@ Route::controller(ShowByIdController::class)
 });
 
 Route::controller(ShowByIdController::class)
-//   ->middleware(['auth:api', 'auth:parent', 'general'])
+
 
 ->group(
     function () {

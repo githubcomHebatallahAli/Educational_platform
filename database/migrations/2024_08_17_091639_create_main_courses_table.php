@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('month_id')->constrained('months')->cascadeOnDelete();
             $table->string('img')->nullable();
             $table->string('nameOfCourse');
-            // $table->text('description')->nullable();
             $table->decimal('price');
             $table->softDeletes();
             $table->timestamps();

@@ -16,7 +16,7 @@ class MainCourse extends Model
         'nameOfCourse',
         'img',
         'price',
-        // 'description'
+       
     ];
 
     public function courses()

@@ -5,7 +5,7 @@ namespace App\Http\Resources\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CourseResource extends JsonResource
+class ShowAllCourseResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -21,10 +21,6 @@ class CourseResource extends JsonResource
             'img' => $this -> img ,
             'month' => new MainResource($this->month),
             'grade' => new GradeResource($this->grade),
-            "description" => $this ->description,
-            "numOfLessons" => $this ->numOfLessons,
-            "numOfExams" => $this ->numOfExams,
-            'creationDate' => $this->creationDate,
         ];
     }
 }

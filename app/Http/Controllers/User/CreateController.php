@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use Carbon\Carbon;
 use App\Models\Exam;
 use App\Models\User;
 use App\Models\Answer;
 use App\Models\Question;
 use App\Models\ContactUs;
 use App\Models\StudentExam;
-use Illuminate\Http\Request;
 use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactRequest;
@@ -19,7 +19,8 @@ use App\Http\Resources\Auth\StudentRegisterResource;
 
 class CreateController extends Controller
 {
-    public function create(AnswerRequest $request)
+
+public function create(AnswerRequest $request)
 {
     $exam = Exam::find($request->exam_id);
 
@@ -30,11 +31,10 @@ class CreateController extends Controller
     $courseId = $exam->course_id;
     $student = User::find($request->user_id);
 
-
     $studentPaid = StudentCourse::where('user_id', $request->user_id)
-                          ->where('course_id', $courseId)
-                          ->where('status', 'paid')
-                          ->first();
+        ->where('course_id', $courseId)
+        ->where('status', 'paid')
+        ->first();
 
     if (!$studentPaid) {
         return response()->json([
@@ -42,20 +42,21 @@ class CreateController extends Controller
         ], 403);
     }
 
-        $studentExam = StudentExam::where('user_id', $request->user_id)
-                              ->where('exam_id', $request->exam_id)
-                              ->where('has_attempted', true)
-                              ->first();
+    $studentExam = StudentExam::where('user_id', $request->user_id)
+        ->where('exam_id', $request->exam_id)
+        ->where('has_attempted', true)
+        ->first();
+
     if ($studentExam) {
         return response()->json([
             'message' => 'You have already taken this exam and cannot take it again.'
         ], 403);
     }
 
+    $startedAt = now();
 
-    $exam = null;
+    $examResource = null;
     $answers = [];
-    $student = null;
     $correctAnswers = 0;
     $totalQuestions = count($request->answers);
 
@@ -67,21 +68,15 @@ class CreateController extends Controller
             'selected_choice' => $answer['selected_choice'],
         ]);
 
-
         $question = Question::with('exam')->find($answer['question_id']);
         $is_correct = $question->correct_choice === $answer['selected_choice'];
-
 
         if ($is_correct) {
             $correctAnswers++;
         }
 
-        if (!$exam) {
-            $exam = new ExamResource($question->exam);
-        }
-
-        if (!$student) {
-            $student = new StudentRegisterResource(User::find($request->user_id));
+        if (!$examResource) {
+            $examResource = new ExamResource($question->exam);
         }
 
         $answers[] = [
@@ -102,21 +97,37 @@ class CreateController extends Controller
 
     $score = ($correctAnswers / $totalQuestions) * 100;
 
+
+    $submittedAt = now();
+
+    $timeTaken = $submittedAt->diff($startedAt)->format('%H:%I:%S');
+
+
     StudentExam::updateOrCreate(
         ['user_id' => $request->user_id, 'exam_id' => $request->exam_id],
-        ['score' => $score, 'has_attempted' => true]
+        [
+            'score' => $score,
+            'has_attempted' => true,
+            'started_at' => $startedAt ,
+            'submitted_at' => $submittedAt,
+            'time_taken' => $timeTaken,
+            'correctAnswers' => $correctAnswers,
+        ]
     );
 
     return response()->json([
-        'exam' => $exam,
-        'student' => $student,
+        'exam' => $examResource,
+        'student' => new StudentRegisterResource($student),
         'data' => $answers,
         'score' => $score,
+        'correctAnswers' => $correctAnswers,
+        'started_at' => $startedAt->format('Y-m-d H:i:s'),
+        'submitted_at' => $submittedAt->format('Y-m-d H:i:s'),
+        'time_taken' => $timeTaken,
         'message' => 'Answers submitted and scored successfully.',
     ]);
-
-
 }
+
 
 public function createContactUs(ContactRequest $request)
 {

@@ -5,21 +5,15 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Exam;
 use App\Models\User;
-use App\Models\Parnt;
 use App\Models\Answer;
-use App\Models\Student;
-use App\Models\Question;
+use App\Models\StudentExam;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExamRequest;
 use App\Http\Resources\Admin\ExamResource;
-use App\Http\Resources\Admin\AnswerResource;
-use App\Http\Resources\Admin\StudentResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Requests\Admin\StudentExamRequest;
-use App\Http\Resources\Admin\LessonCourseResource;
 use App\Http\Resources\Admin\ExamQuestionsResource;
-use App\Http\Resources\Auth\ParentRegisterResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class ExamController extends Controller
@@ -109,80 +103,107 @@ class ExamController extends Controller
     ]);
 
   }
+  public function showExamResults($examId, $studentId)
+  {
+      $this->authorize('manage_users');
+
+      $student = User::find($studentId);
+      if (!$student) {
+          return response()->json([
+              'message' => 'الطالب غير موجود.'
+          ], 404);
+      }
+
+      $studentExam = StudentExam::where('exam_id', $examId)
+          ->where('user_id', $studentId)
+          ->first();
+
+      if (!$studentExam) {
+          return response()->json([
+              'message' => 'لم يتم العثور على بيانات الامتحان للطالب.'
+          ], 404);
+      }
 
 
-public function showExamResults($examId, $studentId)
-{
-    $this->authorize('manage_users');
+      if (!$studentExam->started_at) {
+          $studentExam->started_at = now();
+      }
 
-    $student = User::find($studentId);
-    if (!$student) {
-        return response()->json([
-            'message' => 'الطالب غير موجود.'
-        ], 404);
-    }
+      $answers = Answer::with('question.exam')
+          ->where('exam_id', $examId)
+          ->where('user_id', $studentId)
+          ->get();
 
-
-    $answers = Answer::with('question.exam')
-        ->where('exam_id', $examId)
-        ->where('user_id', $studentId)
-        ->get();
-
-    if ($answers->isEmpty()) {
-        return response()->json([
-            'message' => 'لا توجد إجابات لهذا الامتحان.'
-        ], 404);
-    }
-
-    // حساب عدد الإجابات الصحيحة والدرجة
-    $correctAnswers = 0;
-    $totalQuestions = $answers->count();
-    $exam = null;
-    $answersDetail = [];
-
-    foreach ($answers as $answer) {
-        $question = $answer->question;
-        $is_correct = $question->correct_choice === $answer->selected_choice;
-
-        if ($is_correct) {
-            $correctAnswers++;
-        }
+      if ($answers->isEmpty()) {
+          return response()->json([
+              'message' => 'لا توجد إجابات لهذا الامتحان.'
+          ], 404);
+      }
 
 
-        if (!$exam) {
-            $exam = new ExamResource($question->exam);
-        }
+      $correctAnswers = 0;
+      $totalQuestions = $answers->count();
+      $exam = null;
+      $answersDetail = [];
 
-        $answersDetail[] = [
-            'question_id' => $question->id,
-            'question_text' => $question->question,
-            'choices' => [
-                'choice_1' => $question->choice_1,
-                'choice_2' => $question->choice_2,
-                'choice_3' => $question->choice_3,
-                'choice_4' => $question->choice_4,
-            ],
-            'correct_choice' => $question->correct_choice,
-            'student_choice' => $answer->selected_choice,
-            'is_correct' => $is_correct,
-        ];
-    }
+      foreach ($answers as $answer) {
+          $question = $answer->question;
+          $is_correct = $question->correct_choice === $answer->selected_choice;
+
+          if ($is_correct) {
+              $correctAnswers++;
+          }
+
+          if (!$exam) {
+              $exam = new ExamResource($question->exam);
+          }
+
+          $answersDetail[] = [
+              'question_id' => $question->id,
+              'question_text' => $question->question,
+              'choices' => [
+                  'choice_1' => $question->choice_1,
+                  'choice_2' => $question->choice_2,
+                  'choice_3' => $question->choice_3,
+                  'choice_4' => $question->choice_4,
+              ],
+              'correct_choice' => $question->correct_choice,
+              'student_choice' => $answer->selected_choice,
+              'is_correct' => $is_correct,
+          ];
+      }
 
 
-    $score = ($correctAnswers / $totalQuestions) * 100;
+      $score = ($correctAnswers / $totalQuestions) * 100;
+
+      if (!$studentExam->submitted_at) {
+          $studentExam->submitted_at = now();
+      }
+
+      $startedAt = Carbon::parse($studentExam->started_at);
+$submittedAt = Carbon::parse($studentExam->submitted_at);
 
 
-    $studentResource = new StudentRegisterResource($student);
+$timeTaken = $submittedAt->diff($startedAt)->format('%H:%I:%S');
 
-    return response()->json([
-        'exam' => $exam,
-        'student' => $studentResource,
-        'data' => $answersDetail,
-        'score' => $score,
-        'message' => 'تم عرض نتائج الامتحان بنجاح.',
-    ]);
+$studentExam->time_taken = $timeTaken;
 
-}
+      $studentExam->save();
+
+      $studentResource = new StudentRegisterResource($student);
+
+      return response()->json([
+          'exam' => $exam,
+          'student' => $studentResource,
+          'data' => $answersDetail,
+          'score' => $score,
+          'correctAnswers' => $correctAnswers,
+          'started_at' => $studentExam->started_at,
+          'submitted_at' => $studentExam->submitted_at,
+          'time_taken' => $timeTaken,
+          'message' => 'تم عرض نتائج الامتحان بنجاح.',
+      ]);
+  }
 
 
   public function update(ExamRequest $request, string $id)
@@ -213,7 +234,7 @@ public function showExamResults($examId, $studentId)
      $Exam->save();
      return response()->json([
       'data' =>new ExamResource($Exam),
-      'message' => " Update Exam By Id Successfully."
+      'message' => "Update Exam By Id Successfully."
   ]);
 
 }
@@ -297,12 +318,6 @@ foreach ($fourExams as $exam) {
 }
 
 
-// $totalPercentageForFourExams = $attemptedCount > 0 ? ($totalScore / ($attemptedCount * 100)) * 100 : 0;
-
-
-// $overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ? $finalExam->pivot->score : 0);
-// $totalExamsCount = $attemptedCount + ($finalExam->pivot->has_attempted ? 1 : 0);
-// $overallTotalPercentage = $totalExamsCount > 0 ? ($overallTotalScore / ($totalExamsCount * 100)) * 100 : 0;
 $totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
 $overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ?
  $finalExam->pivot->score : 0);

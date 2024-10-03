@@ -43,7 +43,7 @@ class GradeController extends Controller
     {
         $this->authorize('manage_users');
         // $Grade = Grade::find($id);
-        $Grade = Grade::with('mainCourses')->findOrFail($id);
+        $Grade = Grade::with('Courses')->findOrFail($id);
 
         if (!$Grade) {
             return response()->json([

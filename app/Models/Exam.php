@@ -34,7 +34,8 @@ class Exam extends Model
     public function students()
     {
         return $this->belongsToMany(User::class,'student_exams')
-        ->withPivot('score','has_attempted','started_at','submitted_at','time_taken')
+        ->withPivot('score','has_attempted','started_at',
+        'submitted_at','time_taken','correctAnswers')
         ->withTimestamps();
     }
 

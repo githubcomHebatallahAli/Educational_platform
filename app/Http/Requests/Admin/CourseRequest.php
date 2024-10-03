@@ -24,12 +24,15 @@ class CourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "main_course_id" => 'required|exists:main_courses,id',
+            'nameOfCourse'=>'required|string',
+            'img.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
+            "grade_id" => 'required|exists:grades,id',
+            "month_id" => 'required|exists:months,id',
+            'price' => 'required|numeric|regex:/^\d{1,5}(\.\d{1,2})?$/',
             'description'=>'required|string',
             "numOfLessons" => 'required|integer',
             "numOfExams" => 'required|integer',
             'creationDate' => 'nullable|date_format:Y-m-d',
-
         ];
     }
 

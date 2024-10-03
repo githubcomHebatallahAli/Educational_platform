@@ -9,8 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Course extends Model
 {
     use HasFactory, SoftDeletes;
+    const storageFolder= 'Course';
     protected $fillable = [
-        'main_course_id',
+        'grade_id',
+        'month_id',
+        'nameOfCourse',
+        'img',
+        'price',
         'description',
         'numOfLessons',
         'numOfExams',
@@ -39,5 +44,15 @@ class Course extends Model
     {
         return $this->belongsToMany(User::class,'student_courses')
                     ->withPivot('purchase_date', 'status');
+    }
+
+    public function grade()
+    {
+        return $this->belongsTo(Grade::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
     }
 }

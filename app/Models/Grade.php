@@ -34,9 +34,9 @@ class Grade extends Model
         return $this->hasMany(Exam::class);
     }
 
-    public function mainCourses()
+    public function Courses()
     {
-        return $this->hasMany(MainCourse::class);
+        return $this->hasMany(Course::class);
     }
 
 }

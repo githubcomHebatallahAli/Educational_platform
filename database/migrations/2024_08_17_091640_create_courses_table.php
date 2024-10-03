@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('main_course_id')->constrained('main_courses')->cascadeOnDelete();
+            $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
+            $table->foreignId('month_id')->constrained('months')->cascadeOnDelete();
+            $table->string('img')->nullable();
+            $table->string('nameOfCourse');
+            $table->decimal('price');
             $table->text('description');
             $table->integer('numOfLessons');
             $table->integer('numOfExams');

@@ -13,11 +13,11 @@ class Month extends Model
         'name',
     ];
 
-    public function mainCourses()
+    public function Courses()
     {
         return $this->hasMany(MainCourse::class);
     }
-    
+
     public function exams()
     {
         return $this->hasMany(User::class);

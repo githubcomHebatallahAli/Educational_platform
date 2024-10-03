@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Course;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Admin\CourseRequest;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\CourseResource;
@@ -38,14 +39,25 @@ class CourseController extends Controller
   public function create(CourseRequest $request)
   {
       $this->authorize('manage_users');
+      $formattedPrice = number_format($request->price, 2, '.', '');
 
          $Course =Course::create ([
-              "main_course_id" => $request->main_course_id,
-              "description" => $request->description,
-              "numOfLessons" => $request->numOfLessons,
-              "numOfExams" => $request->numOfExams,
+            "grade_id" => $request->grade_id,
+            "month_id" => $request->month_id,
+            "nameOfCourse" => $request->nameOfCourse,
+            "price" => $formattedPrice,
+            "description" => $request->description,
+            "numOfLessons" => $request->numOfLessons,
+            "numOfExams" => $request->numOfExams,
 
-          ]);
+        ]);
+        if ($request->hasFile('img')) {
+          $imgPath = $request->file('img')->store(Course::storageFolder);
+          $Course->img =  $imgPath;
+      }
+
+
+
           $Course->creationDate = $Course->created_at->format('Y-m-d');
          $Course->save();
          return response()->json([
@@ -78,6 +90,9 @@ class CourseController extends Controller
   public function update(CourseRequest $request, string $id)
   {
       $this->authorize('manage_users');
+      
+      $formattedPrice = number_format($request->price, 2, '.', '');
+
      $Course =Course::findOrFail($id);
 
      if (!$Course) {
@@ -86,12 +101,24 @@ class CourseController extends Controller
       ], 404);
   }
      $Course->update([
-        "main_course_id" => $request->main_course_id,
+        "grade_id" => $request->grade_id,
+        "month_id" => $request->month_id,
+        "nameOfCourse" => $request->nameOfCourse,
+        "price" => $formattedPrice,
         "description" => $request->description,
         "numOfLessons" => $request->numOfLessons,
         "numOfExams" => $request->numOfExams,
         'creationDate' => today()->toDateString(),
       ]);
+
+      if ($request->hasFile('img')) {
+        if ($Course->img) {
+            Storage::disk('public')->delete($Course->img);
+        }
+        $imgPath = $request->file('img')->store('Course', 'public');
+        $Course->img = $imgPath;
+    }
+
 
      $Course->save();
      return response()->json([

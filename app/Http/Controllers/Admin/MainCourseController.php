@@ -42,7 +42,7 @@ class MainCourseController extends Controller
               "month_id" => $request->month_id,
               "nameOfCourse" => $request->nameOfCourse,
               "price" => $formattedPrice,
-            //   "description" => $request->description,
+          
           ]);
           if ($request->hasFile('img')) {
             $imgPath = $request->file('img')->store(MainCourse::storageFolder);

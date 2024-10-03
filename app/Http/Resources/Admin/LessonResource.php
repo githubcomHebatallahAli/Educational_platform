@@ -27,24 +27,6 @@ class LessonResource extends JsonResource
             'lec' => new MainResource($this->lec),
             'course' => new CourseResource($this->course),
 
-            // 'course' => [
-            //     'id' => $this->course->id,
-            // ],
-            // 'mainCourse' => [
-            //     'id' => $this->course->mainCourse->id,
-            //     'month' => [
-            //         'id' => $this->course->mainCourse->month->id,
-            //         'name' => $this->course->mainCourse->month->name,
-            //     ],
-            // ],
-            // 'exams' => $this->exams->map(function ($exam) {
-            //     return [
-            //         'id' => $exam->id,
-            //         'duration' => $exam->duration,
-            //         'numOfQ' => $exam->numOfQ,
-            //     ];
-            // }),
-        //     'students' => StudentResource::collection($this->whenLoaded('students')),
         ];
     }
 }
