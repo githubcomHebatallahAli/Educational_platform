@@ -26,8 +26,8 @@ class ExamRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'totalMarke' => 'required|integer',
+            'creationDate'=> 'nullable|date_format:Y-m-d',
             'duration' => 'nullable|date_format:H:i:s',
-            'examNumber' => 'required|string|max:255',
             'numOfQ' => 'required|integer',
             'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s',
             'grade_id' => 'required|exists:grades,id',

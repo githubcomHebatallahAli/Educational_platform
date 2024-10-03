@@ -12,11 +12,11 @@ class StudentExam extends Model
         'user_id',
         'exam_id',
         'score',
-        'has_attempted'
+        'has_attempted',
+        'started_at',
+        'submitted_at',
+        'time_taken',
     ];
 
-    public function isAbsent()
-    {
-        return $this->score === null;
-    }
+
 }

@@ -13,8 +13,8 @@ class Exam extends Model
     protected $fillable = [
         'title',
         'totalMarke',
+        'creationDate',
         'duration',
-        'examNumber',
         'grade_id',
         'course_id',
         'test_id',
@@ -34,14 +34,11 @@ class Exam extends Model
     public function students()
     {
         return $this->belongsToMany(User::class,'student_exams')
-        ->withPivot('score' , 'has_attempted')
+        ->withPivot('score','has_attempted','started_at','submitted_at','time_taken')
         ->withTimestamps();
     }
 
-    // public function questions()
-    // {
-    //     return $this->hasMany(Question::class);
-    // }
+
 
     public function questions()
 {
@@ -82,7 +79,5 @@ class Exam extends Model
     {
         return $this->belongsTo(Course::class);
     }
-
-
 
 }

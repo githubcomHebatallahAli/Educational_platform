@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->integer('totalMarke');
             $table->time('duration')->nullable();
-            $table->string('examNumber');
+            $table->date('creationDate')->nullable();
             $table->integer('numOfQ');
             $table->timestamp('deadLineExam')->nullable();
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();

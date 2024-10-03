@@ -48,8 +48,8 @@ class ExamController extends Controller
             "test_id" => $request-> test_id,
             "lesson_id" => $request-> lesson_id,
             "totalMarke" => $request-> totalMarke,
+            "creationDate"=> $request->creationDate,
             "duration" => $request-> duration,
-            "examNumber" => $request-> examNumber,
             "numOfQ" => $request-> numOfQ,
             "deadLineExam" => $request-> deadLineExam
           ]);
@@ -204,8 +204,8 @@ public function showExamResults($examId, $studentId)
         "test_id" => $request-> test_id,
         "lesson_id" => $request-> lesson_id,
         "totalMarke" => $request-> totalMarke,
+        "creationDate"=> $request->creationDate,
         "duration" => $request-> duration,
-        "examNumber" => $request-> examNumber,
         "numOfQ" => $request-> numOfQ,
         "deadLineExam" => $request-> deadLineExam
       ]);

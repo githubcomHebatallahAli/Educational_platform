@@ -17,6 +17,9 @@ return new class extends Migration
             $table->foreignId('exam_id')->constrained('exams')->cascadeOnDelete();
             $table->integer('score')->nullable()->default(null);
             $table->boolean('has_attempted')->default(false);
+            $table->datetime('started_at')->nullable();
+            $table->datetime('submitted_at')->nullable();
+            $table->time('time_taken')->nullable()->default(null);
             $table->timestamps();
             $table->unique(['user_id', 'exam_id']);
         });

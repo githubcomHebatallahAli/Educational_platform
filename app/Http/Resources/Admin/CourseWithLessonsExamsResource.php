@@ -33,7 +33,7 @@ class CourseWithLessonsExamsResource extends JsonResource
                     'title' => $lesson->exam->title,
                     'totalMarke' => $lesson->exam->totalMarke,
                     'duration' => $lesson->exam->duration,
-                    'examNumber' => $lesson->exam->examNumber,
+                    'creationDate' => $lesson->exam->creationDate,
                     'numOfQ' => $lesson->exam->numOfQ,
                     'formatted_deadLineExam' => $lesson->exam->formatted_deadLineExam,
                     'questions' => $lesson->exam->questions->map(function ($question) {
