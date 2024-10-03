@@ -128,13 +128,10 @@ protected function authorizeStudentOrParent($student)
 
 public function getStudentExamResults($studentId, $courseId)
 {
-
     $student = User::find($studentId);
-
     if (!$student) {
         return response()->json(['message' => 'الطالب غير موجود.'], 404);
     }
-
 
     if (!$this->authorizeStudentOrParent($student)) {
         return response()->json(['message' => 'Unauthorized access.'], 403);
@@ -151,7 +148,8 @@ $fourExamResults = $fourExams->map(function ($exam) {
     return [
         'exam_id' => $exam->id,
         'title' => $exam->title,
-        'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+        'score' => $exam->pivot->has_attempted ? $exam->pivot->score
+        : 'absent',
         'has_attempted' => $exam->pivot->has_attempted,
     ];
 })->toArray();
@@ -160,7 +158,8 @@ $finalExam = $student->exams->last();
 $finalExamResult = [
     'exam_id' => $finalExam->id,
     'title' => $finalExam->title,
-    'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+    'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score :
+     'absent',
     'has_attempted' => $finalExam->pivot->has_attempted,
 ];
 $totalScore = 0;
@@ -174,12 +173,13 @@ foreach ($fourExams as $exam) {
 }
 
 
-$totalPercentageForFourExams = $attemptedCount > 0 ? ($totalScore / ($attemptedCount * 100)) * 100 : 0;
+$totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
+$overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ?
+ $finalExam->pivot->score : 0);
+$totalExamsCount = $attemptedCount +
+ ($finalExam->pivot->has_attempted ? 1 : 0);
 
-
-$overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ? $finalExam->pivot->score : 0);
-$totalExamsCount = $attemptedCount + ($finalExam->pivot->has_attempted ? 1 : 0);
-$overallTotalPercentage = $totalExamsCount > 0 ? ($overallTotalScore / ($totalExamsCount * 100)) * 100 : 0;
+$overallTotalPercentage = ($overallTotalScore / (5 * 100)) * 100;
 
 return response()->json([
     'student' => new StudentResultResource($student),
