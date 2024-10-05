@@ -381,5 +381,4 @@ public function getStudent4ExamsResult($studentId, $courseId)
 
 }
 
-
 }

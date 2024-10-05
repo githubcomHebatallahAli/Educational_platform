@@ -25,22 +25,78 @@ class ParentController extends Controller
         ]);
     }
 
-    public function edit(string $id)
-    {
-        $this->authorize('manage_users');
-        $Parent = Parnt::with('users')->find($id);
+    // public function edit(string $id)
+    // {
+    //     $this->authorize('manage_users');
+    //     $Parent = Parnt::with('users')->find($id);
 
-        if (!$Parent) {
-            return response()->json([
-                'message' => "Parent not found."
-            ], 404);
+    //     if (!$Parent) {
+    //         return response()->json([
+    //             'message' => "Parent not found."
+    //         ], 404);
+    //     }
+
+    //     return response()->json([
+    //         'data' => new ParentWithSonsResource($Parent),
+    //         'message' => "Edit Parent By ID Successfully."
+    //     ]);
+    // }
+
+
+
+    public function edit(string $id)
+{
+    $this->authorize('manage_users');
+    $Parent = Parnt::with('users')->find($id);
+
+    if (!$Parent) {
+        return response()->json([
+            'message' => "Parent not found."
+        ], 404);
+    }
+
+    $sonsData = $Parent->users->map(function ($son) {
+        // استرجاع التقييم الكلي لكل ابن
+        $totalOverallScore = 0;
+        $totalMaxScore = 0;
+
+        $courses = $son->courses()->with('exams')->get();
+
+        foreach ($courses as $course) {
+            foreach ($course->exams as $exam) {
+
+                $studentExam = $exam->students()->where('user_id', $son->id)->first();
+
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $totalOverallScore += $studentExam->pivot->score;
+                }
+                $totalMaxScore += 100;
+            }
         }
 
-        return response()->json([
-            'data' => new ParentWithSonsResource($Parent),
-            'message' => "Edit Parent By ID Successfully."
-        ]);
-    }
+        $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+        return [
+            'id' => $son->id,
+            'name' => $son->name,
+            'email' => $son->email,
+            'img' => $son->img,
+            'grade' => new GradeResource($son->grade),
+            'overall_score_percentage' => round($overallScorePercentage, 2),
+        ];
+    });
+
+    return response()->json([
+        'parent' => [
+            'id' => $Parent->id,
+            'name' => $Parent->name,
+            'email' => $Parent->email,
+        ],
+        'sons' => $sonsData,
+        'message' => "Edit Parent By ID Successfully."
+    ]);
+}
+
 
     // public function update(UpdateParentRequest $request, string $id)
     // {

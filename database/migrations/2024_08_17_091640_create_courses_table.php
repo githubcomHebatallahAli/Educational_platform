@@ -19,9 +19,10 @@ return new class extends Migration
             $table->string('nameOfCourse');
             $table->decimal('price');
             $table->text('description');
-            $table->integer('numOfLessons');
-            $table->integer('numOfExams');
+            $table->integer('numOfLessons')->nullable();
+            $table->integer('numOfExams')->nullable();
             $table->date('creationDate')->nullable();
+            $table->enum('status', ['active', 'notActive'])->default('active')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

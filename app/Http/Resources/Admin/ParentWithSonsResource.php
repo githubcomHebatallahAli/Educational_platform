@@ -25,11 +25,9 @@ class ParentWithSonsResource extends JsonResource
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'email' => $user->email,
-                    'parent_code'  => $user -> parent_code,
-            'img' => $user -> img,
-            'grade' => new GradeResource($user->grade),
-                  
+                    'img' => $user -> img,
+                    'grade' => new GradeResource($user->grade),
+
                 ];
             }),
         ];
