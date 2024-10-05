@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use Log;
 use App\Models\Exam;
 use App\Models\User;
+use App\Models\Parnt;
 use App\Models\Answer;
 use App\Models\Course;
 use App\Models\Question;
@@ -289,4 +290,65 @@ public function getStudentOverallResults($studentId)
     ]);
 }
 
+
+public function edit(string $id)
+{
+    $authenticatedParent = auth()->guard('parnt')->user();
+
+    if ($authenticatedParent->id != $id) {
+        return response()->json([
+            'message' => "Unauthorized access. You can only view your own data."
+        ], 403);
+    }
+
+
+    $Parent = Parnt::with('users')->find($id);
+
+    if (!$Parent) {
+        return response()->json([
+            'message' => "Parent not found."
+        ], 404);
+    }
+
+    $sonsData = $Parent->users->map(function ($son) {
+
+        $totalOverallScore = 0;
+        $totalMaxScore = 0;
+
+        $courses = $son->courses()->with('exams')->get();
+
+        foreach ($courses as $course) {
+            foreach ($course->exams as $exam) {
+
+                $studentExam = $exam->students()->where('user_id', $son->id)->first();
+
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $totalOverallScore += $studentExam->pivot->score;
+                }
+                $totalMaxScore += 100;
+            }
+        }
+
+        $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+        return [
+            'id' => $son->id,
+            'name' => $son->name,
+            // 'email' => $son->email,
+            'img' => $son->img,
+            'grade' => new GradeResource($son->grade),
+            'overall_score_percentage' => round($overallScorePercentage, 2),
+        ];
+    });
+
+    return response()->json([
+        'parent' => [
+            'id' => $Parent->id,
+            'name' => $Parent->name,
+            'email' => $Parent->email,
+        ],
+        'sons' => $sonsData,
+        'message' => "Edit Parent By ID Successfully."
+    ]);
+}
 }
