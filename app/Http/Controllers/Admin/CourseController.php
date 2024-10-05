@@ -281,17 +281,19 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 {
     $this->authorize('manage_users');
 
-    $course = Course::with(['mainCourse','students'])->find($id);
+    $course = Course::with(['Course','students'])->find($id);
     if (!$course) {
         return response()->json([
             'message' => 'Course not found.'
         ], 404);
     }
 
+    $studentsCount = $course->students()->count();
 
     return response()->json([
        'message' => 'Show course By Id With Students Paid.',
-        'data' => new StudentCourseResource($course)
+        'data' => new StudentCourseResource($course),
+        'students_count' => $studentsCount
     ]);
 }
 
