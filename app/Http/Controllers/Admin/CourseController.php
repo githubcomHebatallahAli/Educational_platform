@@ -48,9 +48,6 @@ class CourseController extends Controller
             "nameOfCourse" => $request->nameOfCourse,
             "price" => $formattedPrice,
             "description" => $request->description,
-            // "numOfLessons" => $request->numOfLessons,
-            // "numOfExams" => $request->numOfExams,
-            // 'status'=> $request -> status,
             'status' => $status,
             'creationDate' => now()->format('Y-m-d')
 
