@@ -11,6 +11,7 @@ use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExamRequest;
 use App\Http\Resources\Admin\ExamResource;
+use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Requests\Admin\StudentExamRequest;
 use App\Http\Resources\Admin\ExamQuestionsResource;
@@ -382,6 +383,42 @@ public function getStudent4ExamsResult($studentId, $courseId)
         'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
     ]);
 
+}
+
+public function getStudentOverallResults($studentId)
+{
+    $this->authorize('manage_users');
+    $student = User::findOrFail($studentId);
+
+    $totalOverallScore = 0;
+    $totalMaxScore = 0;
+
+    $courses = $student->courses()->with('exams')->get();
+
+    foreach ($courses as $course) {
+        foreach ($course->exams as $exam) {
+
+            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+
+            if ($studentExam && !is_null($studentExam->pivot->score)) {
+                $totalOverallScore += $studentExam->pivot->score;
+            }
+            $totalMaxScore += 100;
+        }
+    }
+
+
+    $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+    return response()->json([
+        'student' => [
+            'id' => $student->id,
+            'name' => $student->name,
+            'email' => $student->email,
+            'img' => $student->img,
+            'grade' => new GradeResource($student->grade),
+        ],
+        'overall_score_percentage' => round($overallScorePercentage, 2),
+    ]);
 }
 
 }

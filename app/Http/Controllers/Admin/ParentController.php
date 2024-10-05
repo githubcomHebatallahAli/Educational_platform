@@ -6,6 +6,7 @@ use App\Models\Parnt;
 use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\GradeResource;
 use App\Http\Requests\Auth\UpdateParentRequest;
 use App\Http\Resources\Auth\ParentRegisterResource;
 use App\Http\Resources\Admin\ParentWithSonsResource;
@@ -79,7 +80,7 @@ class ParentController extends Controller
         return [
             'id' => $son->id,
             'name' => $son->name,
-            'email' => $son->email,
+            // 'email' => $son->email,
             'img' => $son->img,
             'grade' => new GradeResource($son->grade),
             'overall_score_percentage' => round($overallScorePercentage, 2),

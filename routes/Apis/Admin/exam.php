@@ -23,4 +23,5 @@ Route::get('/exam/{examId}/questions','showExamQuestions');
 Route::get('show/exam/{examId}/student/{studentId}/results', 'showExamResults');
 Route::get('show/students/{studentId}/courses/{courseId}/exam-results','getStudentExamResults');
 Route::get('show/students/{studentId}/courses/{courseId}/4Exam-results','getStudent4ExamsResult');
+Route::get('/show/overAllResults/student/{id}','getStudentOverallResults');
    });
