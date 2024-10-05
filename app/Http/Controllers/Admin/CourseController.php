@@ -40,6 +40,7 @@ class CourseController extends Controller
   {
       $this->authorize('manage_users');
       $formattedPrice = number_format($request->price, 2, '.', '');
+      $status = $request->status ?? 'active';
 
          $Course =Course::create ([
             "grade_id" => $request->grade_id,
@@ -47,8 +48,11 @@ class CourseController extends Controller
             "nameOfCourse" => $request->nameOfCourse,
             "price" => $formattedPrice,
             "description" => $request->description,
-            "numOfLessons" => $request->numOfLessons,
-            "numOfExams" => $request->numOfExams,
+            // "numOfLessons" => $request->numOfLessons,
+            // "numOfExams" => $request->numOfExams,
+            // 'status'=> $request -> status,
+            'status' => $status,
+            'creationDate' => now()->format('Y-m-d')
 
         ]);
         if ($request->hasFile('img')) {
@@ -56,9 +60,10 @@ class CourseController extends Controller
           $Course->img =  $imgPath;
       }
 
-
-
-          $Course->creationDate = $Course->created_at->format('Y-m-d');
+        //   $Course->creationDate = $Course->created_at->format('Y-m-d');
+         $Course->save();
+         $Course->numOfLessons = $Course->lessons()->count();
+         $Course->numOfExams = $Course->exams()->count();
          $Course->save();
          return response()->json([
           'data' =>new CourseResource($Course),
@@ -90,8 +95,9 @@ class CourseController extends Controller
   public function update(CourseRequest $request, string $id)
   {
       $this->authorize('manage_users');
-      
+
       $formattedPrice = number_format($request->price, 2, '.', '');
+      $status = $request->status ?? 'active';
 
      $Course =Course::findOrFail($id);
 
@@ -108,7 +114,9 @@ class CourseController extends Controller
         "description" => $request->description,
         "numOfLessons" => $request->numOfLessons,
         "numOfExams" => $request->numOfExams,
-        'creationDate' => today()->toDateString(),
+        // 'creationDate' => today()->toDateString(),
+        'status' => $status,
+        'creationDate' => $request -> creationDate
       ]);
 
       if ($request->hasFile('img')) {
@@ -127,6 +135,42 @@ class CourseController extends Controller
   ]);
 }
 
+public function notActive(string $id)
+{
+    $Course =Course::findOrFail($id);
+
+    if (!$Course) {
+     return response()->json([
+         'message' => "Course not found."
+     ], 404);
+ }
+    $this->authorize('notActive',$Course);
+
+    $Course->update(['status' => 'notActive']);
+
+    return response()->json([
+        'data' => new CourseResource($Course),
+        'message' => 'Course has been Not Active.'
+    ]);
+}
+public function active(string $id)
+{
+    $Course =Course::findOrFail($id);
+
+    if (!$Course) {
+     return response()->json([
+         'message' => "Course not found."
+     ], 404);
+ }
+    $this->authorize('active',$Course);
+
+    $Course->update(['status' => 'active']);
+
+    return response()->json([
+        'data' => new CourseResource($Course),
+        'message' => 'Course has been Active.'
+    ]);
+}
 
   public function destroy(string $id)
   {

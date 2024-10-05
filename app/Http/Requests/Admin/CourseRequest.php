@@ -30,9 +30,10 @@ class CourseRequest extends FormRequest
             "month_id" => 'required|exists:months,id',
             'price' => 'required|numeric|regex:/^\d{1,5}(\.\d{1,2})?$/',
             'description'=>'required|string',
-            "numOfLessons" => 'required|integer',
-            "numOfExams" => 'required|integer',
+            "numOfLessons" => 'nullable|integer',
+            "numOfExams" => 'nullable|integer',
             'creationDate' => 'nullable|date_format:Y-m-d',
+            'status' => 'nullable|in:active,notActive',
         ];
     }
 

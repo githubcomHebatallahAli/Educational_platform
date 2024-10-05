@@ -23,6 +23,8 @@ Route::get('/show/course/{id}/with/all/lessonsAndExams','show');
 
 Route::post('/add/student/to/course',  'attachStudentToCourse');
 Route::get('/show/course/with/students/{id}',  'showCourseWithStudent');
+Route::patch('notActive/course/{id}', 'notActive');
+Route::patch('active/course/{id}', 'active');
 
 
    });

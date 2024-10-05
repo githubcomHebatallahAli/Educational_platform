@@ -85,6 +85,9 @@ class LessonController extends Controller
         }
 
         $Lesson->save();
+        $course = $Lesson->course;
+        $course->numOfLessons = $course->lessons()->count();
+        $course->save();
 
         return response()->json([
             'data' => new LessonResource($Lesson),

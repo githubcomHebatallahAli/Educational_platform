@@ -20,6 +20,7 @@ class Course extends Model
         'numOfLessons',
         'numOfExams',
         'creationDate',
+        'status'
 
     ];
     protected $dates = ['creationDate'];

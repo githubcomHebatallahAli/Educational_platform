@@ -49,6 +49,9 @@ class ExamController extends Controller
           ]);
 
          $Exam->save();
+         $course = $Exam->course;
+         $course->numOfExams = $course->exams()->count();
+         $course->save();
          return response()->json([
           'data' =>new ExamResource($Exam),
           'message' => "Exam Created Successfully."

@@ -25,6 +25,7 @@ class CourseResource extends JsonResource
             "numOfLessons" => $this ->numOfLessons,
             "numOfExams" => $this ->numOfExams,
             'creationDate' => $this->creationDate,
+            'status' => $this -> status,
         ];
     }
 }
