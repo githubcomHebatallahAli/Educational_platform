@@ -34,33 +34,35 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            Log::info('Scheduler is running successfully');
-            // جلب كل الامتحانات التي انتهت
-            $exams = Exam::whereNotNull('deadLineExam')->get();
+        // $schedule->call(function () {
+        //     Log::info('Scheduler is running successfully');
+        //     // جلب كل الامتحانات التي انتهت
+        //     $exams = Exam::whereNotNull('deadLineExam')->get();
 
-            foreach ($exams as $exam) {
-                // حساب تاريخ 3 أيام بعد نهاية الامتحان
-                $threeDaysAfterEndDate = Carbon::parse($exam->deadLineExam)->addDays(3);
-                $currentDate = Carbon::now();
+        //     foreach ($exams as $exam) {
+        //         // حساب تاريخ 3 أيام بعد نهاية الامتحان
+        //         $threeDaysAfterEndDate = Carbon::parse($exam->deadLineExam)->addDays(3);
+        //         $currentDate = Carbon::now();
 
-                // إذا مرت 3 أيام على نهاية الامتحان
-                if ($currentDate->greaterThanOrEqualTo($threeDaysAfterEndDate)) {
-                    // جلب الطلاب الذين لم يقدموا الامتحان
-                    $studentsWithoutAnswers = Student::whereDoesntHave('answers', function ($query) use ($exam) {
-                        $query->where('exam_id', $exam->id);
-                    })->get();
+        //         // إذا مرت 3 أيام على نهاية الامتحان
+        //         if ($currentDate->greaterThanOrEqualTo($threeDaysAfterEndDate)) {
+        //             // جلب الطلاب الذين لم يقدموا الامتحان
+        //             $studentsWithoutAnswers = Student::whereDoesntHave('answers', function ($query) use ($exam) {
+        //                 $query->where('exam_id', $exam->id);
+        //             })->get();
 
-                    foreach ($studentsWithoutAnswers as $student) {
-                        // تحديث جدول student_exams لتسجيل الغياب
-                        StudentExam::updateOrCreate(
-                            ['student_id' => $student->id, 'exam_id' => $exam->id],
-                            ['score' => 'Absent', 'has_attempted' => false]
-                        );
-                    }
-                }
-            }
-        })->everyMinute();  // تنفيذ المهمة يومياً
+        //             foreach ($studentsWithoutAnswers as $student) {
+        //                 // تحديث جدول student_exams لتسجيل الغياب
+        //                 StudentExam::updateOrCreate(
+        //                     ['student_id' => $student->id, 'exam_id' => $exam->id],
+        //                     ['score' => 'Absent', 'has_attempted' => false]
+        //                 );
+        //             }
+        //         }
+        //     }
+        // })->everyMinute();  // تنفيذ المهمة كل دقيقه
+
+        $schedule->command('app:mark-missed-exams')->dailyAt('03:00');
     }
 
 

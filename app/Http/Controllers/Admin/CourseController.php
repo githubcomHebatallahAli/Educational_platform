@@ -281,7 +281,7 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 {
     $this->authorize('manage_users');
 
-    $course = Course::with(['Course','students'])->find($id);
+    $course = Course::with('students')->find($id);
     if (!$course) {
         return response()->json([
             'message' => 'Course not found.'
