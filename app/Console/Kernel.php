@@ -65,5 +65,4 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:mark-missed-exams')->dailyAt('03:00');
     }
 
-
 }

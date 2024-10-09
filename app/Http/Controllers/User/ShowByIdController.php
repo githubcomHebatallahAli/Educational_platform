@@ -552,11 +552,9 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
             // حساب النسبة المئوية للتقييم الإجمالي لكل طالب
             $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
-            // تخزين معلومات الطالب مع نتيجته
             $studentResults[] = [
                 'id' => $student->id,
                 'name' => $student->name,
-                // 'email' => $student->email,
                 'img' => $student->img,
                 'grade' => new GradeResource($student->grade),
                 'overall_score_percentage' => round($overallScorePercentage, 2),
@@ -574,11 +572,69 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
         $studentResults[$index]['rank'] = $index + 1;
     }
 
-    // إرجاع البيانات
     return response()->json([
         'students' => $studentResults,
     ]);
 }
+
+public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
+{
+    // الحصول على جميع الطلاب المشاركين في نفس الكورس والذين لديهم grade_id محدد
+    $students = User::where('grade_id', $gradeId)
+                    ->whereHas('courses', function ($query) use ($courseId) {
+                        $query->where('course_id', $courseId);
+                    })
+                    ->get();
+
+    $studentResults = [];
+
+    foreach ($students as $student) {
+        $totalOverallScore = 0;
+        $totalMaxScore = 500; // عدد الامتحانات الكلي هو 5 وكل امتحان درجته 100
+
+        // الحصول على الكورس المحدد للطالب وحساب درجاته
+        $course = $student->courses()->where('course_id', $courseId)->with('exams')->first();
+
+        if ($course) {
+            foreach ($course->exams as $exam) {
+                $studentExam = $exam->students()->where('user_id', $student->id)->first();
+
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $totalOverallScore += $studentExam->pivot->score; // جمع الدرجات التي حصل عليها الطالب فقط
+                }
+            }
+
+            // حساب النسبة المئوية للتقييم الإجمالي لكل طالب
+            $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+            $studentResults[] = [
+                'id' => $student->id,
+                'name' => $student->name,
+                'img' => $student->img,
+                'grade' => new GradeResource($student->grade),
+                'overall_score_percentage' => round($overallScorePercentage, 2),
+            ];
+        }
+    }
+
+    // ترتيب الطلاب بناءً على النسبة المئوية للتقييم الإجمالي من الأعلى إلى الأدنى
+    usort($studentResults, function ($a, $b) {
+        return $b['overall_score_percentage'] <=> $a['overall_score_percentage'];
+    });
+
+    // إضافة ترتيب لكل طالب بناءً على ترتيبه في النتيجة النهائية
+    foreach ($studentResults as $index => $studentResult) {
+        $studentResults[$index]['rank'] = $index + 1;
+    }
+
+    // إعادة الثلاثة الأوائل فقط
+    $topThreeStudents = array_slice($studentResults, 0, 3);
+
+    return response()->json([
+        'students' => $topThreeStudents,
+    ]);
+}
+
 
 
 

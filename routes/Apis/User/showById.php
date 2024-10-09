@@ -27,7 +27,9 @@ Route::controller(ShowByIdController::class)
         Route::get('/show/overAllResults/student/{id}','getStudentOverallResults');
         Route::get('/show/his/sons/withOverAllResult/{id}','edit');
         Route::get('/show/overAllResult/Rank/{id}','getStudentRankOverallResults');
-        Route::get('/show/overAllResults/Rank/ForAllStudents/Grade/{gradeId}/course/{courseId}','getRankAndOverAllResultsForAllStudents');
-
+        Route::get('/show/overAllResults/Rank/ForAllStudents/Grade/{gradeId}/course/{courseId}',
+        'getRankAndOverAllResultsForAllStudents');
+        Route::get('/show/overAllResults/Rank/ForTopThreeStudents/Grade/{gradeId}/course/{courseId}',
+        'getRankAndOverAllResultsForTopThreeStudents');
 
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Models\Grade;
 use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
@@ -134,6 +135,60 @@ class UserController extends Controller
             'overall_score_percentage' => round($overallScorePercentage, 2),
         ]);
     }
+
+
+    public function getUsersByGrade($grade_id)
+{
+    $this->authorize('manage_users');
+
+    $grade = Grade::with('users')->find($grade_id);
+
+    if (!$grade) {
+        return response()->json(['message' => 'Grade not found'], 404);
+    }
+
+    $studentsCount = $grade->users->count();
+
+    return response()->json([
+        'id' => $grade->id,
+        'grade' => $grade->grade,
+        'students_count' => $studentsCount,
+        'students' => $grade->users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'img' => $user->img,
+            ];
+        }),
+    ]);
+}
+
+public function getUserWithCourses($user_id)
+{
+    $this->authorize('manage_users');
+
+    $user = User::with('courses')->find($user_id);
+
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    return response()->json([
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'courses' => $user->courses->map(function ($course) {
+            return [
+                'id' => $course->id,
+                'nameOfCourse' => $course->nameOfCourse,
+            ];
+        }),
+    ]);
+}
+
+
 
 }
 
