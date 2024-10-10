@@ -3,16 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Paddle\Billable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable , SoftDeletes;
+    use HasFactory, Notifiable , SoftDeletes,Billable;
     const storageFolder= 'Student';
 
     /**
@@ -70,6 +71,11 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Course::class, 'student_courses')
                     ->withPivot('purchase_date', 'status');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
     // protected $cast = [

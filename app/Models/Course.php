@@ -30,6 +30,11 @@ class Course extends Model
         return $this->belongsTo(MainCourse::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function lessons()
     {
         return $this->hasMany(Lesson::class);

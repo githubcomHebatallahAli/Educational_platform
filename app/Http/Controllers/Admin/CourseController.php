@@ -109,8 +109,6 @@ class CourseController extends Controller
         "nameOfCourse" => $request->nameOfCourse,
         "price" => $formattedPrice,
         "description" => $request->description,
-        "numOfLessons" => $request->numOfLessons,
-        "numOfExams" => $request->numOfExams,
         // 'creationDate' => today()->toDateString(),
         'status' => $status,
         'creationDate' => $request -> creationDate
@@ -123,7 +121,9 @@ class CourseController extends Controller
         $imgPath = $request->file('img')->store('Course', 'public');
         $Course->img = $imgPath;
     }
-
+    $Course->numOfLessons = $Course->lessons()->count();
+    $Course->numOfExams = $Course->exams()->count();
+    $Course->save();
 
      $Course->save();
      return response()->json([
