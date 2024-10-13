@@ -2,28 +2,24 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use ReflectionClass;
 use Illuminate\Http\Request;
+use Laravel\Paddle\Checkout;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
-    // public function pay()
-    // {
-    //     return view('store',[
-    //         'payLink' =>auth()->guard('api')->user()->charge(12.99,'Action Figure')
-    //     ]);
-    // }
-
-    public function pay()
+public function pay()
 {
-    $user = auth()->guard('api')->user();
+    $checkout = User::first()->checkout(['course']);
 
-    $payLink = $user->charge(12, 'Action Figure');
+    return view('pay', ['checkout' => $checkout]);
 
-    return response()->json([
-        'payLink' => $payLink,
-        'message' => 'Payment link generated successfully.',
-    ], 200);
-}
+
+    }
+
 
 }

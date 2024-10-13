@@ -142,7 +142,6 @@ public function notActive(string $id)
          'message' => "Course not found."
      ], 404);
  }
-    // $this->authorize('notActive',$Course);
 
     $Course->update(['status' => 'notActive']);
 
@@ -162,7 +161,6 @@ public function active(string $id)
          'message' => "Course not found."
      ], 404);
  }
-    // $this->authorize('active',$Course);
 
     $Course->update(['status' => 'active']);
 
