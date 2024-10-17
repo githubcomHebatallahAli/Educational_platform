@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Log;
 use FFMpeg\FFMpeg;
+
 use App\Models\Lesson;
-
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
 
+use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Http\Requests\Admin\LessonRequest;
 use App\Http\Resources\Admin\LessonResource;
@@ -90,7 +91,7 @@ class LessonController extends Controller
 
     } catch (\Exception $e) {
 
-        \Log::error($e->getMessage());
+        Log::error($e->getMessage());
 
         return response()->json([
             'error' => 'An error occurred while creating the lesson.',
