@@ -19,7 +19,6 @@ class Lesson extends Model
         'lec_id',
         'duration',
         'numOfPdf',
-        // 'month_id',
         'course_id',
         'description'
     ];
@@ -58,5 +57,5 @@ class Lesson extends Model
     {
         return $this->hasOne(Exam::class, 'lesson_id');
     }
-    
+
 }

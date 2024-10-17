@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,5 +25,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage_users', function($user) {
             return    Auth::guard('admin')->check();
         });
+
+
+            // Blade::component('paddle-button', 'paddle-button');
+
     }
+
+
 }

@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers\User;
 
-use Log;
-use App\Models\Exam;
+
 use App\Models\User;
 use App\Models\Parnt;
 use App\Models\Answer;
 use App\Models\Course;
-use App\Models\Question;
-use App\Models\StudentExam;
-use Illuminate\Http\Request;
-use App\Models\StudentCourse;
+use App\Models\Lesson;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\AnswerRequest;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
+use App\Models\StudentCourse;
 
 class ShowByIdController extends Controller
 {
@@ -635,7 +632,54 @@ public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
     ]);
 }
 
+protected function authorizeStudentOrAdmin($student)
+{
+    $user = auth()->guard('api')->user();
 
+    if ($user && $user->id === $student->id) {
+        return true;
+    }
+
+    $admin = auth()->guard('admin')->user();
+    if ($admin && $admin->role_id == 1) {
+        return true;
+    }
+    return false;
+}
+
+public function getLessonPdf($studentId)
+{
+    $student = User::findOrFail($studentId);
+    if (!$student) {
+        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    }
+
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json(['message' => 'Unauthorized access.'], 403);
+    }
+
+    $hasPurchased = $student->courses()->exists(); // إذا كنت تريد التحقق من الدورات التي اشتراها الطالب
+
+    if (!$hasPurchased) {
+        return response()->json(['error' => 'Unauthorized access: Course not purchased'], 403);
+    }
+
+
+    $lessons = Lesson::where('grade_id', $student->grade_id)->get()->map(function ($lesson) {
+        return [
+            'course_id' => $lesson->course_id,
+            'lec_id' => $lesson->lec_id,
+            'title' => $lesson->title,
+            'numOfPdf' => $lesson->numOfPdf,
+            'ExplainPdf' => $lesson->ExplainPdf,
+        ];
+    });
+
+    return response()->json([
+        'data' => $lessons,
+        'message' => 'PDFs retrieved successfully.'
+    ]);
+}
 
 
 }
