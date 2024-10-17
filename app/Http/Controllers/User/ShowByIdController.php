@@ -9,13 +9,13 @@ use App\Models\Answer;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
-use App\Models\StudentCourse;
+
 
 class ShowByIdController extends Controller
 {
