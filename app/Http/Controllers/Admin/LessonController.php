@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Log;
 use FFMpeg\FFMpeg;
+use getID3;
 
 use App\Models\Lesson;
 use App\Http\Controllers\Controller;
@@ -49,24 +50,46 @@ class LessonController extends Controller
             $Lesson->poster = $posterPath;
         }
 
+        // if ($request->hasFile('video')) {
+        //     $videoPath = $request->file('video')->store(Lesson::storageFolder);
+        //     $videoFullPath = public_path($videoPath);
+
+        //     $ffmpeg = FFMpeg::create([
+        //         'ffmpeg.binaries'  => 'E:/ffmpeg/bin/ffmpeg.exe',
+        //         'ffprobe.binaries' => 'E:/ffmpeg/bin/ffprobe.exe',
+        //         'timeout'          => 3600,
+        //         'ffmpeg.threads'   => 12,
+        //     ]);
+
+        //     $video = $ffmpeg->open($videoFullPath);
+        //     $durationInSeconds = $video->getFormat()->get('duration');
+        //     $duration = gmdate('H:i:s', $durationInSeconds);
+
+        //     $Lesson->video = $videoPath;
+        //     $Lesson->duration = $duration;
+        // }
+
+
+
+
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store(Lesson::storageFolder);
             $videoFullPath = public_path($videoPath);
 
-            $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries'  => 'E:/ffmpeg/bin/ffmpeg.exe',
-                'ffprobe.binaries' => 'E:/ffmpeg/bin/ffprobe.exe',
-                'timeout'          => 3600,
-                'ffmpeg.threads'   => 12,
-            ]);
+            $getID3 = new getID3;
+            $fileInfo = $getID3->analyze($videoFullPath);
 
-            $video = $ffmpeg->open($videoFullPath);
-            $durationInSeconds = $video->getFormat()->get('duration');
-            $duration = gmdate('H:i:s', $durationInSeconds);
+            if (isset($fileInfo['playtime_string'])) {
+                $duration = $fileInfo['playtime_string']; // تنسيق HH:MM:SS
+            } else {
+                // التعامل مع حالة عدم وجود مدة
+                $duration = '00:00:00';
+            }
 
             $Lesson->video = $videoPath;
             $Lesson->duration = $duration;
         }
+
 
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
