@@ -17,7 +17,7 @@ return new class extends Migration
             // $table->integer('totalMarke');
             $table->time('duration')->nullable();
             $table->date('creationDate')->nullable();
-            $table->integer('numOfQ');
+            $table->integer('numOfQ')->nullable();
             $table->timestamp('deadLineExam')->nullable();
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();

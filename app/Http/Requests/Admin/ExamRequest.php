@@ -28,7 +28,7 @@ class ExamRequest extends FormRequest
             // 'totalMarke' => 'required|integer',
             'creationDate'=> 'nullable|date_format:Y-m-d',
             'duration' => 'nullable|date_format:H:i:s',
-            'numOfQ' => 'required|integer',
+            // 'numOfQ' => 'nullable|integer',
             'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s',
             'grade_id' => 'required|exists:grades,id',
             "course_id" => 'required|exists:courses,id',

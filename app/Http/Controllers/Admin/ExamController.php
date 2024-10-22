@@ -45,11 +45,17 @@ class ExamController extends Controller
             // "totalMarke" => $request-> totalMarke,
             "creationDate"=> $request->creationDate,
             "duration" => $request-> duration,
-            "numOfQ" => $request-> numOfQ,
+            // "numOfQ" => $request-> numOfQ,
             "deadLineExam" => $request-> deadLineExam
           ]);
 
-         $Exam->save();
+
+          $numOfQuestions = $Exam->questions()->count();  // افتراضًا أن العلاقة بين الامتحان والأسئلة هي questions()
+
+          // تحديث عدد الأسئلة تلقائيًا
+          $Exam->numOfQ = $numOfQuestions;
+          $Exam->save();
+
          $course = $Exam->course;
          $course->numOfExams = $course->exams()->count();
          $course->save();
@@ -231,11 +237,22 @@ $studentExam->time_taken = $timeTaken;
         // "totalMarke" => $request-> totalMarke,
         "creationDate"=> $request->creationDate,
         "duration" => $request-> duration,
-        "numOfQ" => $request-> numOfQ,
+        // "numOfQ" => $request-> numOfQ,
         "deadLineExam" => $request-> deadLineExam
       ]);
 
-     $Exam->save();
+
+      $numOfQuestions = $Exam->questions()->count();  // افتراضًا أن العلاقة بين الامتحان والأسئلة هي questions()
+
+      // تحديث عدد الأسئلة تلقائيًا
+      $Exam->numOfQ = $numOfQuestions;
+      $Exam->save();
+
+     $course = $Exam->course;
+     $course->numOfExams = $course->exams()->count();
+     $course->save();
+
+
      return response()->json([
       'data' =>new ExamResource($Exam),
       'message' => "Update Exam By Id Successfully."
