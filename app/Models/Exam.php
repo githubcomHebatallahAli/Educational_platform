@@ -12,7 +12,7 @@ class Exam extends Model
     use HasFactory, SoftDeletes;
     protected $fillable = [
         'title',
-        'totalMarke',
+        // 'totalMarke',
         'creationDate',
         'duration',
         'grade_id',

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->integer('totalMarke');
+            // $table->integer('totalMarke');
             $table->time('duration')->nullable();
             $table->date('creationDate')->nullable();
             $table->integer('numOfQ');

@@ -25,7 +25,7 @@ class ExamRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'totalMarke' => 'required|integer',
+            // 'totalMarke' => 'required|integer',
             'creationDate'=> 'nullable|date_format:Y-m-d',
             'duration' => 'nullable|date_format:H:i:s',
             'numOfQ' => 'required|integer',
