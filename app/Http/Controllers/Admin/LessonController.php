@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use Log;
+use getid3;
+
+
 use FFMpeg\FFMpeg;
-use getID3;
-
 use App\Models\Lesson;
-use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Http\Requests\Admin\LessonRequest;
@@ -70,19 +71,17 @@ class LessonController extends Controller
         // }
 
 
-
-
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store(Lesson::storageFolder);
             $videoFullPath = public_path($videoPath);
 
-            $getID3 = new getID3;
+            $getID3 = new getid3;
             $fileInfo = $getID3->analyze($videoFullPath);
 
             if (isset($fileInfo['playtime_string'])) {
-                $duration = $fileInfo['playtime_string']; // تنسيق HH:MM:SS
+                $duration = $fileInfo['playtime_string'];
             } else {
-                // التعامل مع حالة عدم وجود مدة
+
                 $duration = '00:00:00';
             }
 
@@ -122,6 +121,77 @@ class LessonController extends Controller
         ], 500);
     }
     }
+
+//     public function create(LessonRequest $request)
+// {
+//     ini_set('memory_limit', '2G');
+//     $this->authorize('manage_users');
+
+//     try {
+//         $Lesson = Lesson::create([
+//             "grade_id" => $request->grade_id,
+//             "lec_id" => $request->lec_id,
+//             "course_id" => $request->course_id,
+//             "title" => $request->title,
+//             "description" => $request->description,
+//         ]);
+
+//         // تخزين الصورة
+//         if ($request->hasFile('poster')) {
+//             $posterPath = $request->file('poster')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
+//             $Lesson->poster = Storage::url($posterPath); // استخدام Storage لعرض الرابط
+//         }
+
+//         // تخزين الفيديو
+//         if ($request->hasFile('video')) {
+//             $videoPath = $request->file('video')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
+//             $videoFullPath = public_path($videoPath);
+
+//             $getID3 = new getID3;
+//             $fileInfo = $getID3->analyze($videoFullPath);
+
+//             if (isset($fileInfo['playtime_string'])) {
+//                 $duration = $fileInfo['playtime_string'];
+//             } else {
+//                 $duration = '00:00:00';
+//             }
+
+//             $Lesson->video = Storage::url($videoPath); // استخدام Storage لعرض الرابط
+//             $Lesson->duration = $duration;
+//         }
+
+//         // تخزين PDF
+//         if ($request->hasFile('ExplainPdf')) {
+//             $ExplainPdfPath = $request->file('ExplainPdf')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
+//             $Lesson->ExplainPdf = Storage::url($ExplainPdfPath); // استخدام Storage لعرض الرابط
+
+//             $pdfParser = new PdfParser();
+//             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+//             $numberOfPages = count($pdf->getPages());
+
+//             $Lesson->numOfPdf = $numberOfPages;
+//         }
+
+//         $Lesson->save();
+//         $course = $Lesson->course;
+//         $course->numOfLessons = $course->lessons()->count();
+//         $course->save();
+
+//         return response()->json([
+//             'data' => new LessonResource($Lesson),
+//             'message' => "Lesson Created Successfully."
+//         ]);
+
+//     } catch (\Exception $e) {
+//         Log::error($e->getMessage());
+
+//         return response()->json([
+//             'error' => 'An error occurred while creating the lesson.',
+//             'details' => $e->getMessage()
+//         ], 500);
+//     }
+// }
+
 
 
 
