@@ -27,7 +27,6 @@ class LessonRequest extends FormRequest
             'grade_id' => 'required|exists:grades,id',
             'lec_id' => 'required|exists:lecs,id',
             "course_id" => 'required|exists:courses,id',
-            // "month_id" => 'required|exists:months,id',
             'title' => 'string|required|max:255',
             'description' => 'string|nullable',
             'poster.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',

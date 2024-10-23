@@ -17,7 +17,6 @@ class Lesson extends Model
         'video',
         'ExplainPdf',
         'lec_id',
-        'duration',
         'numOfPdf',
         'course_id',
         'description'

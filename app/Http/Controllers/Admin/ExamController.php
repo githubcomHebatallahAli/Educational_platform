@@ -42,17 +42,13 @@ class ExamController extends Controller
             "course_id" => $request-> course_id,
             "test_id" => $request-> test_id,
             "lesson_id" => $request-> lesson_id,
-            // "totalMarke" => $request-> totalMarke,
-            "creationDate"=> $request->creationDate,
+            'creationDate' => now()->format('Y-m-d H:i:s'),
             "duration" => $request-> duration,
-            // "numOfQ" => $request-> numOfQ,
             "deadLineExam" => $request-> deadLineExam
           ]);
 
+          $numOfQuestions = $Exam->questions()->count();
 
-          $numOfQuestions = $Exam->questions()->count();  // افتراضًا أن العلاقة بين الامتحان والأسئلة هي questions()
-
-          // تحديث عدد الأسئلة تلقائيًا
           $Exam->numOfQ = $numOfQuestions;
           $Exam->save();
 

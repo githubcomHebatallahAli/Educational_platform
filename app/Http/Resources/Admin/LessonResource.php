@@ -20,7 +20,6 @@ class LessonResource extends JsonResource
             'poster' => $this -> poster,
             'video' => $this -> video,
             'ExplainPdf' => $this -> ExplainPdf,
-            'duration' => $this->duration,
             'numOfPdf' => $this->numOfPdf,
             'description'=> $this-> description,
             'grade' => new GradeResource($this->grade),

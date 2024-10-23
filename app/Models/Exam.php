@@ -12,7 +12,6 @@ class Exam extends Model
     use HasFactory, SoftDeletes;
     protected $fillable = [
         'title',
-        // 'totalMarke',
         'creationDate',
         'duration',
         'grade_id',
@@ -23,6 +22,7 @@ class Exam extends Model
         'lesson_id'
     ];
 
+    protected $date = ['creationDate'];
 
     protected $dates = ['deadLineExam'];
 

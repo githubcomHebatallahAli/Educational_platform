@@ -3,12 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use Log;
-use getid3;
 
-
-use FFMpeg\FFMpeg;
 use App\Models\Lesson;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
@@ -51,42 +47,10 @@ class LessonController extends Controller
             $Lesson->poster = $posterPath;
         }
 
-        // if ($request->hasFile('video')) {
-        //     $videoPath = $request->file('video')->store(Lesson::storageFolder);
-        //     $videoFullPath = public_path($videoPath);
-
-        //     $ffmpeg = FFMpeg::create([
-        //         'ffmpeg.binaries'  => 'E:/ffmpeg/bin/ffmpeg.exe',
-        //         'ffprobe.binaries' => 'E:/ffmpeg/bin/ffprobe.exe',
-        //         'timeout'          => 3600,
-        //         'ffmpeg.threads'   => 12,
-        //     ]);
-
-        //     $video = $ffmpeg->open($videoFullPath);
-        //     $durationInSeconds = $video->getFormat()->get('duration');
-        //     $duration = gmdate('H:i:s', $durationInSeconds);
-
-        //     $Lesson->video = $videoPath;
-        //     $Lesson->duration = $duration;
-        // }
-
-
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store(Lesson::storageFolder);
-            $videoFullPath = public_path($videoPath);
-
-            $getID3 = new getid3;
-            $fileInfo = $getID3->analyze($videoFullPath);
-
-            if (isset($fileInfo['playtime_string'])) {
-                $duration = $fileInfo['playtime_string'];
-            } else {
-
-                $duration = '00:00:00';
-            }
-
             $Lesson->video = $videoPath;
-            $Lesson->duration = $duration;
+
         }
 
 
@@ -320,21 +284,8 @@ class LessonController extends Controller
                 Storage::disk('public')->delete($Lesson->video);
             }
             $videoPath = $request->file('video')->store('Lessons', 'public');
-            $videoFullPath = public_path($videoPath);
-
-            $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries'  => 'E:/ffmpeg/bin/ffmpeg.exe',
-                'ffprobe.binaries' => 'E:/ffmpeg/bin/ffprobe.exe',
-                'timeout'          => 3600,
-                'ffmpeg.threads'   => 12,
-            ]);
-
-            $video = $ffmpeg->open($videoFullPath);
-            $durationInSeconds = $video->getFormat()->get('duration');
-            $duration = gmdate('H:i:s', $durationInSeconds);
-
             $Lesson->video = $videoPath;
-            $Lesson->duration = $duration;
+
         }
 
         if ($request->hasFile('ExplainPdf')) {
