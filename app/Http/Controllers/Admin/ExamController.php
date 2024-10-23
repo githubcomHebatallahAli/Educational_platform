@@ -42,14 +42,16 @@ class ExamController extends Controller
             "course_id" => $request-> course_id,
             "test_id" => $request-> test_id,
             "lesson_id" => $request-> lesson_id,
-            "totalMarke" => $request-> totalMarke,
-            "creationDate"=> $request->creationDate,
+            'creationDate' => now()->format('Y-m-d H:i:s'),
             "duration" => $request-> duration,
-            "numOfQ" => $request-> numOfQ,
             "deadLineExam" => $request-> deadLineExam
           ]);
 
-         $Exam->save();
+           $numOfQuestions = $Exam->questions()->count();
+
+          $Exam->numOfQ = $numOfQuestions;
+          $Exam->save();
+
          $course = $Exam->course;
          $course->numOfExams = $course->exams()->count();
          $course->save();
@@ -228,14 +230,19 @@ $studentExam->time_taken = $timeTaken;
         "course_id" => $request-> course_id,
         "test_id" => $request-> test_id,
         "lesson_id" => $request-> lesson_id,
-        "totalMarke" => $request-> totalMarke,
         "creationDate"=> $request->creationDate,
         "duration" => $request-> duration,
-        "numOfQ" => $request-> numOfQ,
         "deadLineExam" => $request-> deadLineExam
       ]);
 
-     $Exam->save();
+      $numOfQuestions = $Exam->questions()->count();
+
+          $Exam->numOfQ = $numOfQuestions;
+          $Exam->save();
+
+         $course = $Exam->course;
+         $course->numOfExams = $course->exams()->count();
+         $course->save();
      return response()->json([
       'data' =>new ExamResource($Exam),
       'message' => "Update Exam By Id Successfully."
