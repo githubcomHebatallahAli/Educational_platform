@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Log;
 
+
 use App\Models\Lesson;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,7 @@ class LessonController extends Controller
             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
             $Lesson->poster = $posterPath;
         }
+
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store(Lesson::storageFolder);
@@ -285,7 +287,6 @@ class LessonController extends Controller
             }
             $videoPath = $request->file('video')->store('Lessons', 'public');
             $Lesson->video = $videoPath;
-
         }
 
         if ($request->hasFile('ExplainPdf')) {

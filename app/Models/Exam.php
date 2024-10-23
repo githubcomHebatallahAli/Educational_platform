@@ -23,7 +23,6 @@ class Exam extends Model
     ];
 
     protected $date = ['creationDate'];
-
     protected $dates = ['deadLineExam'];
 
     public function getFormattedDeadLineExamAttribute()

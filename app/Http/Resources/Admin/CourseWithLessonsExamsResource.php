@@ -23,7 +23,6 @@ class CourseWithLessonsExamsResource extends JsonResource
                 'poster' => $lesson->poster,
                 'video' => $lesson->video,
                 'ExplainPdf' => $lesson->ExplainPdf,
-                // 'duration' => $lesson->duration,
                 'numOfPdf' => $lesson->numOfPdf,
                 'description' => $lesson->description,
                 'grade' => new GradeResource($lesson->grade),
@@ -31,7 +30,6 @@ class CourseWithLessonsExamsResource extends JsonResource
                 'exam' => $lesson->exam ? [
                     'id' => $lesson->exam->id,
                     'title' => $lesson->exam->title,
-                    'totalMarke' => $lesson->exam->totalMarke,
                     'duration' => $lesson->exam->duration,
                     'creationDate' => $lesson->exam->creationDate,
                     'numOfQ' => $lesson->exam->numOfQ,
