@@ -31,6 +31,7 @@ class LessonRequest extends FormRequest
             'description' => 'string|nullable',
             'poster.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
             'video' => 'nullable|mimes:mp4,mov,avi,wmv',
+            'duration' => 'nullable|date_format:H:i:s',
             'ExplainPdf' => 'nullable|mimes:pdf',
         ];
     }

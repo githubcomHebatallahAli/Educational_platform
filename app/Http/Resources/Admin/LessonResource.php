@@ -19,6 +19,7 @@ class LessonResource extends JsonResource
             'title' => $this -> title,
             'poster' => $this -> poster,
             'video' => $this -> video,
+            'duration' => $this -> duration,
             'ExplainPdf' => $this -> ExplainPdf,
             'numOfPdf' => $this->numOfPdf,
             'description'=> $this-> description,

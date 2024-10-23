@@ -22,6 +22,7 @@ class CourseWithLessonsExamsResource extends JsonResource
                 'title' => $lesson->title,
                 'poster' => $lesson->poster,
                 'video' => $lesson->video,
+                'duration' => $this -> duration,
                 'ExplainPdf' => $lesson->ExplainPdf,
                 'numOfPdf' => $lesson->numOfPdf,
                 'description' => $lesson->description,

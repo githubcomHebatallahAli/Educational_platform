@@ -31,6 +31,7 @@ class ExamResource extends JsonResource
                 'title' => $this->lesson->title,
                 'poster' => $this->lesson->poster,
                 'video' => $this->lesson->video,
+                'duration' => $this -> duration,
                 'ExplainPdf' => $this->lesson->ExplainPdf,
                 'numOfPdf' => $this->lesson->numOfPdf,
                 'description' => $this->lesson->description,

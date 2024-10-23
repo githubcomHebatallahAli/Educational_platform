@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('poster')->nullable();
             $table->string('video')->nullable();
+            $table->time('duration')->nullable();
             $table->string('ExplainPdf')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
