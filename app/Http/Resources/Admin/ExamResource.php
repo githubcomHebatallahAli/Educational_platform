@@ -33,7 +33,6 @@ class ExamResource extends JsonResource
                 'poster' => $this->lesson->poster,
                 'video' => $this->lesson->video,
                 'ExplainPdf' => $this->lesson->ExplainPdf,
-                'duration' => $this->lesson->duration,
                 'numOfPdf' => $this->lesson->numOfPdf,
                 'description' => $this->lesson->description,
                 'grade' => new GradeResource($this->lesson->grade),
