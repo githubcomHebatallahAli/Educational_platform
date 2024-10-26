@@ -12,7 +12,7 @@ class Chat extends Model
     protected $fillable = [
         'admin_id',
         'parnt_id',
-        'student_id'
+        'user_id'
     ];
 
     public function messages()
@@ -22,7 +22,7 @@ class Chat extends Model
 
     public function student()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(User::class , 'user_id');
     }
 
     public function parent()
@@ -32,6 +32,6 @@ class Chat extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class);
+        return $this->belongsTo(Admin::class , 'admin_id');
     }
 }

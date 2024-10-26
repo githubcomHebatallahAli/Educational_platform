@@ -6,6 +6,7 @@ use Log;
 
 
 use App\Models\Lesson;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
@@ -259,7 +260,7 @@ class LessonController extends Controller
 
 
 
-    public function update(LessonRequest $request, string $id)
+    public function update(Request $request, string $id)
     {
         ini_set('memory_limit', '2G');
         $this->authorize('manage_users');

@@ -23,3 +23,4 @@ require __DIR__ . '/Apis/User/showById.php';
 require __DIR__ . '/Apis/User/create.php';
 require __DIR__ . '/Apis/User/update.php';
 require __DIR__ . '/Apis/User/payment.php';
+require __DIR__ . '/Apis/Chat/chat.php';
