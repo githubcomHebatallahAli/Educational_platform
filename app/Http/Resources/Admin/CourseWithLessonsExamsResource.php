@@ -94,7 +94,7 @@ class CourseWithLessonsExamsResource extends JsonResource
             ];
         }),
         // إضافة الامتحان غير المرتبط في حال كان موجودًا
-        'unattached_exam' => $this->exams()->whereNull('lesson_id')->first() ? [
+        'final_exam' => $this->exams()->whereNull('lesson_id')->first() ? [
             'id' => $this->exams()->whereNull('lesson_id')->first()->id,
             'title' => $this->exams()->whereNull('lesson_id')->first()->title,
             'duration' => $this->exams()->whereNull('lesson_id')->first()->duration,
