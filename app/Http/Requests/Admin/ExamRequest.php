@@ -27,11 +27,18 @@ class ExamRequest extends FormRequest
             'title' => 'required|string|max:255',
             'creationDate'=> 'nullable|date_format:Y-m-d H:i:s',
             'duration' => 'nullable|date_format:H:i:s',
-            'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s',
+            'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s A',
             'grade_id' => 'required|exists:grades,id',
             "course_id" => 'required|exists:courses,id',
             "test_id" => 'required|exists:tests,id',
             "lesson_id" => 'nullable|exists:lessons,id',
+            // 'questions' => 'required|array',
+            // 'questions.*.question' => 'required|string',
+            // 'questions.*.choice_1' => 'required|string',
+            // 'questions.*.choice_2' => 'required|string',
+            // 'questions.*.choice_3' => 'required|string',
+            // 'questions.*.choice_4' => 'required|string',
+            // 'questions.*.correct_choice' => 'required|in:choice_1,choice_2,choice_3,choice_4',
 
         ];
     }

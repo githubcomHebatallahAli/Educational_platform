@@ -41,8 +41,13 @@ class QuestionController extends Controller
                 'choice_4' => $request-> choice_4,
                 'correct_choice' => $request-> correct_choice
           ]);
-          $Question->load('exam');
-         $Question->save();
+        //   $Question->load('exam');
+
+          $exam = $Question->exam;
+          $exam->numOfQ = $exam->questions()->count();
+          $exam->save();
+
+        //  $Question->save();
          return response()->json([
           'data' =>new QuestionResource($Question),
           'message' => "Question Created Successfully."

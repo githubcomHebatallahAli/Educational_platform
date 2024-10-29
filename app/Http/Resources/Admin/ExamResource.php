@@ -17,7 +17,8 @@ class ExamResource extends JsonResource
         return [
             "id" => $this->id,
             'title' => $this->title,
-            'creationDate' => $this ->creationDate,
+            // 'creationDate' => $this ->creationDate,
+            'formatted_creationDate' => $this->formatted_creationDate,
             'duration' => $this->duration,
             "numOfQ" => $this->numOfQ,
             'formatted_deadLineExam' => $this->formatted_deadLineExam,

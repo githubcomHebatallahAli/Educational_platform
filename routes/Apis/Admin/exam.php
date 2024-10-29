@@ -4,6 +4,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ExamController;
+use Carbon\Carbon;
 
 
 
@@ -24,4 +25,12 @@ Route::get('show/exam/{examId}/student/{studentId}/results', 'showExamResults');
 Route::get('show/students/{studentId}/courses/{courseId}/exam-results','getStudentExamResults');
 Route::get('show/students/{studentId}/courses/{courseId}/4Exam-results','getStudent4ExamsResult');
 Route::get('/show/overAllResults/student/{id}','getStudentOverallResults');
+Route::get('/test-date-format', 'testDeadLineExamFormat');
    });
+
+
+
+
+
+
+

@@ -22,13 +22,33 @@ class Exam extends Model
         'lesson_id'
     ];
 
+    // protected $casts = [
+    //     'questions' => 'array',
+    // ];
+
     protected $date = ['creationDate'];
     protected $dates = ['deadLineExam'];
 
+    public function getFormattedCreationDateAttribute()
+    {
+        return Carbon::parse($this->creationDate)
+        ->timezone('Africa/Cairo')
+        ->format('Y-m-d h:i:s A');
+    }
+
     public function getFormattedDeadLineExamAttribute()
     {
-        return Carbon::parse($this->deadLineExam)->format('Y-m-d h:i:s  A');
+        return Carbon::parse($this->deadLineExam)
+        ->format('Y-m-d h:i:s  A');
     }
+
+    public function setDeadLineExamAttribute($value)
+{
+    $this->attributes['deadLineExam'] = Carbon::createFromFormat('Y-m-d h:i:s A', $value);
+}
+
+
+
 
     public function students()
     {

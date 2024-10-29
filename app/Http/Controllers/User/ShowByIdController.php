@@ -21,6 +21,22 @@ class ShowByIdController extends Controller
 {
     public function studentShowCourse($id)
     {
+        $user = auth()->guard('api')->user();
+        $admin = auth()->guard('admin')->user();
+
+        // Check if the user is a student with paid access to the course
+        if ($user && !$user->courses()->where('course_id', $id)->wherePivot('status', 'paid')->exists()) {
+            return response()->json([
+                'error' => 'Unauthorized access to this course.'
+            ]);
+        }
+
+        // Check if the user is an admin with role_id 1
+        if (!$user && (!$admin || $admin->role_id != 1)) {
+            return response()->json([
+                'error' => 'Unauthorized access to this course.'
+            ]);
+        }
         $course = Course::with(['lessons.exam.questions'])->findOrFail($id);
         return response()->json([
        'data' =>new CourseWithLessonsExamsResource($course)
@@ -33,12 +49,16 @@ class ShowByIdController extends Controller
 $student = User::find($studentId);
 
 if (!$student) {
-    return response()->json(['message' => 'الطالب غير موجود.'], 404);
+    return response()->json([
+        'message' => 'الطالب غير موجود.'
+    ]);
 }
 
 
 if (!$this->authorizeStudentOrParent($student)) {
-    return response()->json(['message' => 'Unauthorized access.'], 403);
+    return response()->json([
+        'message' => 'Unauthorized access.'
+    ]);
 }
 
     $answers = Answer::with('question.exam')
@@ -123,11 +143,15 @@ public function getStudentExamResults($studentId, $courseId)
 {
     $student = User::find($studentId);
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.'], 403);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
 
 
@@ -189,12 +213,16 @@ public function getStudent4ExamsResult($studentId, $courseId)
     $student = User::find($studentId);
 
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.'], 403);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
 
     $student = User::with(['grade', 'parent'])->findOrFail($studentId);
@@ -293,7 +321,7 @@ public function edit(string $id)
         if (!$admin || $admin->role_id != 1) {
             return response()->json([
                 'message' => "Unauthorized access. You are not allowed to view this data."
-            ], 403);
+            ]);
         }
     }
 
@@ -302,7 +330,7 @@ public function edit(string $id)
         if (!$admin || $admin->role_id != 1) {
             return response()->json([
                 'message' => "Unauthorized access. You can only view your own data."
-            ], 403);
+            ]);
         }
     }
 
@@ -439,11 +467,15 @@ public function getStudentRankOverallResults($studentId)
 {
     $student = User::findOrFail($studentId);
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.'], 403);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
 
     $totalOverallScore = 0;
@@ -651,17 +683,23 @@ public function getLessonPdf($studentId)
 {
     $student = User::findOrFail($studentId);
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.'], 403);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
 
     $hasPurchased = $student->courses()->exists(); // إذا كنت تريد التحقق من الدورات التي اشتراها الطالب
 
     if (!$hasPurchased) {
-        return response()->json(['error' => 'Unauthorized access: Course not purchased'], 403);
+        return response()->json([
+            'error' => 'Unauthorized access: Course not purchased'
+        ]);
     }
 
 

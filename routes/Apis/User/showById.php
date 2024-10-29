@@ -6,8 +6,7 @@ use App\Http\Controllers\User\ShowByIdController;
 
 Route::controller(ShowByIdController::class)
 ->prefix('/student')
-->middleware(['auth:api', 'checkCourseAccess'])
-
+// ->middleware(['checkCourseAccess'])
 ->group(
     function () {
 

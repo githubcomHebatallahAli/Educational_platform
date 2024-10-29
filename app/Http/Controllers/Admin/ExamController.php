@@ -7,6 +7,7 @@ use App\Models\Exam;
 use App\Models\User;
 use App\Models\Answer;
 use App\Models\StudentExam;
+use Illuminate\Http\JsonResponse;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExamRequest;
@@ -36,21 +37,30 @@ class ExamController extends Controller
   public function create(ExamRequest $request)
   {
       $this->authorize('manage_users');
+    //   $parsedDate = $this->checkFormat($request->deadLineExam);
+    //   if (!$parsedDate) {
+    //       return response()->json([
+    //           'error' => 'Invalid date format for deadLineExam. Please use Y-m-d H:i:s or Y-m-d h:i:s A format.'
+    //       ], 400);
+    //   }
+    //   dd($request->all());
          $Exam =Exam::create ([
             "title" => $request-> title,
             "grade_id" => $request-> grade_id,
             "course_id" => $request-> course_id,
             "test_id" => $request-> test_id,
             "lesson_id" => $request-> lesson_id,
-            'creationDate' => now()->format('Y-m-d H:i:s'),
+            'creationDate' => now(),
             "duration" => $request-> duration,
             "deadLineExam" => $request-> deadLineExam
+            // "deadLineExam" => $parsedDate
           ]);
 
            $numOfQuestions = $Exam->questions()->count();
 
           $Exam->numOfQ = $numOfQuestions;
           $Exam->save();
+
 
          $course = $Exam->course;
          $course->numOfExams = $course->exams()->count();
@@ -62,6 +72,38 @@ class ExamController extends Controller
 
       }
 
+
+
+
+// public function create(ExamRequest $request): JsonResponse
+// {
+//     $this->authorize('manage_users');
+//     $numOfQuestions = count($request->questions);
+//     $Exam = Exam::create([
+//         'title' => $request->title,
+//         'creationDate' => Carbon::now('Africa/Cairo')->format('Y-m-d H:i:s'),
+//         'duration' => $request->duration,
+//         'deadLineExam' => $request->deadLineExam,
+//         'grade_id' => $request->grade_id,
+//         'course_id' => $request->course_id,
+//         'lesson_id' => $request->lesson_id,
+//         'test_id' => $request->test_id,
+//         'numOfQ' => $numOfQuestions,
+//         // 'questions' => $request->questions,
+//          'questions'  => json_encode($request->questions),
+
+//     ]);
+
+//          $course = $Exam->course;
+//          $course->numOfExams = $course->exams()->count();
+//          $course->save();
+
+//     return response()->json([
+//         'message' => 'Exam created successfully',
+//         'data' => $Exam,
+//     ]);
+// }
+
       public function assignStudentsToExam(StudentExamRequest $request)
       {
           $this->authorize('manage_users');
@@ -70,7 +112,7 @@ class ExamController extends Controller
           if (!$Exam) {
               return response()->json([
                   'message' => 'Exam not found'
-              ], 404);
+              ]);
           }
           $Exam->students()->sync($request->student_ids);
 
@@ -89,7 +131,7 @@ class ExamController extends Controller
       if (!$Exam) {
           return response()->json([
               'message' => "Exam not found."
-          ], 404);
+          ]);
       }
 
       return response()->json([
@@ -102,7 +144,9 @@ class ExamController extends Controller
   public function showExamQuestions($examId)
   {
     $this->authorize('manage_users');
-    $exam = Exam::with('questions')->findOrFail($examId);
+    $exam = Exam::with('questions')
+    ->withCount('questions')
+    ->findOrFail($examId);
     return response()->json([
         'data' =>new ExamQuestionsResource($exam),
         'message' => "Show Exam With Questions By Id Successfully."
@@ -117,7 +161,7 @@ class ExamController extends Controller
       if (!$student) {
           return response()->json([
               'message' => 'الطالب غير موجود.'
-          ], 404);
+          ]);
       }
 
       $studentExam = StudentExam::where('exam_id', $examId)
@@ -127,7 +171,7 @@ class ExamController extends Controller
       if (!$studentExam) {
           return response()->json([
               'message' => 'لم يتم العثور على بيانات الامتحان للطالب.'
-          ], 404);
+          ]);
       }
 
 
@@ -143,7 +187,7 @@ class ExamController extends Controller
       if ($answers->isEmpty()) {
           return response()->json([
               'message' => 'لا توجد إجابات لهذا الامتحان.'
-          ], 404);
+          ]);
       }
 
 
@@ -427,5 +471,46 @@ public function getStudentOverallResults($studentId)
         'overall_score_percentage' => round($overallScorePercentage, 2),
     ]);
 }
+
+private function checkFormat($dateString)
+{
+    try {
+
+        $date = Carbon::createFromFormat('Y-m-d h:i:s A', $dateString);
+
+
+        if ($date) {
+            return 'Valid format: ' . $date->format('Y-m-d h:i:s A');
+        }
+    } catch (\Exception $e) {
+
+    }
+
+    try {
+
+        $date = Carbon::createFromFormat('Y-m-d H:i:s', $dateString);
+
+
+        if ($date) {
+            return 'Valid format: ' . $date->format('Y-m-d H:i:s');
+        }
+    } catch (\Exception $e) {
+        return 'Error parsing date: ' . $e->getMessage();
+    }
+
+    return 'Invalid format';
+}
+
+public function testDeadLineExamFormat()
+{
+    echo $this->checkFormat('2024-10-30 03:30:45 PM'); // ينبغي أن يظهر "Valid format"
+    echo "<br>"; // لإضافة فاصلة
+    echo $this->checkFormat('2024-10-30 03:30:45 AM'); // ينبغي أن يظهر "Valid format"
+    echo "<br>"; // لإضافة فاصلة
+    echo $this->checkFormat('2024-10-30 15:30:45'); // ينبغي أن يظهر "Valid format"
+}
+
+
+
 
 }

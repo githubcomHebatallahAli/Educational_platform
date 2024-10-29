@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Admin;
+use App\Models\Parnt;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\ChatRequest;
 use App\Http\Resources\ChatResource;
@@ -52,6 +54,7 @@ class ChatController extends Controller
 
     public function sendMessage(MessageRequest $request)
     {
+
         $user = auth()->guard('admin')->user() ??
          auth()->guard('parnt')->user() ??
           auth()->guard('api')->user();
@@ -91,12 +94,12 @@ class ChatController extends Controller
 
     public function getMessages($chatId)
     {
-        $chat = Chat::with('messages.sender')->findOrFail($chatId);
 
-        // تحقق من الوصول المصرح به
+        $chat = Chat::findOrFail($chatId);
         $user = auth()->guard('api')->user()
                  ?? auth()->guard('parnt')->user()
                  ?? auth()->guard('admin')->user();
+
 
         if (!$user || ($user->id !== $chat->user_id && $user->id !== $chat->parnt_id && $user->id !== $chat->admin_id)) {
             return response()->json([
@@ -108,7 +111,6 @@ class ChatController extends Controller
             'messages' => $chat->messages
         ]);
     }
-
 
 
 
