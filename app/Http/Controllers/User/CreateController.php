@@ -24,7 +24,15 @@ public function create(AnswerRequest $request)
     $exam = Exam::find($request->exam_id);
 
     if (!$exam) {
-        return response()->json(['message' => 'Exam not found.'], 404);
+        return response()->json([
+            'message' => 'Exam not found.'
+        ]);
+    }
+
+    if ($exam->deadLineExam && $exam->deadLineExam < now()) {
+        return response()->json([
+            'message' => 'The deadline for this exam has passed. You can no longer attempt this exam.'
+        ]);
     }
 
     $courseId = $exam->course_id;
@@ -38,7 +46,7 @@ public function create(AnswerRequest $request)
     if (!$studentPaid) {
         return response()->json([
             'message' => 'You have not paid for this course and cannot take the exam.'
-        ], 403);
+        ]);
     }
 
     $studentExam = StudentExam::where('user_id', $request->user_id)
@@ -49,7 +57,13 @@ public function create(AnswerRequest $request)
     if ($studentExam) {
         return response()->json([
             'message' => 'You have already taken this exam and cannot take it again.'
-        ], 403);
+        ]);
+    }
+
+    if (empty($request->answers)) {
+        return response()->json([
+            'message' => 'No answers submitted.'
+        ]);
     }
 
     $startedAt = now();

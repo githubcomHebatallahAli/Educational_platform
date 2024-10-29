@@ -33,19 +33,20 @@ class Exam extends Model
     {
         return Carbon::parse($this->creationDate)
         ->timezone('Africa/Cairo')
-        ->format('Y-m-d h:i:s A');
+        ->format('Y-m-d h:i:s');
     }
 
     public function getFormattedDeadLineExamAttribute()
     {
         return Carbon::parse($this->deadLineExam)
-        ->format('Y-m-d h:i:s  A');
+        // ->timezone('Africa/Cairo')
+        ->format('Y-m-d h:i:s');
     }
 
-    public function setDeadLineExamAttribute($value)
-{
-    $this->attributes['deadLineExam'] = Carbon::createFromFormat('Y-m-d h:i:s A', $value);
-}
+//     public function setDeadLineExamAttribute($value)
+// {
+//     $this->attributes['deadLineExam'] = Carbon::createFromFormat('Y-m-d h:i:s A', $value);
+// }
 
 
 

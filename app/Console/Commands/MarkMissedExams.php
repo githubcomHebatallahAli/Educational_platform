@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use App\Models\Exam;
 use Illuminate\Console\Command;
 
@@ -29,31 +30,57 @@ class MarkMissedExams extends Command
     /**
      * Execute the console command.
      */
+    // public function handle()
+    // {
+
+    //         $exams = Exam::where('deadLineExam', '<', now())->get();
+
+    //         foreach ($exams as $exam) {
+    //             $students = $exam->students;
+
+    //             foreach ($students as $student) {
+    //                 $studentExam = $student->exams()
+    //                                        ->where('exam_id', $exam->id)
+    //                                        ->first();
+
+    //                 if (!$studentExam || is_null($studentExam->pivot->score)) {
+    //                     $student->exams()->updateExistingPivot($exam->id, [
+    //                         'score' => null,
+    //                         'has_attempted' => 0,
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         $this->info('Missed exams marked successfully.');
+    //     }
+
+
+
     public function handle()
     {
+        Exam::whereNotNull('deadLineExam')
+            ->where('deadLineExam', '<', Carbon::now())
+            ->chunk(100, function ($exams) {
+                foreach ($exams as $exam) {
+                    $students = $exam->students;
 
-            // الحصول على الامتحانات التي انتهت
-            $exams = Exam::where('deadLineExam', '<', now())->get();
+                    foreach ($students as $student) {
+                        $studentExam = $student->exams()
+                            ->where('exam_id', $exam->id)
+                            ->first();
 
-            foreach ($exams as $exam) {
-                $students = $exam->students;
-
-                foreach ($students as $student) {
-                    $studentExam = $student->exams()
-                                           ->where('exam_id', $exam->id)
-                                           ->first();
-
-                    // إذا لم يقم الطالب بامتحان، قم بتحديث البيانات
-                    if (!$studentExam || is_null($studentExam->pivot->score)) {
-                        $student->exams()->updateExistingPivot($exam->id, [
-                            'score' => null,
-                            'has_attempted' => 0,
-                        ]);
+                        if (!$studentExam || is_null($studentExam->pivot->score)) {
+                            $student->exams()->updateExistingPivot($exam->id, [
+                                'score' => null,
+                                'has_attempted' => 0,
+                            ]);
+                        }
                     }
                 }
-            }
+            });
 
-            $this->info('Missed exams marked successfully.');
-        }
+        $this->info('Missed exams marked successfully.');
+    }
     }
 

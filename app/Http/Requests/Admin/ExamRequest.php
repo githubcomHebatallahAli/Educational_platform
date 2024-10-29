@@ -27,7 +27,7 @@ class ExamRequest extends FormRequest
             'title' => 'required|string|max:255',
             'creationDate'=> 'nullable|date_format:Y-m-d H:i:s',
             'duration' => 'nullable|date_format:H:i:s',
-            'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s A',
+            'deadLineExam'  => 'nullable|date_format:Y-m-d H:i:s',
             'grade_id' => 'required|exists:grades,id',
             "course_id" => 'required|exists:courses,id',
             "test_id" => 'required|exists:tests,id',

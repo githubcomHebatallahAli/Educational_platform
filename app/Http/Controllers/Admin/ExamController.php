@@ -37,13 +37,7 @@ class ExamController extends Controller
   public function create(ExamRequest $request)
   {
       $this->authorize('manage_users');
-    //   $parsedDate = $this->checkFormat($request->deadLineExam);
-    //   if (!$parsedDate) {
-    //       return response()->json([
-    //           'error' => 'Invalid date format for deadLineExam. Please use Y-m-d H:i:s or Y-m-d h:i:s A format.'
-    //       ], 400);
-    //   }
-    //   dd($request->all());
+
          $Exam =Exam::create ([
             "title" => $request-> title,
             "grade_id" => $request-> grade_id,
@@ -53,7 +47,6 @@ class ExamController extends Controller
             'creationDate' => now(),
             "duration" => $request-> duration,
             "deadLineExam" => $request-> deadLineExam
-            // "deadLineExam" => $parsedDate
           ]);
 
            $numOfQuestions = $Exam->questions()->count();
