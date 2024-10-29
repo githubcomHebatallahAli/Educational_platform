@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use App\Models\Exam;
+use App\Models\StudentExam;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class MarkMissedExams extends Command
 {
@@ -27,60 +29,95 @@ class MarkMissedExams extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     */
-    // public function handle()
-    // {
+//     public function handle()
+// {
+//     $students = DB::table('student_courses')->where('course_id', 1)->get();
+//     foreach ($students as $student) {
+//         $this->info('Student ID: ' . $student->user_id);
+//     }
 
-    //         $exams = Exam::where('deadLineExam', '<', now())->get();
+//     Exam::whereNotNull('deadLineExam')
+//         ->where('deadLineExam', '<', now())
+//         ->chunk(100, function ($exams) {
+//             foreach ($exams as $exam) {
+//                 $this->info('Exam ID: ' . $exam->id);
 
-    //         foreach ($exams as $exam) {
-    //             $students = $exam->students;
+//                 // الحصول على الطلاب الذين اشتروا الدورة
+//                 $students = $exam->course->students; // Assuming you have a relationship in Course model
 
-    //             foreach ($students as $student) {
-    //                 $studentExam = $student->exams()
-    //                                        ->where('exam_id', $exam->id)
-    //                                        ->first();
+//                 if ($students->isEmpty()) {
+//                     $this->info('No students found for this exam.');
+//                 }
 
-    //                 if (!$studentExam || is_null($studentExam->pivot->score)) {
-    //                     $student->exams()->updateExistingPivot($exam->id, [
-    //                         'score' => null,
-    //                         'has_attempted' => 0,
-    //                     ]);
-    //                 }
-    //             }
-    //         }
+//                 foreach ($students as $student) {
+//                     // تحقق ما إذا كان الطالب قد قدم الامتحان
+//                     $studentExam = $student->exams()
+//                                            ->where('exam_id', $exam->id)
+//                                            ->first();
 
-    //         $this->info('Missed exams marked successfully.');
-    //     }
+//                     // إذا لم يتم تقديم الامتحان، قم بتحديث السجل
+//                     if (!$studentExam) {
+//                         $student->exams()->attach($exam->id, [
+//                             'score' => null,
+//                             'has_attempted' => 0,
+//                         ]);
+//                         $this->info('Marked student ID ' . $student->id . ' as missed for exam ID ' . $exam->id);
+//                     } else {
+//                         $this->info('Student ID ' . $student->id . ' has already attempted this exam.');
+//                     }
+//                 }
+//             }
+
+//             $this->info('Missed exams marking process completed.');
+//         });
+// }
 
 
+public function handle()
+{
+    Exam::whereNotNull('deadLineExam')
+        ->where('deadLineExam', '<', now())
+        ->chunk(100, function ($exams) {
+            foreach ($exams as $exam) {
+                $this->info('Exam ID: ' . $exam->id);
 
-    public function handle()
-    {
-        Exam::whereNotNull('deadLineExam')
-            ->where('deadLineExam', '<', Carbon::now())
-            ->chunk(100, function ($exams) {
-                foreach ($exams as $exam) {
-                    $students = $exam->students;
+                // الحصول على الطلاب الذين اشتروا الدورة الخاصة بالامتحان
+                $students = $exam->course->students; // هنا يتم استرداد الطلاب من العلاقة الموجودة
 
-                    foreach ($students as $student) {
-                        $studentExam = $student->exams()
-                            ->where('exam_id', $exam->id)
-                            ->first();
+                if ($students->isEmpty()) {
+                    $this->info('No students found for this exam.');
+                }
 
-                        if (!$studentExam || is_null($studentExam->pivot->score)) {
-                            $student->exams()->updateExistingPivot($exam->id, [
-                                'score' => null,
-                                'has_attempted' => 0,
-                            ]);
-                        }
+                foreach ($students as $student) {
+                    // تحقق ما إذا كان الطالب قد قدم الامتحان
+                    $studentExam = $student->exams()
+                                           ->where('exam_id', $exam->id)
+                                           ->first();
+
+                    // إذا لم يتم تقديم الامتحان، قم بتحديث السجل
+                    if (!$studentExam) {
+                        $student->exams()->attach($exam->id, [
+                            'score' => null,
+                            'has_attempted' => 0,
+                        ]);
+                        $this->info('Marked student ID ' . $student->id . ' as missed for exam ID ' . $exam->id);
+                    } else {
+                        $this->info('Student ID ' . $student->id . ' has already attempted this exam.');
                     }
                 }
-            });
+            }
 
-        $this->info('Missed exams marked successfully.');
-    }
+            $this->info('Missed exams marking process completed.');
+        });
+}
+
+
+
+
+
+
+
+
+
     }
 
