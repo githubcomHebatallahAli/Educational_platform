@@ -34,8 +34,6 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-
-
         $schedule->command('app:mark-missed-exams')->dailyAt('03:00');
         // $schedule->command('app:mark-missed-exams')->everyMinute();
     }

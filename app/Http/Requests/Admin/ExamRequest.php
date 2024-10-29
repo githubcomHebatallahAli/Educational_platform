@@ -32,6 +32,7 @@ class ExamRequest extends FormRequest
             "course_id" => 'required|exists:courses,id',
             "test_id" => 'required|exists:tests,id',
             "lesson_id" => 'nullable|exists:lessons,id',
+            'question_order'=>'nullable|in:random,regular',
             // 'questions' => 'required|array',
             // 'questions.*.question' => 'required|string',
             // 'questions.*.choice_1' => 'required|string',

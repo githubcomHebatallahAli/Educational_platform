@@ -19,7 +19,8 @@ class Exam extends Model
         'test_id',
         'numOfQ',
         'deadLineExam',
-        'lesson_id'
+        'lesson_id',
+        'question_order'
     ];
 
     // protected $casts = [

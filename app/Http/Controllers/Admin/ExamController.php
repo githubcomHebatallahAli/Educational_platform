@@ -37,6 +37,7 @@ class ExamController extends Controller
   public function create(ExamRequest $request)
   {
       $this->authorize('manage_users');
+      $question_order = $request->question_order ?? 'regular';
 
          $Exam =Exam::create ([
             "title" => $request-> title,
@@ -44,9 +45,12 @@ class ExamController extends Controller
             "course_id" => $request-> course_id,
             "test_id" => $request-> test_id,
             "lesson_id" => $request-> lesson_id,
-            'creationDate' => now(),
+            'creationDate' => now()->timezone('Africa/Cairo')
+            ->format('Y-m-d h:i:s'),
             "duration" => $request-> duration,
-            "deadLineExam" => $request-> deadLineExam
+            "deadLineExam" => $request-> deadLineExam,
+            'question_order' => $question_order,
+
           ]);
 
            $numOfQuestions = $Exam->questions()->count();
@@ -252,13 +256,14 @@ $studentExam->time_taken = $timeTaken;
   public function update(ExamRequest $request, string $id)
   {
       $this->authorize('manage_users');
+      $question_order = $request->question_order ?? 'regular';
      $Exam =Exam::findOrFail($id);
 
 
      if (!$Exam) {
       return response()->json([
           'message' => "Exam not found."
-      ], 404);
+      ]);
   }
 
      $Exam->update([
@@ -269,7 +274,8 @@ $studentExam->time_taken = $timeTaken;
         "lesson_id" => $request-> lesson_id,
         "creationDate"=> $request->creationDate,
         "duration" => $request-> duration,
-        "deadLineExam" => $request-> deadLineExam
+        "deadLineExam" => $request-> deadLineExam,
+        'question_order' => $question_order,
       ]);
 
       $numOfQuestions = $Exam->questions()->count();
