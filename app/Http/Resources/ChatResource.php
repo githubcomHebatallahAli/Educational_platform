@@ -37,8 +37,8 @@ class ChatResource extends JsonResource
                     'email' => $this->parent->email,
                 ];
             }),
-
-
+            'creationDate' => $this->creationDate,
         ];
+
     }
 }

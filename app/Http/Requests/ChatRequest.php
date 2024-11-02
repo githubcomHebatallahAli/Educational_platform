@@ -27,6 +27,7 @@ class ChatRequest extends FormRequest
             'admin_id' => 'required|exists:admins,id',
             'user_id' => 'nullable|exists:users,id',
             'parnt_id' => 'nullable|exists:parnts,id',
+            'creationDate' => 'nullable|date_format:Y-m-d H:i:s',
 
         ];
     }

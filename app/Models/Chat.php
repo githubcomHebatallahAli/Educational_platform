@@ -12,8 +12,11 @@ class Chat extends Model
     protected $fillable = [
         'admin_id',
         'parnt_id',
-        'user_id'
+        'user_id',
+        'creationDate'
     ];
+
+    protected $dates = ['creationDate'];
 
     public function messages()
     {

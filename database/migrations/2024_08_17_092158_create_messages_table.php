@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('chat_id')->constrained('chats')->cascadeOnDelete();
             $table->text('message');
             $table->morphs('sender');
+            $table->datetime('creationDate')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

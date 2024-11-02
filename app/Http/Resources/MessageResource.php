@@ -33,8 +33,9 @@ class MessageResource extends JsonResource
             'message' => $this->message,
             'sender_type' => $this->sender_type,
             'sender_id' => $this->sender_id,
-            'sender_name' => $sender ? $sender->name : null,
-            'sender_email' => $sender ? $sender->email : null,
+            'name' => $sender ? $sender->name : null,
+            'email' => $sender ? $sender->email : null,
+            'creationDate' => $this->creationDate,
 
         ];
     }

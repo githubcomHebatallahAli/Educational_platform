@@ -26,6 +26,8 @@ class MessageRequest extends FormRequest
         return [
             'chat_id' => 'required|exists:chats,id',
             'message' => 'required|string',
+            'creationDate' => 'nullable|date_format:Y-m-d H:i:s',
+
         ];
 
     }

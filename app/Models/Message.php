@@ -15,7 +15,10 @@ class Message extends Model
         'message',
         'sender_id',
         'sender_type',
+        'creationDate'
     ];
+
+    protected $dates = ['creationDate'];
 
 
     public function chat()
