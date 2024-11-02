@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\Reaction;
 use App\Http\Requests\ChatRequest;
 use App\Http\Resources\ChatResource;
 use App\Http\Requests\MessageRequest;
+use App\Http\Requests\ReactionRequest;
 use App\Http\Resources\GetChatResource;
 use App\Http\Resources\MessageResource;
+use App\Http\Resources\ReactionResource;
 
 class ChatController extends Controller
 {
@@ -97,9 +100,6 @@ class ChatController extends Controller
         ]);
     }
 
-
-
-
     public function getMessages($chatId)
 {
     $chat = Chat::with('messages')
@@ -137,6 +137,74 @@ class ChatController extends Controller
         'message' => 'Show All Messages For This Chat Successfully',
     ]);
 }
+
+public function addReaction(ReactionRequest $request)
+{
+    $user = auth()->guard('admin')->user()
+    ?? auth()->guard('parnt')->user()
+    ?? auth()->guard('api')->user();
+
+if (auth()->guard('admin')->check()) {
+    $reactableType = 'admin';
+} elseif (auth()->guard('parnt')->check()) {
+    $reactableType = 'parent';
+} elseif (auth()->guard('api')->check()) {
+    $reactableType = 'student';
+} else {
+    return response()->json([
+        'error' => 'Unauthorized user type'
+    ]);
+}
+
+$message = Message::find($request->message_id);
+if (!$message) {
+    return response()->json([
+        'message' => 'Message not found'
+    ]);
+}
+
+$chat = $message->chat;
+
+$isAuthorized = optional($chat->student)->id === $user->id ||
+optional($chat->parent)->id === $user->id ||
+optional($chat->admin)->id === $user->id;
+
+
+if (!$isAuthorized) {
+    return response()->json([
+        'message' => 'Unauthorized access to this chat'
+    ]);
+}
+
+$reaction = Reaction::create([
+    'message_id' => $request->message_id,
+    'type' => $request->type,
+    'reactable_id' => $user->id,
+    'reactable_type' => get_class($user),
+]);
+
+return response()->json([
+    'message' => 'Reaction added successfully',
+    'data' => new ReactionResource($reaction)
+]);
+
+}
+
+public function removeReaction(Reaction $reaction)
+{
+    if ($reaction->user_id !== auth()->id()) {
+        return response()->json([
+            'error' => 'Unauthorized'
+        ]);
+    }
+
+    $reaction->delete();
+
+    return response()->json([
+        'message' => 'Reaction Deleted Successfully'
+    ]);
+}
+
 
 
 

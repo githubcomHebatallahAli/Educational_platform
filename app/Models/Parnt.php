@@ -48,6 +48,12 @@ class Parnt  extends Authenticatable  implements JWTSubject
         return $this->hasMany(User::class, 'parnt_id');
     }
 
+    public function reactions()
+{
+    return $this->morphMany(Reaction::class, 'reactable');
+}
+
+
 //     public function hasStudent($studentId)
 // {
 //     return $this->users()->where('id', $studentId)->exists();

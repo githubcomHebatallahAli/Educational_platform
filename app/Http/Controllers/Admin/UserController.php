@@ -26,22 +26,66 @@ class UserController extends Controller
         ]);
     }
 
+    // public function edit(string $id)
+    // {
+    //     $this->authorize('manage_users');
+    //     $Student = User::find($id);
+
+    //     if (!$Student) {
+    //         return response()->json([
+    //             'message' => "Student not found."
+    //         ], 404);
+    //     }
+
+    //     return response()->json([
+    //         'data' => new StudentRegisterResource($Student),
+    //         'message' => "Edit Student By ID Successfully."
+    //     ]);
+    // }
+
     public function edit(string $id)
-    {
-        $this->authorize('manage_users');
-        $Student = User::find($id);
+{
+    $this->authorize('manage_users');
 
-        if (!$Student) {
-            return response()->json([
-                'message' => "Student not found."
-            ], 404);
-        }
+    // استدعاء بيانات الطالب
+    $student = User::with(['courses', 'grade', 'parent'])->find($id);
 
-        return response()->json([
-            'data' => new StudentRegisterResource($Student),
-            'message' => "Edit Student By ID Successfully."
-        ]);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
     }
+
+    // احتساب النتائج الشاملة
+    $totalOverallScore = 0;
+    $totalMaxScore = 0;
+
+    $courses = $student->courses()->with('exams')->get();
+
+    foreach ($courses as $course) {
+        foreach ($course->exams as $exam) {
+            $studentExam = $exam->students()->where('user_id', $student->id)->first();
+
+            if ($studentExam && !is_null($studentExam->pivot->score)) {
+                $totalOverallScore += $studentExam->pivot->score;
+            }
+            $totalMaxScore += 100; // افتراض أن الدرجة القصوى لكل امتحان 100
+        }
+    }
+
+    $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+    return response()->json([
+        'student' => new StudentRegisterResource($student), // بيانات الطالب
+        'courses' => $student->courses->map(function ($course) {
+            return [
+                'id' => $course->id,
+                'nameOfCourse' => $course->nameOfCourse,
+            ];
+        }), // بيانات الدورات
+        'overall_score_percentage' => round($overallScorePercentage, 2), // النتائج الشاملة
+        'message' => 'Student details retrieved successfully.'
+    ]);
+}
+
 
     public function update(Request $request, string $id)
     {
@@ -84,7 +128,7 @@ class UserController extends Controller
     if (!$User) {
         return response()->json([
             'message' => "Student not found."
-        ], 404);
+        ]);
     }
 
     $User->restore();
@@ -125,13 +169,13 @@ class UserController extends Controller
 
         $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
         return response()->json([
-            'student' => [
-                'id' => $student->id,
-                'name' => $student->name,
-                'email' => $student->email,
-                'img' => $student->img,
-                'grade' => new GradeResource($student->grade),
-            ],
+            // 'student' => [
+            //     'id' => $student->id,
+            //     'name' => $student->name,
+            //     'email' => $student->email,
+            //     'img' => $student->img,
+            //     'grade' => new GradeResource($student->grade),
+            // ],
             'overall_score_percentage' => round($overallScorePercentage, 2),
         ]);
     }
@@ -144,7 +188,8 @@ class UserController extends Controller
     $grade = Grade::with('users')->find($grade_id);
 
     if (!$grade) {
-        return response()->json(['message' => 'Grade not found'], 404);
+        return response()->json([
+            'message' => 'Grade not found']);
     }
 
     $studentsCount = $grade->users->count();
@@ -176,9 +221,9 @@ public function getUserWithCourses($user_id)
     }
 
     return response()->json([
-        'id' => $user->id,
-        'name' => $user->name,
-        'email' => $user->email,
+        // 'id' => $user->id,
+        // 'name' => $user->name,
+        // 'email' => $user->email,
         'courses' => $user->courses->map(function ($course) {
             return [
                 'id' => $course->id,

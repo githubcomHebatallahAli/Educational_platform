@@ -59,6 +59,12 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    public function reactions()
+{
+    return $this->morphMany(Reaction::class, 'reactable');
+}
+
+
     public function exams()
     {
         return $this->belongsToMany(Exam::class,'student_exams')

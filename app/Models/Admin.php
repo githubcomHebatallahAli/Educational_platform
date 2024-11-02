@@ -69,4 +69,10 @@ class Admin  extends Authenticatable  implements JWTSubject
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function reactions()
+{
+    return $this->morphMany(Reaction::class, 'reactable');
+}
+
 }

@@ -33,7 +33,6 @@ class GetChatResource extends JsonResource
                              'img' => $this->img,
                              'video' => $this->video,
                              'url' => $this->url,
-
                 ];
             }),
 

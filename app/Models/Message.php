@@ -24,6 +24,11 @@ class Message extends Model
 
     protected $dates = ['creationDate'];
 
+    public function reactions()
+{
+    return $this->hasMany(Reaction::class);
+}
+
 
     public function chat()
     {
