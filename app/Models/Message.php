@@ -9,13 +9,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Message extends Model
 {
     use HasFactory, SoftDeletes;
+    const storageFolder= 'Messages';
     protected $fillable = [
-
         'chat_id',
         'message',
         'sender_id',
         'sender_type',
-        'creationDate'
+        'creationDate',
+        'img',
+        'video',
+        'url',
+        'pdf'
     ];
 
     protected $dates = ['creationDate'];

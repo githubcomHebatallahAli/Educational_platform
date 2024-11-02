@@ -36,6 +36,10 @@ class MessageResource extends JsonResource
             'name' => $sender ? $sender->name : null,
             'email' => $sender ? $sender->email : null,
             'creationDate' => $this->creationDate,
+            'pdf' => $this->pdf,
+            'img' => $this->img,
+            'video' => $this->video,
+            'url' => $this->url,
 
         ];
     }

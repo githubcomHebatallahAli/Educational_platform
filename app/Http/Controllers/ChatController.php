@@ -74,7 +74,22 @@ class ChatController extends Controller
             'sender_id' => $senderId,
             'creationDate' => now()->timezone('Africa/Cairo')
             ->format('Y-m-d h:i:s'),
+            "url" => $request->url,
         ]);
+        if ($request->hasFile('img')) {
+            $imgPath = $request->file('img')->store(Message::storageFolder);
+            $message->img = $imgPath;
+        }
+
+        if ($request->hasFile('video')) {
+            $videoPath = $request->file('video')->store(Message::storageFolder);
+            $message->video = $videoPath;
+        }
+
+        if ($request->hasFile('pdf')) {
+            $pdfPath = $request->file('pdf')->store(Message::storageFolder);
+            $message->pdf = $pdfPath;
+        }
 
         return response()->json([
             'data' => new MessageResource($message),

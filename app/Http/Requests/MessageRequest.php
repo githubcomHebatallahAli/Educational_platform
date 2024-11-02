@@ -27,6 +27,10 @@ class MessageRequest extends FormRequest
             'chat_id' => 'required|exists:chats,id',
             'message' => 'required|string',
             'creationDate' => 'nullable|date_format:Y-m-d H:i:s',
+            'img.*'=>'nullable|image|mimes:jpg,jpeg,png,gif,svg',
+            'video' => 'nullable|mimes:mp4,mov,avi,wmv',
+            'pdf' => 'nullable|mimes:pdf',
+            'url' => 'nullable|string',
 
         ];
 

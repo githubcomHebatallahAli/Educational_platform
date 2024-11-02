@@ -19,6 +19,10 @@ return new class extends Migration
             $table->text('message');
             $table->morphs('sender');
             $table->datetime('creationDate')->nullable();
+            $table->string('img')->nullable();
+            $table->string('video')->nullable();
+            $table->string('url')->nullable();
+            $table->string('pdf')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

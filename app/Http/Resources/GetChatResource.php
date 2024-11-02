@@ -29,6 +29,10 @@ class GetChatResource extends JsonResource
                              ($message->sender_type === 'parent' ? $this->getSenderEmail($message->sender_id, 'parent') :
                              $this->getSenderEmail($message->sender_id, 'student')),
                              'creationDate' => $message->created_at->format('Y-m-d H:i:s'),
+                             'pdf' => $this->pdf,
+                             'img' => $this->img,
+                             'video' => $this->video,
+                             'url' => $this->url,
 
                 ];
             }),
