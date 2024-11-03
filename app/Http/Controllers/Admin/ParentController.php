@@ -88,11 +88,12 @@ class ParentController extends Controller
     });
 
     return response()->json([
-        'parent' => [
-            'id' => $Parent->id,
-            'name' => $Parent->name,
-            'email' => $Parent->email,
-        ],
+        // 'parent' => [
+        //     'id' => $Parent->id,
+        //     'name' => $Parent->name,
+        //     'email' => $Parent->email,
+        // ],
+        'parent' =>  new ParentRegisterResource($Parent),
         'sons' => $sonsData,
         'message' => "Edit Parent By ID Successfully."
     ]);
