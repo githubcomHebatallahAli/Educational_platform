@@ -33,7 +33,7 @@ class AdminController extends Controller
         if (!$Admin) {
             return response()->json([
                 'message' => "Admin not found."
-            ], 404);
+            ]);
         }
 
         return response()->json([
@@ -76,14 +76,15 @@ class AdminController extends Controller
 
     public function notActive(string $id)
     {
+        $this->authorize('manage_users');
         $admin =Admin::findOrFail($id);
 
         if (!$admin) {
          return response()->json([
              'message' => "Admin not found."
-         ], 404);
+         ]);
      }
-        $this->authorize('notActive',$admin);
+        // $this->authorize('notActive',$admin);
 
         $admin->update(['status' => 'notActive']);
 
@@ -94,14 +95,15 @@ class AdminController extends Controller
     }
     public function active(string $id)
     {
+        $this->authorize('manage_users');
         $admin =Admin::findOrFail($id);
 
         if (!$admin) {
          return response()->json([
              'message' => "Admin not found."
-         ], 404);
+         ]);
      }
-        $this->authorize('active',$admin);
+        // $this->authorize('active',$admin);
 
         $admin->update(['status' => 'active']);
 
@@ -117,7 +119,7 @@ class AdminController extends Controller
     if ($Admin->id != $id) {
         return response()->json([
             'message' => "Unauthorized to update this profile."
-        ], 403);
+        ]);
     }
     if ($request->hasFile('img')) {
         if ($Admin->img) {
@@ -155,7 +157,7 @@ class AdminController extends Controller
     if (!$Admin) {
         return response()->json([
             'message' => "Admin not found."
-        ], 404);
+        ]);
     }
 
     $Admin->restore();

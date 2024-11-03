@@ -190,11 +190,14 @@ return response()->json([
 
 }
 
-public function removeReaction(Reaction $reaction)
+public function removeReaction($reactionId)
 {
-    if ($reaction->user_id !== auth()->id()) {
+    $this->authorize('manage_users');
+    $reaction = Reaction::find($reactionId);
+
+    if (!$reaction) {
         return response()->json([
-            'error' => 'Unauthorized'
+            'message' => 'Reaction not found'
         ]);
     }
 

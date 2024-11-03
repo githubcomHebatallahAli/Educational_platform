@@ -47,14 +47,15 @@ class UserController extends Controller
 {
     $this->authorize('manage_users');
 
-    // استدعاء بيانات الطالب
-    $student = User::with(['courses', 'grade', 'parent'])->find($id);
+    $student = User::with(['courses', 'grade', 'parent'])
+    ->find($id);
 
     if (!$student) {
-        return response()->json(['message' => 'Student not found'], 404);
+        return response()->json([
+            'message' => 'Student not found'
+        ]);
     }
 
-    // احتساب النتائج الشاملة
     $totalOverallScore = 0;
     $totalMaxScore = 0;
 
@@ -62,25 +63,28 @@ class UserController extends Controller
 
     foreach ($courses as $course) {
         foreach ($course->exams as $exam) {
-            $studentExam = $exam->students()->where('user_id', $student->id)->first();
+            $studentExam = $exam->students()
+            ->where('user_id', $student->id)
+            ->first();
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $totalOverallScore += $studentExam->pivot->score;
             }
-            $totalMaxScore += 100; // افتراض أن الدرجة القصوى لكل امتحان 100
+            $totalMaxScore += 100;
         }
     }
 
-    $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+    $overallScorePercentage = ($totalMaxScore > 0) ?
+     ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
     return response()->json([
-        'student' => new StudentRegisterResource($student), // بيانات الطالب
+        'student' => new StudentRegisterResource($student),
         'courses' => $student->courses->map(function ($course) {
             return [
                 'id' => $course->id,
                 'nameOfCourse' => $course->nameOfCourse,
             ];
-        }), // بيانات الدورات
+        }),
         'overall_score_percentage' => round($overallScorePercentage, 2), // النتائج الشاملة
         'message' => 'Student details retrieved successfully.'
     ]);
@@ -169,13 +173,13 @@ class UserController extends Controller
 
         $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
         return response()->json([
-            // 'student' => [
-            //     'id' => $student->id,
-            //     'name' => $student->name,
-            //     'email' => $student->email,
-            //     'img' => $student->img,
-            //     'grade' => new GradeResource($student->grade),
-            // ],
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'email' => $student->email,
+                'img' => $student->img,
+                'grade' => new GradeResource($student->grade),
+            ],
             'overall_score_percentage' => round($overallScorePercentage, 2),
         ]);
     }
@@ -189,7 +193,8 @@ class UserController extends Controller
 
     if (!$grade) {
         return response()->json([
-            'message' => 'Grade not found']);
+            'message' => 'Grade not found'
+        ]);
     }
 
     $studentsCount = $grade->users->count();
@@ -217,13 +222,15 @@ public function getUserWithCourses($user_id)
 
 
     if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
+        return response()->json([
+            'message' => 'User not found'
+        ]);
     }
 
     return response()->json([
-        // 'id' => $user->id,
-        // 'name' => $user->name,
-        // 'email' => $user->email,
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
         'courses' => $user->courses->map(function ($course) {
             return [
                 'id' => $course->id,
@@ -232,8 +239,6 @@ public function getUserWithCourses($user_id)
         }),
     ]);
 }
-
-
 
 }
 
