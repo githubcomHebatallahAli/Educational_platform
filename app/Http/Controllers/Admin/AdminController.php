@@ -76,7 +76,7 @@ class AdminController extends Controller
 
     public function notActive(string $id)
     {
-        $this->authorize('manage_users');
+        // $this->authorize('manage_users');
         $admin =Admin::findOrFail($id);
 
         if (!$admin) {
@@ -84,7 +84,7 @@ class AdminController extends Controller
              'message' => "Admin not found."
          ]);
      }
-        // $this->authorize('notActive',$admin);
+        $this->authorize('notActive',$admin);
 
         $admin->update(['status' => 'notActive']);
 
@@ -95,7 +95,7 @@ class AdminController extends Controller
     }
     public function active(string $id)
     {
-        $this->authorize('manage_users');
+        // $this->authorize('manage_users');
         $admin =Admin::findOrFail($id);
 
         if (!$admin) {
@@ -103,7 +103,7 @@ class AdminController extends Controller
              'message' => "Admin not found."
          ]);
      }
-        // $this->authorize('active',$admin);
+        $this->authorize('active',$admin);
 
         $admin->update(['status' => 'active']);
 

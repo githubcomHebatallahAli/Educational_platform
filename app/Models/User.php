@@ -59,6 +59,12 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+
+    public function parent()
+{
+    return $this->belongsTo(Parnt::class, 'parnt_id');
+}
+
     public function reactions()
 {
     return $this->morphMany(Reaction::class, 'reactable');
@@ -121,10 +127,6 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-    public function parent()
-{
-    return $this->belongsTo(Parnt::class, 'parnt_id');
-}
 
 
 

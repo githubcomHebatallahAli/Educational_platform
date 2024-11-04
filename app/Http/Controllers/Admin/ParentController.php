@@ -158,5 +158,8 @@ class ParentController extends Controller
     public function forceDelete(string $id)
     {
         return $this->forceDeleteModel(Parnt::class, $id);
+
     }
+
+
 }

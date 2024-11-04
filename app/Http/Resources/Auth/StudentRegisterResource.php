@@ -26,7 +26,7 @@ class StudentRegisterResource extends JsonResource
             'img' => $this -> img,
             'grade' => new GradeResource($this->grade),
             'parnt' => new ParentRegisterResource($this->parent),
-
+           
         ];
     }
 }

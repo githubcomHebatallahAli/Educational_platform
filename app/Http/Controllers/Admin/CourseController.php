@@ -246,11 +246,12 @@ public function attachStudentToCourse(StudentCourseRequest $request)
     }
 
 
-    $course = Course::with('mainCourse')->find($CourseId);
+    $course = Course::find($CourseId);
     if (!$course) {
         return response()->json([
-            'message' => 'Course not found.']
-            , 404);
+            'message' => 'Course not found.'
+            ]);
+
     }
 
     $student->courses()->attach($course->id, [
@@ -260,14 +261,15 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 
 
     $course = $student->courses()
-    ->with('mainCourse')
+
     ->wherePivot('course_id', $course->id)
     ->first();
 
     if (!$course) {
         return response()->json([
-            'message' => 'Failed to retrieve updated course data.'],
-             500);
+            'message' => 'Failed to retrieve updated course data.'
+            ]);
+
     }
 
     return response()->json([
@@ -282,11 +284,15 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 {
     $this->authorize('manage_users');
 
-    $course = Course::with('students')->find($id);
+    // $course = Course::with('students')->find($id);
+    $course = Course::with(['students' => function($query) {
+        $query->withPivot('purchase_date', 'status'); // تحميل بيانات الجدول الوسيط
+    }])->find($id);
+
     if (!$course) {
         return response()->json([
             'message' => 'Course not found.'
-        ], 404);
+        ]);
     }
 
     $studentsCount = $course->students()->count();
