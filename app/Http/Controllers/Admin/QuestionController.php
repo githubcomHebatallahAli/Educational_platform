@@ -136,17 +136,24 @@ return response()->json([
 
   public function forceDelete(string $id)
   {
-    //   return $this->forceDeleteModel(Question::class, $id);
-    $question = Question::withTrashed()->findOrFail($id); // يجب أن تستخدم withTrashed للعثور على السجل المحذوف
-    $question->forceDelete(); // سيقوم بحذفه من قاعدة البيانات نهائيًا
+    $question = Question::withTrashed()->findOrFail($id);
+    $exam = $question->exam; // استرداد الامتحان المرتبط بالسؤال
 
-    // تحديث عدد الأسئلة
-    $examId = $question->exam_id; // احصل على معرف الاختبار المرتبط بالسؤال
-    $exam = Exam::withCount('questions')->find($examId);
+    // حذف السؤال (force delete)
+    $question->forceDelete();
+
+    // تحديث عدد الأسئلة في الامتحان
+    $exam->numOfQ = $exam->questions()->count(); // ستحسب الأسئلة المتبقية
+    $exam->save();
+
+    // تحديث عدد الامتحانات في الدورة (إذا كنت بحاجة لذلك)
+    $course = $exam->course;
+    $course->numOfExams = $course->exams()->count();
+    $course->save();
 
     return response()->json([
-        'message' => 'Question force deleted successfully.',
-        'updated_question_count' => $exam->questions_count, // العدد المحدث
+        'message' => 'تم حذف السؤال بنجاح.',
+        'actual_question_count' => $exam->numOfQ,
     ]);
-  }
+}
 }
