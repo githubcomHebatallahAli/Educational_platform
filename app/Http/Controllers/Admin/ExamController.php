@@ -155,16 +155,13 @@ public function showExamQuestions($examId)
 {
     $this->authorize('manage_users');
 
-    // الحصول على الاختبار مع الأسئلة واحتساب عدد الأسئلة
     $exam = Exam::with('questions')
         ->findOrFail($examId);
-
-    // حساب عدد الأسئلة الفعلية (التي لم يتم حذفها)
-    $actualQuestionCount = $exam->questions()->count(); // أو يمكنك استخدام $exam->questions()->whereNull('deleted_at')->count(); إذا كنت تريد أن تكون أكثر وضوحًا
+    // $actualQuestionCount = $exam->questions()->count(); // أو يمكنك استخدام $exam->questions()->whereNull('deleted_at')->count(); إذا كنت تريد أن تكون أكثر وضوحًا
 
     return response()->json([
         'data' => new ExamQuestionsResource($exam),
-        'actual_question_count' => $actualQuestionCount,
+        // 'actual_question_count' => $actualQuestionCount,
         'message' => "Show Exam With Questions By Id Successfully."
     ]);
 }
