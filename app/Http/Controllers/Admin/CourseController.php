@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\Course;
+use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +18,7 @@ use App\Http\Requests\Admin\StudentCourseRequest;
 use App\Http\Resources\Admin\LessonCourseResource;
 use App\Http\Resources\Admin\StudentCourseResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
+use App\Http\Requests\Admin\DetachStudentFromCourseRequest;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 
 
@@ -276,6 +278,42 @@ public function attachStudentToCourse(StudentCourseRequest $request)
         'message' => 'Student successfully added to the course.',
         'student' => new StudentRegisterResource($student),
         'data' => new AddStudentToCourse($course),
+    ]);
+}
+
+
+public function detachStudentFromCourse(DetachStudentFromCourseRequest $request)
+{
+    $this->authorize('manage_users');
+    $userId = $request->input('user_id');
+    $courseId = $request->input('course_id');
+
+    $student = User::find($userId);
+    if (!$student) {
+        return response()->json([
+            'message' => 'Student not found.'
+        ]);
+    }
+
+    $course = Course::find($courseId);
+    if (!$course) {
+        return response()->json([
+            'message' => 'Course not found.'
+        ]);
+    }
+
+
+    if (!$student->courses()->where('course_id', $courseId)->exists()) {
+        return response()->json([
+            'message' => 'Student is not enrolled in this course.'
+        ]);
+    }
+
+
+    $student->courses()->detach($courseId);
+
+    return response()->json([
+        'message' => 'Student successfully removed from the course.'
     ]);
 }
 

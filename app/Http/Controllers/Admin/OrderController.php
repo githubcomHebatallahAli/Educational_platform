@@ -128,8 +128,6 @@ public function canceled(string $id)
     ]);
 }
 
-
-
   public function destroy(string $id)
   {
       return $this->destroyModel(Order::class, OrderResource::class, $id);
