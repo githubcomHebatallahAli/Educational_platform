@@ -112,7 +112,7 @@ class QuestionController extends Controller
 
     $question->delete();
 
-    $exam->numOfQ = $exam->questions()->count(); 
+    $exam->numOfQ = $exam->questions()->count();
     $exam->save();
     $course = $exam->course;
     $course->numOfExams = $course->exams()->count();
@@ -135,17 +135,34 @@ return response()->json([
 
 public function restore(string $id)
 {
-   $this->authorize('manage_users');
-$Question = Question::with('exam')->withTrashed()->where('id', $id)->first();
-if (!$Question) {
-    return response()->json([
-        'message' => "Question not found."
-    ], 404);
-}
-$Question->restore();
+//    $this->authorize('manage_users');
+// $Question = Question::with('exam')->withTrashed()->where('id', $id)->first();
+// if (!$Question) {
+//     return response()->json([
+//         'message' => "Question not found."
+//     ], 404);
+// }
+// $Question->restore();
+// return response()->json([
+//     'data' =>new QuestionResource($Question),
+//     'message' => "Restore Question By Id Successfully."
+// ]);
+
+$question = Question::onlyTrashed()->findOrFail($questionId);
+
+// استرداد الامتحان المرتبط بالسؤال
+$exam = $question->exam;
+
+// استعادة السؤال
+$question->restore();
+
+// تحديث عدد الأسئلة في الامتحان بعد الاستعادة (حساب الأسئلة غير المحذوفة فقط)
+$exam->numOfQ = $exam->questions()->count();
+$exam->save();
+
 return response()->json([
-    'data' =>new QuestionResource($Question),
-    'message' => "Restore Question By Id Successfully."
+    'message' => 'تم استعادة السؤال بنجاح.',
+    'actual_question_count' => $exam->numOfQ,
 ]);
 }
 
