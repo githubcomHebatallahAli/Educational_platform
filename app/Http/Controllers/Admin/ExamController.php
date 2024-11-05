@@ -138,18 +138,37 @@ class ExamController extends Controller
   }
 
 
-  public function showExamQuestions($examId)
-  {
+//   public function showExamQuestions($examId)
+//   {
+//     $this->authorize('manage_users');
+//     $exam = Exam::with('questions')
+//     ->withCount('questions')
+//     ->findOrFail($examId);
+//     return response()->json([
+//         'data' =>new ExamQuestionsResource($exam),
+//         'message' => "Show Exam With Questions By Id Successfully."
+//     ]);
+
+//   }
+
+public function showExamQuestions($examId)
+{
     $this->authorize('manage_users');
+
+    // الحصول على الاختبار مع الأسئلة واحتساب عدد الأسئلة
     $exam = Exam::with('questions')
-    ->withCount('questions')
-    ->findOrFail($examId);
+        ->findOrFail($examId);
+
+    // حساب عدد الأسئلة الفعلية (التي لم يتم حذفها)
+    $actualQuestionCount = $exam->questions()->count(); // أو يمكنك استخدام $exam->questions()->whereNull('deleted_at')->count(); إذا كنت تريد أن تكون أكثر وضوحًا
+
     return response()->json([
-        'data' =>new ExamQuestionsResource($exam),
+        'data' => new ExamQuestionsResource($exam),
+        'actual_question_count' => $actualQuestionCount,
         'message' => "Show Exam With Questions By Id Successfully."
     ]);
+}
 
-  }
   public function showExamResults($examId, $studentId)
   {
       $this->authorize('manage_users');
