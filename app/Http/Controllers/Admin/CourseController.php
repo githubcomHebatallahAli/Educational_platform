@@ -241,10 +241,10 @@ public function attachStudentToCourse(StudentCourseRequest $request)
     $student = User::find($userId);
     if (!$student) {
         return response()->json([
-            'message' => 'Student not found'],
-             404);
-    }
+            'message' => 'Student not found'
+            ]);
 
+    }
 
     $course = Course::find($CourseId);
     if (!$course) {
@@ -286,7 +286,7 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 
     // $course = Course::with('students')->find($id);
     $course = Course::with(['students' => function($query) {
-        $query->withPivot('purchase_date', 'status'); // تحميل بيانات الجدول الوسيط
+        $query->withPivot('purchase_date', 'status');
     }])->find($id);
 
     if (!$course) {

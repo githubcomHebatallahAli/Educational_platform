@@ -11,6 +11,8 @@ Route::controller(CreateController::class)
 ->group(
     function () {
    Route::post('/create/answer', 'create');
+   Route::post('/create/order', 'createOrder');
+
 });
 
 Route::controller(CreateController::class)
