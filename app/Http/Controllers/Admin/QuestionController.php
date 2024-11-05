@@ -148,16 +148,18 @@ public function restore(string $id)
 //     'message' => "Restore Question By Id Successfully."
 // ]);
 
-$question = Question::onlyTrashed()->findOrFail($questionId);
-
-// استرداد الامتحان المرتبط بالسؤال
-$exam = $question->exam;
+$question = Question::onlyTrashed()->findOrFail($id);
 
 // استعادة السؤال
 $question->restore();
 
-// تحديث عدد الأسئلة في الامتحان بعد الاستعادة (حساب الأسئلة غير المحذوفة فقط)
-$exam->numOfQ = $exam->questions()->count();
+// استرداد الامتحان المرتبط بالسؤال بعد الاستعادة
+$exam = $question->exam()->withCount(['questions' => function ($query) {
+    $query->whereNull('deleted_at'); // التأكد من احتساب الأسئلة غير المحذوفة فقط
+}])->first();
+
+// تحديث عدد الأسئلة في الامتحان بعد الاستعادة
+$exam->numOfQ = $exam->questions_count;
 $exam->save();
 
 return response()->json([
