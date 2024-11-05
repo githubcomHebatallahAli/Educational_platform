@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
             // $table->decimal('price')->nullable();
             $table->timestamp('purchase_date')->nullable();
-            $table->enum('status', ['paid', 'pending', 'canceled'])->default('pending')->nullable();
+            $table->enum('status', ['paid', 'pending', 'canceled','byAdmin'])->default('pending')->nullable();
             $table->string('payment_method')->nullable();
             $table->softDeletes();
             $table->timestamps();

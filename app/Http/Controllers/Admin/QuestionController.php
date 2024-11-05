@@ -135,18 +135,7 @@ return response()->json([
 
 public function restore(string $id)
 {
-//    $this->authorize('manage_users');
-// $Question = Question::with('exam')->withTrashed()->where('id', $id)->first();
-// if (!$Question) {
-//     return response()->json([
-//         'message' => "Question not found."
-//     ], 404);
-// }
-// $Question->restore();
-// return response()->json([
-//     'data' =>new QuestionResource($Question),
-//     'message' => "Restore Question By Id Successfully."
-// ]);
+    $this->authorize('manage_users');
 
 $question = Question::onlyTrashed()->findOrFail($id);
 $question->restore();

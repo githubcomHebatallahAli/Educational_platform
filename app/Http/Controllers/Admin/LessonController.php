@@ -251,7 +251,7 @@ class LessonController extends Controller
         if (!$Lesson) {
             return response()->json([
                 'message' => "Lesson not found."
-            ], 404);
+            ]);
         }
         return response()->json([
             'data' =>new LessonResource($Lesson),
@@ -317,16 +317,16 @@ class LessonController extends Controller
 
 public function destroy(string $id){
     $this->authorize('manage_users');
-    $Lesson =Lesson::find($id);
-    if (!$Lesson) {
-     return response()->json([
-         'message' => "Lesson not found."
-     ], 404);
- }
+    $lesson = Lesson::findOrFail($id);
+    $course = $lesson->course;
 
-    $Lesson->delete($id);
+    $lesson->delete();
+
+    $course->numOfLessons = $course->lessons()->count();
+    $course->save();
     return response()->json([
-        'data' =>new LessonResource($Lesson),
+        'data' =>new LessonResource($lesson),
+        'actual_lesson_count' => $course->numOfLessons,
         'message' => " Soft Delete Lesson By Id Successfully."
     ]);
 }
@@ -346,15 +346,16 @@ public function restore(string $id)
 {
     $this->authorize('manage_users');
 
-    $Lesson = Lesson::withTrashed()->where('id', $id)->first();
-    if (!$Lesson) {
-        return response()->json([
-            'message' => "Lesson not found."
-        ], 404);
-    }
-    $Lesson->restore();
+    $lesson = Lesson::onlyTrashed()->findOrFail($id);
+    $lesson->restore();
+
+    $course = $lesson->course;
+    $course->numOfLessons = $course->lessons()->count();
+    $course->save();
     return response()->json([
-        'message' => "Restore Lesson By Id Successfully."
+        'message' => "Restore Lesson By Id Successfully.",
+        'data' =>new LessonResource($lesson),
+        'actual_lesson_count' => $course->numOfLessons,
     ]);
 }
 
@@ -362,16 +363,16 @@ public function forceDelete(string $id){
 
     $this->authorize('manage_users');
 
-    $Lesson=Lesson::withTrashed()->where('id',$id)->first();
-    if (!$Lesson) {
-        return response()->json([
-            'message' => "Lesson not found."
-        ], 404);
-    }
+    $lesson = Lesson::withTrashed()->findOrFail($id);
+    $course = $lesson->course;
 
-    $Lesson->forceDelete();
+    $lesson->forceDelete();
+
+    $course->numOfLessons = $course->lessons()->count();
+    $course->save();
     return response()->json([
-        'message' => " Force Delete Lesson By Id Successfully."
+        'message' => " Force Delete Lesson By Id Successfully.",
+        'actual_lesson_count' => $course->numOfLessons,
     ]);
 }
 

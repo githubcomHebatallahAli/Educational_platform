@@ -103,7 +103,7 @@ class CourseController extends Controller
      if (!$Course) {
       return response()->json([
           'message' => "Course not found."
-      ], 404);
+      ]);
   }
      $Course->update([
         "grade_id" => $request->grade_id,
@@ -142,7 +142,7 @@ public function notActive(string $id)
     if (!$Course) {
      return response()->json([
          'message' => "Course not found."
-     ], 404);
+     ]);
  }
 
     $Course->update(['status' => 'notActive']);
@@ -161,7 +161,7 @@ public function active(string $id)
     if (!$Course) {
      return response()->json([
          'message' => "Course not found."
-     ], 404);
+     ]);
  }
 
     $Course->update(['status' => 'active']);
@@ -194,7 +194,7 @@ $Course = Course::withTrashed()->where('id', $id)->first();
 if (!$Course) {
     return response()->json([
         'message' => "Course not found."
-    ], 404);
+    ]);
 }
 
 $Course->restore();

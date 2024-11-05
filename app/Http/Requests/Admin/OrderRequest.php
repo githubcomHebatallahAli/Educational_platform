@@ -25,7 +25,7 @@ class OrderRequest extends FormRequest
             'user_id' => 'required|exists:users,id',
             'course_id' => 'required|exists:courses,id',
             'purchase_date' => 'nullable|date',
-            'status' => 'nullable|in:paid,pending,canceled',
+            'status' => 'nullable|in:paid,pending,canceled,byAdmin',
             'payment_method' => 'nullable|string',
             // 'price' => 'nullable|numeric|regex:/^\d{1,5}(\.\d{1,2})?$/',
         ];
