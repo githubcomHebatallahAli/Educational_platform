@@ -153,13 +153,11 @@ $question = Question::onlyTrashed()->findOrFail($id);
 // استعادة السؤال
 $question->restore();
 
-// استرداد الامتحان المرتبط بالسؤال بعد الاستعادة
-$exam = $question->exam()->withCount(['questions' => function ($query) {
-    $query->whereNull('deleted_at'); // التأكد من احتساب الأسئلة غير المحذوفة فقط
-}])->first();
+// استرداد الامتحان المرتبط بالسؤال
+$exam = $question->exam;
 
 // تحديث عدد الأسئلة في الامتحان بعد الاستعادة
-$exam->numOfQ = $exam->questions_count;
+$exam->numOfQ = $exam->questions()->count();
 $exam->save();
 
 return response()->json([
