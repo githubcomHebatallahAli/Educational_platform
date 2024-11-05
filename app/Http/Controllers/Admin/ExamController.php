@@ -157,11 +157,11 @@ public function showExamQuestions($examId)
 
     $exam = Exam::with('questions')
         ->findOrFail($examId);
-    // $actualQuestionCount = $exam->questions()->count(); // أو يمكنك استخدام $exam->questions()->whereNull('deleted_at')->count(); إذا كنت تريد أن تكون أكثر وضوحًا
+    $actualQuestionCount = $exam->questions()->count(); // أو يمكنك استخدام $exam->questions()->whereNull('deleted_at')->count(); إذا كنت تريد أن تكون أكثر وضوحًا
 
     return response()->json([
         'data' => new ExamQuestionsResource($exam),
-        // 'actual_question_count' => $actualQuestionCount,
+        'actual_question_count' => $actualQuestionCount,
         'message' => "Show Exam With Questions By Id Successfully."
     ]);
 }
