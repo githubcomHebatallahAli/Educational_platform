@@ -15,6 +15,7 @@ use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactRequest;
 use App\Http\Resources\ContactResource;
+use App\Http\Requests\Admin\OrderRequest;
 use App\Http\Requests\Admin\AnswerRequest;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\OrderResource;
@@ -163,7 +164,7 @@ public function createContactUs(ContactRequest $request)
 
     }
 
-    public function createOrder(Request $request)
+    public function createOrder(OrderRequest $request)
 {
     // $formattedPrice = number_format($request->price, 2, '.', '');
     $status = $request->status ?? 'pending';

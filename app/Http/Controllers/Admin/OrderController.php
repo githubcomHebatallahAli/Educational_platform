@@ -34,7 +34,7 @@ class OrderController extends Controller
       if (!$Order) {
           return response()->json([
               'message' => "Order not found."
-          ], 404);
+          ]);
       }
 
       return response()->json([
@@ -53,10 +53,14 @@ class OrderController extends Controller
      if (!$Order) {
       return response()->json([
           'message' => "Order not found."
-      ], 404);
+      ]);
   }
      $Order->update([
-      "name" => $request->name
+        'user_id' => $request->user_id,
+        'Order_id' => $request->Order_id,
+        'purchase_date'  => $request-> purchase_date,
+        'status' => $request->status,
+        'payment_method'=> $request-> payment_method,
       ]);
 
      $Order->save();
@@ -65,6 +69,63 @@ class OrderController extends Controller
       'message' => " Update Order By Id Successfully."
   ]);
 
+}
+
+public function pending(string $id)
+{
+    $this->authorize('manage_users');
+    $Order =Order::findOrFail($id);
+
+    if (!$Order) {
+     return response()->json([
+         'message' => "Order not found."
+     ], 404);
+ }
+
+    $Order->update(['status' => 'pending']);
+
+    return response()->json([
+        'data' => new OrderResource($Order),
+        'message' => 'Order has been pending.'
+    ]);
+}
+
+public function paid(string $id)
+{
+    $this->authorize('manage_users');
+    $Order =Order::findOrFail($id);
+
+    if (!$Order) {
+     return response()->json([
+         'message' => "Order not found."
+     ], 404);
+ }
+
+    $Order->update(['status' => 'paid']);
+
+    return response()->json([
+        'data' => new OrderResource($Order),
+        'message' => 'Order has been Paid.'
+    ]);
+}
+
+public function canseled(string $id)
+{
+    $this->authorize('manage_users');
+    $Order =Order::findOrFail($id);
+
+    if (!$Order) {
+     return response()->json([
+         'message' => "Order not found."
+     ], 404);
+ }
+
+    $Order->update(['status' => 'canseled']);
+
+    return response()->json([
+        'data' => new OrderResource($Order),
+        'message' => 'Order has been Canseled.'
+    ]);
 }
 
 
@@ -76,10 +137,10 @@ class OrderController extends Controller
 
   public function showDeleted(){
     $this->authorize('manage_users');
-$categories=Order::onlyTrashed()->get();
+$orders=Order::onlyTrashed()->get();
 return response()->json([
-    'data' =>OrderResource::colOrdertion($categories),
-    'message' => "Show Deleted Categories Successfully."
+    'data' =>OrderResource::collection($orders),
+    'message' => "Show Deleted Orders Successfully."
 ]);
 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,15 @@ class Order extends Model
         'status',
         'payment_method'
     ];
+
+    protected $dates = ['purchase_date'];
+
+    public function getFormattedPurchaseDateAttribute()
+    {
+        return Carbon::parse($this->purchase_date)
+        ->timezone('Africa/Cairo')
+        ->format('Y-m-d h:i:s');
+    }
 
     public function user()
     {

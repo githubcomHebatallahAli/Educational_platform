@@ -16,4 +16,8 @@ Route::controller(OrderController::class)->prefix('/admin')->middleware('admin')
    Route::get('/showDeleted/order', 'showDeleted');
 Route::get('/restore/order/{id}','restore');
 Route::delete('/forceDelete/order/{id}','forceDelete');
+
+Route::patch('paid/order/{id}', 'paid');
+Route::patch('pending/order/{id}', 'pending');
+Route::patch('canseled/order/{id}', 'canseled');
    });
