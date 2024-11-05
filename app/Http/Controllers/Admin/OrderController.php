@@ -109,7 +109,7 @@ public function paid(string $id)
     ]);
 }
 
-public function canseled(string $id)
+public function canceled(string $id)
 {
     $this->authorize('manage_users');
     $Order =Order::findOrFail($id);
@@ -120,11 +120,11 @@ public function canseled(string $id)
      ], 404);
  }
 
-    $Order->update(['status' => 'canseled']);
+    $Order->update(['status' => 'canceled']);
 
     return response()->json([
         'data' => new OrderResource($Order),
-        'message' => 'Order has been Canseled.'
+        'message' => 'Order has been Canceled.'
     ]);
 }
 

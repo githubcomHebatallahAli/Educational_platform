@@ -19,5 +19,5 @@ Route::delete('/forceDelete/order/{id}','forceDelete');
 
 Route::patch('paid/order/{id}', 'paid');
 Route::patch('pending/order/{id}', 'pending');
-Route::patch('canseled/order/{id}', 'canseled');
+Route::patch('canceled/order/{id}', 'canceled');
    });
