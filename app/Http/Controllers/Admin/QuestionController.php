@@ -149,14 +149,9 @@ public function restore(string $id)
 // ]);
 
 $question = Question::onlyTrashed()->findOrFail($id);
-
-// استعادة السؤال
 $question->restore();
-
-// استرداد الامتحان المرتبط بالسؤال
 $exam = $question->exam;
 
-// تحديث عدد الأسئلة في الامتحان بعد الاستعادة
 $exam->numOfQ = $exam->questions()->count();
 $exam->save();
 
