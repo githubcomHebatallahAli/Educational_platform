@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Exam;
 use App\Models\Question;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
@@ -135,6 +136,17 @@ return response()->json([
 
   public function forceDelete(string $id)
   {
-      return $this->forceDeleteModel(Question::class, $id);
+    //   return $this->forceDeleteModel(Question::class, $id);
+    $question = Question::withTrashed()->findOrFail($id); // يجب أن تستخدم withTrashed للعثور على السجل المحذوف
+    $question->forceDelete(); // سيقوم بحذفه من قاعدة البيانات نهائيًا
+
+    // تحديث عدد الأسئلة
+    $examId = $question->exam_id; // احصل على معرف الاختبار المرتبط بالسؤال
+    $exam = Exam::withCount('questions')->find($examId);
+
+    return response()->json([
+        'message' => 'Question force deleted successfully.',
+        'updated_question_count' => $exam->questions_count, // العدد المحدث
+    ]);
   }
 }
