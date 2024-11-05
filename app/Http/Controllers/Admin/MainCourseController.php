@@ -42,7 +42,7 @@ class MainCourseController extends Controller
               "month_id" => $request->month_id,
               "nameOfCourse" => $request->nameOfCourse,
               "price" => $formattedPrice,
-          
+
           ]);
           if ($request->hasFile('img')) {
             $imgPath = $request->file('img')->store(MainCourse::storageFolder);
@@ -132,7 +132,7 @@ $MainCourse = MainCourse::withTrashed()->where('id', $id)->first();
 if (!$MainCourse) {
     return response()->json([
         'message' => "MainCourse not found."
-    ], 404);
+    ]);
 }
 
 $MainCourse->restore();

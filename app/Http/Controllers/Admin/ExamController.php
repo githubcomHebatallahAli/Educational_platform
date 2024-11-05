@@ -311,7 +311,19 @@ $studentExam->time_taken = $timeTaken;
 
   public function destroy(string $id)
   {
-      return $this->destroyModel(Exam::class, ExamResource::class, $id);
+    $this->authorize('manage_users');
+    $exam = Exam::findOrFail($id);
+    $course = $exam->course;
+
+    $exam->delete();
+
+    $course->numOfExams = $course->exams()->count();
+    $course->save();
+    return response()->json([
+        'message' => 'Exam Soft Delete Successfully.',
+        'data' =>new ExamResource($exam),
+        'actual_exam_count' => $course->numOfExams,
+    ]);
   }
 
   public function showDeleted(){
@@ -326,23 +338,34 @@ return response()->json([
 public function restore(string $id)
 {
 $this->authorize('manage_users');
-$Exam = Exam::withTrashed()->where('id', $id)->first();
-if (!$Exam) {
-    return response()->json([
-        'message' => "Exam not found."
-    ], 404);
-}
-
+$Exam = Exam::onlyTrashed()->findOrFail($id);
 $Exam->restore();
+
+$course = $Exam->course;
+$course->numOfExams = $course->exams()->count();
+$course->save();
+
 return response()->json([
     'data' =>new ExamResource($Exam),
+    'actual_exam_count' => $course->numOfExams,
     'message' => "Restore Exam By Id Successfully."
 ]);
 }
 
   public function forceDelete(string $id)
   {
-      return $this->forceDeleteModel(Exam::class, $id);
+    $this->authorize('manage_users');
+    $Exam = Exam::withTrashed()->findOrFail($id);
+    $course = $Exam->course;
+
+    $Exam->forceDelete();
+
+    $course->numOfExams = $course->exams()->count();
+    $course->save();
+    return response()->json([
+        'message' => " Force Delete Exam By Id Successfully.",
+        'actual_exam_count' => $course->numOfExams,
+    ]);
   }
 
   public function getStudentExamResults($studentId, $courseId)
