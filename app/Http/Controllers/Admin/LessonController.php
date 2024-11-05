@@ -42,6 +42,7 @@ class LessonController extends Controller
             "course_id" => $request->course_id,
             "title" => $request->title,
             "description" => $request->description,
+            "duration" => $request->duration,
         ]);
 
         if ($request->hasFile('poster')) {
@@ -272,6 +273,7 @@ class LessonController extends Controller
             "course_id" => $request->course_id,
             "title" => $request->title,
             "description" => $request->description,
+            "duration" => $request->duration,
         ]);
 
         if ($request->hasFile('poster')) {
