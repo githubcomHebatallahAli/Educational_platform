@@ -233,7 +233,8 @@ public function attachStudentToCourse(StudentCourseRequest $request)
     $userId = $request->input('user_id');
     $CourseId = $request->input('course_id');
     $byAdmin = $request->input('byAdmin');
-    $purchaseDate = $request->input('purchase_date', now());
+    $purchaseDate = $request->input('purchase_date', now()->timezone('Africa/Cairo')
+    ->format('Y-m-d h:i:s'));
     $status = $request->input('status', 'pending');
 
     $student = User::find($userId);

@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StudentCourse extends Model
 {
@@ -15,4 +16,14 @@ class StudentCourse extends Model
         'status',
         'byAdmin'
     ];
+
+    protected $date = ['purchase_date'];
+
+    public function getPurchaseDateAttribute($value)
+{
+    return Carbon::parse($value)
+            ->timezone('Africa/Cairo')
+            ->format('Y-m-d H:i:s');
+}
+
 }

@@ -120,15 +120,10 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-
     public function grade()
     {
         return $this->belongsTo(Grade::class);
     }
-
-
-
-
 
 
     public function Answers()
