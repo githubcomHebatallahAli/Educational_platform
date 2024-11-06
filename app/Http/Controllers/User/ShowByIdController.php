@@ -9,7 +9,6 @@ use App\Models\Answer;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Http\Controllers\Controller;
-
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
@@ -69,7 +68,7 @@ if (!$this->authorizeStudentOrParent($student)) {
     if ($answers->isEmpty()) {
         return response()->json([
             'message' => 'لا توجد إجابات لهذا الامتحان.'
-        ], 404);
+        ]);
     }
 
     $correctAnswers = 0;
@@ -233,6 +232,10 @@ public function getStudent4ExamsResult($studentId, $courseId)
     $fourExamResults = $fourExams->map(function ($exam) {
         $score = $exam->pivot->score;
         $hasAttempted = $exam->pivot->has_attempted;
+        $started_at = $exam->pivot->started_at;
+        $submitted_at = $exam->pivot->submitted_at;
+        $time_taken = $exam->pivot->time_taken;
+        $correctAnswers = $exam->pivot->correctAnswers;
 
 
         $resultScore = ($score === null && $hasAttempted == 0) ? 'absent' : ($hasAttempted ? $score : 'absent');
@@ -242,6 +245,10 @@ public function getStudent4ExamsResult($studentId, $courseId)
             'title' => $exam->title,
             'score' => $resultScore,
             'has_attempted' => $hasAttempted,
+            'started_at' => $started_at,
+            'submitted_at' => $submitted_at,
+            'time_taken' => $time_taken,
+            'correctAnswers' => $correctAnswers,
         ];
     });
 
@@ -271,12 +278,16 @@ public function getStudentOverallResults($studentId)
 
     $student = User::findOrFail($studentId);
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.'], 403);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
 
     $totalOverallScore = 0;
@@ -287,7 +298,9 @@ public function getStudentOverallResults($studentId)
     foreach ($courses as $course) {
         foreach ($course->exams as $exam) {
 
-            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+            $studentExam = $exam->students()
+            ->where('user_id', $studentId)
+            ->first();
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $totalOverallScore += $studentExam->pivot->score;
@@ -339,7 +352,7 @@ public function edit(string $id)
     if (!$Parent) {
         return response()->json([
             'message' => "Parent not found."
-        ], 404);
+        ]);
     }
 
     $sonsData = $Parent->users->map(function ($son) {
@@ -489,7 +502,9 @@ public function getStudentRankOverallResults($studentId)
         $attendedExamsCount = 0;
 
         foreach ($course->exams as $exam) {
-            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+            $studentExam = $exam->students()
+            ->where('user_id', $studentId)
+            ->first();
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $courseTotalScore += $studentExam->pivot->score;
@@ -567,11 +582,16 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
         $totalMaxScore = 500; // عدد الامتحانات الكلي هو 5 وكل امتحان درجته 100
 
         // الحصول على الكورس المحدد للطالب وحساب درجاته
-        $course = $student->courses()->where('course_id', $courseId)->with('exams')->first();
+        $course = $student->courses()
+        ->where('course_id', $courseId)
+        ->with('exams')
+        ->first();
 
         if ($course) {
             foreach ($course->exams as $exam) {
-                $studentExam = $exam->students()->where('user_id', $student->id)->first();
+                $studentExam = $exam->students()
+                ->where('user_id', $student->id)
+                ->first();
 
                 if ($studentExam && !is_null($studentExam->pivot->score)) {
                     $totalOverallScore += $studentExam->pivot->score; // جمع الدرجات التي حصل عليها الطالب فقط
@@ -622,11 +642,16 @@ public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
         $totalMaxScore = 500; // عدد الامتحانات الكلي هو 5 وكل امتحان درجته 100
 
         // الحصول على الكورس المحدد للطالب وحساب درجاته
-        $course = $student->courses()->where('course_id', $courseId)->with('exams')->first();
+        $course = $student->courses()
+        ->where('course_id', $courseId)
+        ->with('exams')
+        ->first();
 
         if ($course) {
             foreach ($course->exams as $exam) {
-                $studentExam = $exam->students()->where('user_id', $student->id)->first();
+                $studentExam = $exam->students()
+                ->where('user_id', $student->id)
+                ->first();
 
                 if ($studentExam && !is_null($studentExam->pivot->score)) {
                     $totalOverallScore += $studentExam->pivot->score; // جمع الدرجات التي حصل عليها الطالب فقط

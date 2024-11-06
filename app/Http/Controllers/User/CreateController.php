@@ -10,7 +10,6 @@ use App\Models\Course;
 use App\Models\Question;
 use App\Models\ContactUs;
 use App\Models\StudentExam;
-use Illuminate\Http\Request;
 use App\Models\StudentCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactRequest;
@@ -19,7 +18,6 @@ use App\Http\Requests\Admin\OrderRequest;
 use App\Http\Requests\Admin\AnswerRequest;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\OrderResource;
-use App\Http\Requests\Admin\StudentCourseRequest;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class CreateController extends Controller
@@ -181,7 +179,7 @@ public function createContactUs(ContactRequest $request)
     $course = Course::find($courseId);
     if (!$course) {
         return response()->json([
-            'message' => 'لم يتم العثور على الدورة.'
+            'message' => 'لم يتم العثور على الكورس.'
         ]);
     }
 

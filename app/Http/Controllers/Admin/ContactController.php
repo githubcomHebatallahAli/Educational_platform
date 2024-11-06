@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\ContactUs;
-use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ContactRequest;
 use App\Http\Resources\ContactResource;
 
 class ContactController extends Controller
@@ -33,7 +31,7 @@ class ContactController extends Controller
       if (!$Contact) {
           return response()->json([
               'message' => "Contact not found."
-          ], 404);
+          ]);
       }
 
       return response()->json([
@@ -64,7 +62,7 @@ $Contact = ContactUs::withTrashed()->where('id', $id)->first();
 if (!$Contact) {
     return response()->json([
         'message' => "Contact not found."
-    ], 404);
+    ]);
 }
 
 $Contact->restore();

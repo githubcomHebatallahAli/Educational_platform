@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Exam;
 use App\Models\Question;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
@@ -64,7 +63,7 @@ class QuestionController extends Controller
       if (!$Question) {
           return response()->json([
               'message' => "Question not found."
-          ], 404);
+          ]);
       }
 
       return response()->json([
@@ -83,7 +82,7 @@ class QuestionController extends Controller
      if (!$Question) {
       return response()->json([
           'message' => "Question not found."
-      ], 404);
+      ]);
   }
      $Question->update([
         'question' => $request-> question,

@@ -7,7 +7,6 @@ use App\Models\Exam;
 use App\Models\User;
 use App\Models\Answer;
 use App\Models\StudentExam;
-use Illuminate\Http\JsonResponse;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExamRequest;
@@ -374,7 +373,9 @@ return response()->json([
     $student = User::find($studentId);
 
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
 
@@ -390,6 +391,10 @@ $fourExamResults = $fourExams->map(function ($exam) {
         'title' => $exam->title,
         'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
         'has_attempted' => $exam->pivot->has_attempted,
+        'started_at' => $exam->pivot->started_at,
+        'submitted_at' => $exam->pivot->submitted_at,
+        'time_taken' => $exam->pivot->time_taken,
+        'correctAnswers' => $exam->pivot->correctAnswers
     ];
 })->toArray();
 
@@ -399,6 +404,10 @@ $finalExamResult = [
     'title' => $finalExam->title,
     'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
     'has_attempted' => $finalExam->pivot->has_attempted,
+    'started_at' => $finalExam->pivot->started_at,
+    'submitted_at' => $finalExam->pivot->submitted_at,
+    'time_taken' => $finalExam->pivot->time_taken,
+    'correctAnswers' => $finalExam->pivot->correctAnswers
 ];
 $totalScore = 0;
 $attemptedCount = 0;
@@ -437,11 +446,18 @@ public function getStudent4ExamsResult($studentId, $courseId)
     $student = User::with(['grade', 'parent'])->findOrFail($studentId);
 
 
-    $fourExams = $student->exams()->where('course_id', $courseId)->take(4)->get();
+    $fourExams = $student->exams()
+    ->where('course_id', $courseId)
+    ->take(4)
+    ->get();
 
     $fourExamResults = $fourExams->map(function ($exam) {
         $score = $exam->pivot->score;
         $hasAttempted = $exam->pivot->has_attempted;
+        $started_at = $exam->pivot->started_at;
+        $submitted_at = $exam->pivot->submitted_at;
+        $time_taken = $exam->pivot->time_taken;
+        $correctAnswers = $exam->pivot->correctAnswers;
 
 
         $resultScore = ($score === null && $hasAttempted == 0) ? 'absent' : ($hasAttempted ? $score : 'absent');
@@ -451,6 +467,10 @@ public function getStudent4ExamsResult($studentId, $courseId)
             'title' => $exam->title,
             'score' => $resultScore,
             'has_attempted' => $hasAttempted,
+            'started_at' => $started_at,
+            'submitted_at' => $submitted_at,
+            'time_taken' => $time_taken,
+            'correctAnswers' => $correctAnswers,
         ];
     });
 
@@ -487,7 +507,9 @@ public function getStudentOverallResults($studentId)
     foreach ($courses as $course) {
         foreach ($course->exams as $exam) {
 
-            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+            $studentExam = $exam->students()
+            ->where('user_id', $studentId)
+            ->first();
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $totalOverallScore += $studentExam->pivot->score;

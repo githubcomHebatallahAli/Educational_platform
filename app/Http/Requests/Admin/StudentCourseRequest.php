@@ -26,6 +26,7 @@ class StudentCourseRequest extends FormRequest
         return [
             'user_id' => 'required|exists:users,id',
             'course_id' => 'required|exists:courses,id',
+             'byAdmin' => 'nullable|string',
             'purchase_date' => 'nullable|date',
             'status' => 'required|in:paid,pending'
         ];

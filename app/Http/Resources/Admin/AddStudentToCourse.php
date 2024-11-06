@@ -23,7 +23,10 @@ class AddStudentToCourse extends JsonResource
             'status' => $this->whenPivotLoaded('student_courses', function () {
                 return $this->pivot->status;
             }),
-          
+            'byAdmin' => $this->whenPivotLoaded('student_courses', function () {
+                return $this->pivot->byAdmin;
+            }),
+
         ];
     }
 }

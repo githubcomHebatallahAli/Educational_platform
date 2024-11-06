@@ -39,6 +39,8 @@ class StudentCourseResource extends JsonResource
                     ] : null,
                     'purchase_date' => $student->pivot->purchase_date ?? null,
                     'status' => $student->pivot->status ?? null,
+                    'byAdmin' => $student->pivot->byAdmin ?? null,
+
                 ];
             }),
         ];

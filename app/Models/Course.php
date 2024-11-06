@@ -49,7 +49,7 @@ class Course extends Model
     public function students()
     {
         return $this->belongsToMany(User::class,'student_courses')
-                    ->withPivot('purchase_date', 'status');
+                    ->withPivot('purchase_date', 'status','byAdmin');
     }
 
     public function grade()

@@ -7,7 +7,6 @@ use App\Models\Parnt;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ImgRequest;
-
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Auth\UpdateParentRequest;
 use App\Http\Requests\Auth\UpdateStudentRequest;
@@ -22,7 +21,7 @@ class UpdateController extends Controller
     if ($Student->id != $id) {
         return response()->json([
             'message' => "Unauthorized to update this profile."
-        ], 403);
+        ]);
     }
     if ($request->hasFile('img')) {
         if ($Student->img) {
@@ -46,7 +45,7 @@ class UpdateController extends Controller
     if ($Student->id != $id) {
         return response()->json([
             'message' => "Unauthorized to update this profile."
-        ], 403);
+        ]);
     }
     $Student = User::findOrFail($id);
 
@@ -69,7 +68,7 @@ public function studentUpdateProfile(UpdateStudentRequest $request, string $id)
     if ($Student->id != $id) {
         return response()->json([
             'message' => "Unauthorized to update this profile."
-        ], 403);
+        ]);
     }
     $Student = User::findOrFail($id);
 
@@ -113,7 +112,7 @@ public function studentUpdateProfile(UpdateStudentRequest $request, string $id)
     if ($Parent->id != $id) {
        return response()->json([
            'message' => "Unauthorized to update this profile."
-       ], 403);
+       ]);
    }
     if ($request->hasFile('img')) {
         if ($Parent->img) {
@@ -136,7 +135,7 @@ public function studentUpdateProfile(UpdateStudentRequest $request, string $id)
          if ($authParent->id != $id) {
             return response()->json([
                 'message' => "Unauthorized to update this profile."
-            ], 403);
+            ]);
         }
         $Parent = Parnt::findOrFail($id);
 

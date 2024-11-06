@@ -12,6 +12,7 @@ class StudentCourse extends Model
         'user_id',
         'course_id',
         'purchase_date',
-        'status'
+        'status',
+        'byAdmin'
     ];
 }

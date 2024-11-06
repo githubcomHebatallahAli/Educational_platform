@@ -4,18 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\Course;
-use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Admin\CourseRequest;
-use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\CourseResource;
-use App\Http\Resources\Admin\LessonResource;
 use App\Http\Resources\Admin\AddStudentToCourse;
-use App\Http\Resources\Admin\MainCourseResource;
 use App\Http\Requests\Admin\StudentCourseRequest;
-use App\Http\Resources\Admin\LessonCourseResource;
 use App\Http\Resources\Admin\StudentCourseResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Requests\Admin\DetachStudentFromCourseRequest;
@@ -80,7 +75,7 @@ class CourseController extends Controller
       if (!$Course) {
           return response()->json([
               'message' => "Course not found."
-          ], 404);
+          ]);
       }
 
       return response()->json([
@@ -237,6 +232,7 @@ public function attachStudentToCourse(StudentCourseRequest $request)
     $this->authorize('manage_users');
     $userId = $request->input('user_id');
     $CourseId = $request->input('course_id');
+    $byAdmin = $request->input('byAdmin');
     $purchaseDate = $request->input('purchase_date', now());
     $status = $request->input('status', 'pending');
 
@@ -258,7 +254,8 @@ public function attachStudentToCourse(StudentCourseRequest $request)
 
     $student->courses()->attach($course->id, [
         'purchase_date' => $purchaseDate,
-        'status' => $status
+        'status' => $status,
+        'byAdmin' => $byAdmin,
     ]);
 
 
@@ -324,7 +321,7 @@ public function detachStudentFromCourse(DetachStudentFromCourseRequest $request)
 
     // $course = Course::with('students')->find($id);
     $course = Course::with(['students' => function($query) {
-        $query->withPivot('purchase_date', 'status');
+        $query->withPivot('purchase_date', 'status','byAdmin');
     }])->find($id);
 
     if (!$course) {

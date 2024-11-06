@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\GradeResource;
-use App\Http\Requests\Auth\UpdateStudentRequest;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class UserController extends Controller

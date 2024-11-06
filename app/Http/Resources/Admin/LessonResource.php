@@ -34,6 +34,7 @@ class LessonResource extends JsonResource
                 'duration' => $this->exam->duration,
                 'creationDate' => $this->exam->creationDate,
                 'numOfQ' => $this->exam->numOfQ,
+                'question_order' => $this->exam->question_order,
                 'formatted_deadLineExam' => $this->exam->formatted_deadLineExam,
                 'questions' => $this->exam->questions->map(function ($question) {
                     return [
