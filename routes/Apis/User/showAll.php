@@ -1,0 +1,15 @@
+<?php
+
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\User\ShowAllController;
+
+
+
+
+
+Route::controller(ShowAllController::class)
+->group(
+    function () {
+   Route::get('/showAll/courses/grade/{gradeId}', 'showAllCourses');
+});
