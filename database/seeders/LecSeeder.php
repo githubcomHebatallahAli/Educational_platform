@@ -14,17 +14,17 @@ class LecSeeder extends Seeder
     public function run(): void
     {
         DB::table('lecs')->insert([
-            'name' =>'الدرس الأول'
+            'name' =>'المحاضرة الأولي'
         ]);
         DB::table('lecs')->insert([
-            'name' => 'الدرس الثاني'
+            'name' => 'المحاضرة الثانية'
         ]);
         DB::table('lecs')->insert([
-            'name' => 'الدرس الثالث'
+            'name' => 'المحاضرة الثالثة'
         ]);
         DB::table('lecs')->insert([
-            'name' => 'الدرس الرابع'
+            'name' => 'المحاضرة الرابعة'
         ]);
-       
+
     }
 }
