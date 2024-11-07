@@ -729,7 +729,9 @@ public function getLessonPdf($studentId)
     }
 
 
-    $lessons = Lesson::where('grade_id', $student->grade_id)->get()->map(function ($lesson) {
+    $lessons = Lesson::where('grade_id', $student->grade_id)
+    ->get()
+    ->map(function ($lesson) {
         return [
             'course_id' => $lesson->course_id,
             'lec_id' => $lesson->lec_id,
@@ -747,18 +749,10 @@ public function getLessonPdf($studentId)
 
 public function showCourse(string $id)
 {
-    $Course = Course::find($id);
-
-    if (!$Course) {
-        return response()->json([
-            'message' => "Course not found."
-        ]);
-    }
-
-    return response()->json([
-        'data' =>new CourseResource($Course),
-        'message' => "Show Course By ID Successfully."
-    ]);
+    $course = Course::with(['lessons.exam.questions'])->findOrFail($id);
+      return response()->json([
+     'data' =>new CourseWithLessonsExamsResource($course)
+      ]);
 }
 
 }
