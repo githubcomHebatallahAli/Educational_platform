@@ -14,6 +14,7 @@ use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\Admin\CourseResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
+use App\Http\Resources\User\CourseWithExamsLessonsResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 
 
@@ -159,7 +160,8 @@ $student = User::with(['exams' => function ($query) use ($courseId) {
     $query->where('course_id', $courseId);
 }])->findOrFail($studentId);
 
-$fourExams = $student->exams->take(4);
+$fourExams = $student->exams
+->take(4);
 
 $fourExamResults = $fourExams->map(function ($exam) {
     return [
@@ -228,7 +230,10 @@ public function getStudent4ExamsResult($studentId, $courseId)
     $student = User::with(['grade', 'parent'])->findOrFail($studentId);
 
 
-    $fourExams = $student->exams()->where('course_id', $courseId)->take(4)->get();
+    $fourExams = $student->exams()
+    ->where('course_id', $courseId)
+    ->take(4)
+    ->get();
 
     $fourExamResults = $fourExams->map(function ($exam) {
         $score = $exam->pivot->score;
@@ -751,7 +756,7 @@ public function showCourse(string $id)
 {
     $course = Course::with(['lessons.exam.questions'])->findOrFail($id);
       return response()->json([
-     'data' =>new CourseWithLessonsExamsResource($course)
+     'data' =>new CourseWithExamsLessonsResource($course)
       ]);
 }
 
