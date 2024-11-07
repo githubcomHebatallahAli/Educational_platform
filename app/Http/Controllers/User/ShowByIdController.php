@@ -754,7 +754,7 @@ public function getLessonPdf($studentId)
 
 public function showCourse(string $id)
 {
-    $course = Course::with(['lessons.exam.questions'])->findOrFail($id);
+    $course = Course::with(['lessons.exam'])->findOrFail($id);
       return response()->json([
      'data' =>new CourseWithExamsLessonsResource($course)
       ]);
