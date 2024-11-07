@@ -11,6 +11,7 @@ use App\Models\Lesson;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
+use App\Http\Resources\Admin\CourseResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
@@ -744,5 +745,20 @@ public function getLessonPdf($studentId)
     ]);
 }
 
+public function showCourse(string $id)
+{
+    $Course = Course::find($id);
+
+    if (!$Course) {
+        return response()->json([
+            'message' => "Course not found."
+        ]);
+    }
+
+    return response()->json([
+        'data' =>new CourseResource($Course),
+        'message' => "Show Course By ID Successfully."
+    ]);
+}
 
 }
