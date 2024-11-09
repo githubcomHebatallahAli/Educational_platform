@@ -775,28 +775,31 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    $lessons = Lesson::where('grade_id', $student->grade_id)->get();
+    $courses = $student->courses()->with(['lessons' => function ($query) use ($student) {
+        $query->where('grade_id', $student->grade_id);
+    }])->get();
 
-    $courses = $lessons->groupBy('course_id')->map(function ($lessonsInCourse, $courseId) {
+    $coursesData = $courses->map(function ($course) {
         return [
-            'course_id' => $courseId,
-            'lessons' => $lessonsInCourse->map(function ($lesson) {
+            'course_id' => $course->id,
+            'month_id' => $course->month_id,  // إرجاع month_id من بيانات الكورس
+            'lessons' => $course->lessons->map(function ($lesson) {
                 return [
                     'lec_id' => $lesson->lec_id,
-                    'month_id' => $lesson->month_id,
                     'title' => $lesson->title,
                     'numOfPdf' => $lesson->numOfPdf,
                     'ExplainPdf' => $lesson->ExplainPdf,
                 ];
             })->values(),
         ];
-    })->values();
+    });
 
     return response()->json([
-        'data' => $courses,
+        'data' => $coursesData,
         'message' => 'PDFs retrieved successfully.'
     ]);
 }
+
 
 
 public function showCourse(string $id)
