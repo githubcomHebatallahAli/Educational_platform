@@ -29,7 +29,6 @@ class ShowAllController extends Controller
             $user = auth()->guard('api')->user();
             $admin = auth()->guard('admin')->user();
 
-            // تحقق إذا كان المستخدم طالب ولديه اشتراكات مدفوعة في الكورسات
             if ($user) {
                 $courses = $user->courses()
                 ->wherePivot('status', 'paid')

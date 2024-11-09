@@ -709,6 +709,49 @@ protected function authorizeStudentOrAdmin($student)
     return false;
 }
 
+// public function getLessonPdf($studentId)
+// {
+//     $student = User::findOrFail($studentId);
+//     if (!$student) {
+//         return response()->json([
+//             'message' => 'الطالب غير موجود.'
+//         ]);
+//     }
+
+//     if (!$this->authorizeStudentOrAdmin($student)) {
+//         return response()->json([
+//             'message' => 'Unauthorized access.'
+//         ]);
+//     }
+
+//     $hasPurchased = $student->courses()->exists();
+
+//     if (!$hasPurchased) {
+//         return response()->json([
+//             'error' => 'Unauthorized access: Course not purchased'
+//         ]);
+//     }
+
+
+//     $lessons = Lesson::where('grade_id', $student->grade_id)
+//     ->get()
+//     ->map(function ($lesson) {
+//         return [
+//             'course_id' => $lesson->course_id,
+//             'lec_id' => $lesson->lec_id,
+//             'month_id' => $lesson->month_id,
+//             'title' => $lesson->title,
+//             'numOfPdf' => $lesson->numOfPdf,
+//             'ExplainPdf' => $lesson->ExplainPdf,
+//         ];
+//     });
+
+//     return response()->json([
+//         'data' => $lessons,
+//         'message' => 'PDFs retrieved successfully.'
+//     ]);
+// }
+
 public function getLessonPdf($studentId)
 {
     $student = User::findOrFail($studentId);
@@ -724,7 +767,7 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    $hasPurchased = $student->courses()->exists(); // إذا كنت تريد التحقق من الدورات التي اشتراها الطالب
+    $hasPurchased = $student->courses()->exists();
 
     if (!$hasPurchased) {
         return response()->json([
@@ -732,24 +775,29 @@ public function getLessonPdf($studentId)
         ]);
     }
 
+    $lessons = Lesson::where('grade_id', $student->grade_id)->get();
 
-    $lessons = Lesson::where('grade_id', $student->grade_id)
-    ->get()
-    ->map(function ($lesson) {
+    $courses = $lessons->groupBy('course_id')->map(function ($lessonsInCourse, $courseId) {
         return [
-            'course_id' => $lesson->course_id,
-            'lec_id' => $lesson->lec_id,
-            'title' => $lesson->title,
-            'numOfPdf' => $lesson->numOfPdf,
-            'ExplainPdf' => $lesson->ExplainPdf,
+            'course_id' => $courseId,
+            'lessons' => $lessonsInCourse->map(function ($lesson) {
+                return [
+                    'lec_id' => $lesson->lec_id,
+                    'month_id' => $lesson->month_id,
+                    'title' => $lesson->title,
+                    'numOfPdf' => $lesson->numOfPdf,
+                    'ExplainPdf' => $lesson->ExplainPdf,
+                ];
+            })->values(),
         ];
-    });
+    })->values();
 
     return response()->json([
-        'data' => $lessons,
+        'data' => $courses,
         'message' => 'PDFs retrieved successfully.'
     ]);
 }
+
 
 public function showCourse(string $id)
 {
