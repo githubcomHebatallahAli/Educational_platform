@@ -775,14 +775,12 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    $courses = $student->courses()->with(['lessons' => function ($query) use ($student) {
-        $query->where('grade_id', $student->grade_id);
-    }])->get();
+    $courses = $student->courses()->with('lessons')->get();
 
     $coursesData = $courses->map(function ($course) {
         return [
             'course_id' => $course->id,
-            'month_id' => $course->month_id,  // إرجاع month_id من بيانات الكورس
+            'month_id' => $course->month_id,
             'lessons' => $course->lessons->map(function ($lesson) {
                 return [
                     'lec_id' => $lesson->lec_id,
@@ -799,6 +797,7 @@ public function getLessonPdf($studentId)
         'message' => 'PDFs retrieved successfully.'
     ]);
 }
+
 
 
 
