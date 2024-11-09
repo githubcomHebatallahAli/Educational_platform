@@ -6,6 +6,7 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\CourseResource;
+use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 
 class ShowAllController extends Controller
 {
@@ -19,6 +20,35 @@ class ShowAllController extends Controller
             return response()->json([
                 'data' => CourseResource::collection($Courses),
                 'message' => "Show All Active Courses for by grade id Successfully."
+            ]);
+        }
+
+
+        public function studentShowAllHisCourses()
+        {
+            $user = auth()->guard('api')->user();
+            $admin = auth()->guard('admin')->user();
+
+            // تحقق إذا كان المستخدم طالب ولديه اشتراكات مدفوعة في الكورسات
+            if ($user) {
+                $courses = $user->courses()
+                ->wherePivot('status', 'paid')
+                ->get();
+                return response()->json([
+                    'data' => CourseResource::collection($courses)
+                ]);
+            }
+
+            if ($admin && $admin->role_id == 1) {
+                $courses = Course::get();
+                return response()->json([
+                    'data' => CourseResource::collection($courses)
+                ]);
+            }
+
+            return response()->json([
+                'error' => 'Unauthorized access to courses.',
+                'message' => "Student Show All His Courses Successfully."
             ]);
         }
     }

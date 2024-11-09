@@ -12,4 +12,5 @@ Route::controller(ShowAllController::class)
 ->group(
     function () {
    Route::get('/showAll/courses/grade/{gradeId}', 'showAllCourses');
+   Route::get('student/showAll/his/courses', 'studentShowAllHisCourses');
 });
