@@ -760,4 +760,28 @@ public function showCourse(string $id)
       ]);
 }
 
+
+    public function studentEditProfile(string $id)
+    {
+        $Student = User::find($id);
+
+        if (!$Student) {
+            return response()->json([
+                'message' => "Student not found."
+            ]);
+        }
+
+
+        if (!$this->authorizeStudentOrAdmin($Student)) {
+            return response()->json([
+                'message' => 'Unauthorized access.'
+            ]);
+        }
+
+        return response()->json([
+            'data' => new StudentRegisterResource($Student),
+            'message' => "Edit Student By ID Successfully."
+        ]);
+    }
+
 }

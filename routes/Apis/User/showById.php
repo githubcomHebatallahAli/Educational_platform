@@ -32,6 +32,7 @@ Route::controller(ShowByIdController::class)
         'getRankAndOverAllResultsForTopThreeStudents');
         Route::get('student/show/his/PDF/student/{studentId}', 'getLessonPdf');
         Route::get('show/course/{courseId}', 'showCourse');
+        Route::get('student/edit/profile/{id}', 'studentEditProfile');
 
 
 });
