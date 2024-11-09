@@ -709,94 +709,6 @@ protected function authorizeStudentOrAdmin($student)
     return false;
 }
 
-// public function getLessonPdf($studentId)
-// {
-//     $student = User::findOrFail($studentId);
-//     if (!$student) {
-//         return response()->json([
-//             'message' => 'الطالب غير موجود.'
-//         ]);
-//     }
-
-//     if (!$this->authorizeStudentOrAdmin($student)) {
-//         return response()->json([
-//             'message' => 'Unauthorized access.'
-//         ]);
-//     }
-
-//     $hasPurchased = $student->courses()->exists();
-
-//     if (!$hasPurchased) {
-//         return response()->json([
-//             'error' => 'Unauthorized access: Course not purchased'
-//         ]);
-//     }
-
-
-//     $lessons = Lesson::where('grade_id', $student->grade_id)
-//     ->get()
-//     ->map(function ($lesson) {
-//         return [
-//             'course_id' => $lesson->course_id,
-//             'lec_id' => $lesson->lec_id,
-//             'month_id' => $lesson->month_id,
-//             'title' => $lesson->title,
-//             'numOfPdf' => $lesson->numOfPdf,
-//             'ExplainPdf' => $lesson->ExplainPdf,
-//         ];
-//     });
-
-//     return response()->json([
-//         'data' => $lessons,
-//         'message' => 'PDFs retrieved successfully.'
-//     ]);
-// }
-
-// public function getLessonPdf($studentId)
-// {
-//     $student = User::findOrFail($studentId);
-//     if (!$student) {
-//         return response()->json([
-//             'message' => 'الطالب غير موجود.'
-//         ]);
-//     }
-
-//     if (!$this->authorizeStudentOrAdmin($student)) {
-//         return response()->json([
-//             'message' => 'Unauthorized access.'
-//         ]);
-//     }
-
-//     $hasPurchased = $student->courses()->exists();
-
-//     if (!$hasPurchased) {
-//         return response()->json([
-//             'error' => 'Unauthorized access: Course not purchased'
-//         ]);
-//     }
-
-//     $courses = $student->courses()->with('lessons')->get();
-
-//     $coursesData = $courses->map(function ($course) {
-//         return [
-//             'course_id' => $course->id,
-//             'month_id' => $course->month_id,
-//             'lessons' => $course->lessons->map(function ($lesson) {
-//                 return [
-//                     'lec_id' => $lesson->lec_id,
-//                     'title' => $lesson->title,
-//                     'numOfPdf' => $lesson->numOfPdf,
-//                     'ExplainPdf' => $lesson->ExplainPdf,
-//                 ];
-//             })->values(),
-//         ];
-//     });
-
-//     return response()->json([
-//         'data' => $coursesData,
-//         'message' => 'PDFs retrieved successfully.'
-//     ]);
-// }
 
 public function getLessonPdf($studentId)
 {
@@ -821,8 +733,14 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    // جلب الكورسات مع الشهر والدروس التابعة لها
-    $courses = $student->courses()->with(['month', 'lessons'])->get();
+
+    // $courses = $student->courses()->with(['month', 'lessons'])->get();
+
+    $courses = $student->courses()
+    ->with(['month', 'lessons' => function ($query) use ($student) {
+        $query->where('grade_id', $student->grade_id);
+    }])->get();
+
 
     $coursesData = $courses->map(function ($course) {
         return [
