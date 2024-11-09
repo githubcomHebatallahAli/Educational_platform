@@ -752,6 +752,52 @@ protected function authorizeStudentOrAdmin($student)
 //     ]);
 // }
 
+// public function getLessonPdf($studentId)
+// {
+//     $student = User::findOrFail($studentId);
+//     if (!$student) {
+//         return response()->json([
+//             'message' => 'الطالب غير موجود.'
+//         ]);
+//     }
+
+//     if (!$this->authorizeStudentOrAdmin($student)) {
+//         return response()->json([
+//             'message' => 'Unauthorized access.'
+//         ]);
+//     }
+
+//     $hasPurchased = $student->courses()->exists();
+
+//     if (!$hasPurchased) {
+//         return response()->json([
+//             'error' => 'Unauthorized access: Course not purchased'
+//         ]);
+//     }
+
+//     $courses = $student->courses()->with('lessons')->get();
+
+//     $coursesData = $courses->map(function ($course) {
+//         return [
+//             'course_id' => $course->id,
+//             'month_id' => $course->month_id,
+//             'lessons' => $course->lessons->map(function ($lesson) {
+//                 return [
+//                     'lec_id' => $lesson->lec_id,
+//                     'title' => $lesson->title,
+//                     'numOfPdf' => $lesson->numOfPdf,
+//                     'ExplainPdf' => $lesson->ExplainPdf,
+//                 ];
+//             })->values(),
+//         ];
+//     });
+
+//     return response()->json([
+//         'data' => $coursesData,
+//         'message' => 'PDFs retrieved successfully.'
+//     ]);
+// }
+
 public function getLessonPdf($studentId)
 {
     $student = User::findOrFail($studentId);
@@ -775,12 +821,16 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    $courses = $student->courses()->with('lessons')->get();
+    // جلب الكورسات مع الشهر والدروس التابعة لها
+    $courses = $student->courses()->with(['month', 'lessons'])->get();
 
     $coursesData = $courses->map(function ($course) {
         return [
             'course_id' => $course->id,
-            'month_id' => $course->month_id,
+            'month' => [
+                'id' => $course->month->id,
+                'name' => $course->month->name,
+            ],
             'lessons' => $course->lessons->map(function ($lesson) {
                 return [
                     'lec_id' => $lesson->lec_id,
@@ -797,7 +847,6 @@ public function getLessonPdf($studentId)
         'message' => 'PDFs retrieved successfully.'
     ]);
 }
-
 
 
 
