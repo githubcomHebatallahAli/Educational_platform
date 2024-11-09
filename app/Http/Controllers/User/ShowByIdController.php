@@ -719,7 +719,7 @@ public function getLessonPdf($studentId)
         ]);
     }
 
-    if (!$this->authorizeStudentOrParent($student)) {
+    if (!$this->authorizeStudentOrAdmin($student)) {
         return response()->json([
             'message' => 'Unauthorized access.'
         ]);
@@ -770,7 +770,6 @@ public function showCourse(string $id)
                 'message' => "Student not found."
             ]);
         }
-
 
         if (!$this->authorizeStudentOrAdmin($Student)) {
             return response()->json([
