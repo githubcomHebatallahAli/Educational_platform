@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 
 use App\Models\User;
+use App\Models\Month;
 use App\Models\Parnt;
 use App\Models\Answer;
 use App\Models\Course;
@@ -402,50 +403,70 @@ public function edit(string $id)
 
 }
 
+
+
 // public function getStudentRankOverallResults($studentId)
 // {
-
 //     $student = User::findOrFail($studentId);
 //     if (!$student) {
-//         return response()->json(['message' => 'الطالب غير موجود.'], 404);
+//         return response()->json([
+//             'message' => 'الطالب غير موجود.'
+//         ]);
 //     }
 
 //     if (!$this->authorizeStudentOrParent($student)) {
-//         return response()->json(['message' => 'Unauthorized access.'], 403);
+//         return response()->json([
+//             'message' => 'Unauthorized access.'
+//         ]);
 //     }
 
 //     $totalOverallScore = 0;
 //     $totalMaxScore = 0;
+//     $coursesScores = [];
 
 //     $courses = $student->courses()->with('exams')->get();
 
-//     // حساب نتيجة الطالب
 //     foreach ($courses as $course) {
-//         foreach ($course->exams as $exam) {
+//         $courseTotalScore = 0;
+//         $attendedExamsCount = 0;
 
-//             $studentExam = $exam->students()->where('user_id', $studentId)->first();
+//         foreach ($course->exams as $exam) {
+//             $studentExam = $exam->students()
+//             ->where('user_id', $studentId)
+//             ->first();
 
 //             if ($studentExam && !is_null($studentExam->pivot->score)) {
-//                 $totalOverallScore += $studentExam->pivot->score;
+//                 $courseTotalScore += $studentExam->pivot->score;
+//                 $attendedExamsCount++;
 //             }
-//             $totalMaxScore += 100;
 //         }
+
+//         $courseScorePercentage = ($attendedExamsCount > 0) ? ($courseTotalScore / ($attendedExamsCount * 100)) * 100 : 0;
+
+//         $coursesScores[] = [
+//             'nameOfCourse' => $course->nameOfCourse,
+//             'month' => [
+//                 'id' => $course->month->id,
+//                 'name' => $course->month->name,
+//             ],
+//             'score_percentage' => round($courseScorePercentage, 2),
+//             'attended_exams_count' => $attendedExamsCount,
+//             'total_exams_count' => 5,
+//         ];
+
+//         $totalOverallScore += $courseTotalScore;
+//         $totalMaxScore += ($attendedExamsCount * 100);
 //     }
 
-//     // حساب النسبة المئوية لإجمالي درجات الطالب
 //     $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
-//     // حساب ترتيب الطالب وسط زملائه في نفس الكورسات
-//     $peerScores = []; // لتخزين درجات الزملاء
-
+//     $peerScores = [];
 //     foreach ($courses as $course) {
 //         foreach ($course->exams as $exam) {
-//             $examStudents = $exam->students()->get(); // جميع الطلاب الذين قاموا بهذا الامتحان
-
+//             $examStudents = $exam->students()->get();
 //             foreach ($examStudents as $peerStudent) {
 //                 $peerTotalScore = 0;
 //                 $peerMaxScore = 0;
-
 //                 foreach ($peerStudent->courses()->with('exams')->get() as $peerCourse) {
 //                     foreach ($peerCourse->exams as $peerExam) {
 //                         $peerStudentExam = $peerExam->students()->where('user_id', $peerStudent->id)->first();
@@ -455,17 +476,13 @@ public function edit(string $id)
 //                         $peerMaxScore += 100;
 //                     }
 //                 }
-
 //                 $peerOverallPercentage = ($peerMaxScore > 0) ? ($peerTotalScore / $peerMaxScore) * 100 : 0;
-
 //                 $peerScores[$peerStudent->id] = $peerOverallPercentage;
 //             }
 //         }
 //     }
-
-//     // ترتيب الطلاب بناءً على النسبة المئوية
-//     arsort($peerScores); // ترتيب تنازلي
-//     $rank = array_search($studentId, array_keys($peerScores)) + 1; // ترتيب الطالب الحالي
+//     arsort($peerScores);
+//     $rank = array_search($studentId, array_keys($peerScores)) + 1;
 
 //     return response()->json([
 //         'student' => [
@@ -476,14 +493,17 @@ public function edit(string $id)
 //             'grade' => new GradeResource($student->grade),
 //         ],
 //         'overall_score_percentage' => round($overallScorePercentage, 2),
-//         'rank' => $rank, // ترتيب الطالب
-//         'total_students' => count($peerScores), // إجمالي عدد الطلاب
+//         'rank' => $rank,
+//         'total_students' => count($peerScores),
+//         'courses_scores' => $coursesScores,
 //     ]);
 // }
+
 
 public function getStudentRankOverallResults($studentId)
 {
     $student = User::findOrFail($studentId);
+
     if (!$student) {
         return response()->json([
             'message' => 'الطالب غير موجود.'
@@ -499,41 +519,62 @@ public function getStudentRankOverallResults($studentId)
     $totalOverallScore = 0;
     $totalMaxScore = 0;
     $coursesScores = [];
+    $months = Month::all(); // جلب جميع الأشهر
 
-    $courses = $student->courses()->with('exams')->get();
+    foreach ($months as $month) {
+        $monthCourses = $student->courses()->where('month_id', $month->id)->with('exams')->get();
 
-    foreach ($courses as $course) {
-        $courseTotalScore = 0;
-        $attendedExamsCount = 0;
-
-        foreach ($course->exams as $exam) {
-            $studentExam = $exam->students()
-            ->where('user_id', $studentId)
-            ->first();
-
-            if ($studentExam && !is_null($studentExam->pivot->score)) {
-                $courseTotalScore += $studentExam->pivot->score;
-                $attendedExamsCount++;
-            }
+        if ($monthCourses->isEmpty()) {
+            // إذا لم يكن هناك كورسات لهذا الشهر، قم بإضافة نتيجة صفرية
+            $coursesScores[] = [
+                'nameOfCourse' => null,
+                'month' => [
+                    'id' => $month->id,
+                    'name' => $month->name,
+                ],
+                'score_percentage' => 0,
+                'attended_exams_count' => 0,
+                'total_exams_count' => 5,
+            ];
+            continue;
         }
 
-        $courseScorePercentage = ($attendedExamsCount > 0) ? ($courseTotalScore / ($attendedExamsCount * 100)) * 100 : 0;
+        foreach ($monthCourses as $course) {
+            $courseTotalScore = 0;
+            $attendedExamsCount = 0;
 
-        $coursesScores[] = [
-            'nameOfCourse' => $course->nameOfCourse,
-            'score_percentage' => round($courseScorePercentage, 2),
-            'attended_exams_count' => $attendedExamsCount,
-            'total_exams_count' => 5,
-        ];
+            foreach ($course->exams as $exam) {
+                $studentExam = $exam->students()->where('user_id', $studentId)->first();
 
-        $totalOverallScore += $courseTotalScore;
-        $totalMaxScore += ($attendedExamsCount * 100);
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $courseTotalScore += $studentExam->pivot->score;
+                    $attendedExamsCount++;
+                }
+            }
+
+            $courseScorePercentage = ($attendedExamsCount > 0) ? ($courseTotalScore / ($attendedExamsCount * 100)) * 100 : 0;
+
+            $coursesScores[] = [
+                'nameOfCourse' => $course->nameOfCourse,
+                'month' => [
+                    'id' => $month->id,
+                    'name' => $month->name,
+                ],
+                'score_percentage' => round($courseScorePercentage, 2),
+                'attended_exams_count' => $attendedExamsCount,
+                'total_exams_count' => 5,
+            ];
+
+            $totalOverallScore += $courseTotalScore;
+            $totalMaxScore += ($attendedExamsCount * 100);
+        }
     }
 
     $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
+    // حساب ترتيب الطالب بناءً على النتائج
     $peerScores = [];
-    foreach ($courses as $course) {
+    foreach ($student->courses()->with('exams')->get() as $course) {
         foreach ($course->exams as $exam) {
             $examStudents = $exam->students()->get();
             foreach ($examStudents as $peerStudent) {
@@ -568,7 +609,7 @@ public function getStudentRankOverallResults($studentId)
         'rank' => $rank,
         'total_students' => count($peerScores),
         'courses_scores' => $coursesScores,
-    ]);
+    ], 200, [], JSON_UNESCAPED_UNICODE);
 }
 
 public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
@@ -724,18 +765,14 @@ public function getLessonPdf($studentId)
             'message' => 'Unauthorized access.'
         ]);
     }
-
     $hasPurchased = $student->courses()->exists();
-
     if (!$hasPurchased) {
         return response()->json([
             'error' => 'Unauthorized access: Course not purchased'
         ]);
     }
 
-
     // $courses = $student->courses()->with(['month', 'lessons'])->get();
-
     $courses = $student->courses()
     ->with(['month', 'lessons' => function ($query) use ($student) {
         $query->where('grade_id', $student->grade_id);
