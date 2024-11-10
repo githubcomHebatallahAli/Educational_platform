@@ -13,4 +13,5 @@ Route::controller(ShowAllController::class)
     function () {
    Route::get('/showAll/courses/grade/{gradeId}', 'showAllCourses');
    Route::get('student/showAll/his/courses', 'studentShowAllHisCourses');
+   Route::get('student/showAll/his/orders', 'studentShowHisOrders');
 });

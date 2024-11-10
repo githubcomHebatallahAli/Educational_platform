@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Models\Order;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\OrderResource;
 use App\Http\Resources\Admin\CourseResource;
+use App\Http\Resources\User\OrderShowResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 
 class ShowAllController extends Controller
@@ -50,5 +53,29 @@ class ShowAllController extends Controller
                 'message' => "Student Show All His Courses Successfully."
             ]);
         }
+
+        public function studentShowHisOrders()
+        {
+            $student = auth()->guard('api')->user();
+            $admin = auth()->guard('admin')->user();
+
+            if ($student) {
+                $orders = Order::where('user_id', $student->id)->get();
+            }
+            elseif ($admin && $admin->role_id == 1) {
+                $orders = Order::all();
+            } else {
+                return response()->json([
+                    'message' => 'Unauthorized access: User not found or not authorized.'
+                ]);
+            }
+
+
+            return response()->json([
+                'data' => OrderShowResource::collection($orders),
+                'message' => 'Orders retrieved successfully.'
+            ]);
+        }
+
     }
 
