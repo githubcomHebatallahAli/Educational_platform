@@ -34,6 +34,14 @@ class StudentShowHisCourseByIdResource extends JsonResource
                         ] : null,
                     ];
                 }),
+                'final_exam' => $this->exams()->whereNull('lesson_id')->first() ? [
+                    'id' => $this->exams()->whereNull('lesson_id')->first()->id,
+                    'title' => $this->exams()->whereNull('lesson_id')->first()->title,
+                    'duration' => $this->exams()->whereNull('lesson_id')->first()->duration,
+                    'numOfQ' => $this->exams()->whereNull('lesson_id')->first()->numOfQ,
+
+                ] : null,
             ];
+
 }
 }
