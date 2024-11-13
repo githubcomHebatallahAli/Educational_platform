@@ -34,6 +34,7 @@ Route::controller(ShowByIdController::class)
         Route::get('show/course/{courseId}', 'showCourse');
         Route::get('student/edit/profile/{id}', 'studentEditProfile');
         Route::get('student/show/his/lesson/{id}', 'showLessonById');
+        Route::get('student/show/his/exam/{id}', 'showExamById');
 
 
 });

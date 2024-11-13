@@ -17,7 +17,7 @@ class LessonByIdResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            // 'course_id' => $this->course->id,
+            'course_id' => $this->course->id,
             'id' => $this->id,
             'title' => $this->title,
             'poster' => $this->poster,

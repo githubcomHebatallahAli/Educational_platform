@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 
+use App\Models\Exam;
 use App\Models\User;
 use App\Models\Month;
 use App\Models\Parnt;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
+use App\Http\Resources\User\ExamByIdResource;
 use App\Http\Resources\User\LessonByIdResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\User\CourseWithExamsLessonsResource;
@@ -78,6 +80,37 @@ class ShowByIdController extends Controller
     ]);
 }
 
+public function showExamById($examId)
+{
+    $user = auth()->guard('api')->user();
+    $admin = auth()->guard('admin')->user();
+
+
+    $exam = Exam::with('questions')
+    ->findOrFail($examId);
+    $courseId = $exam->course->id;
+
+    if ($user && !$user->courses()
+        ->where('course_id', $courseId)
+        ->wherePivot('status', 'paid')
+        ->exists()) {
+        return response()->json([
+            'error' => 'Unauthorized access to this exam.'
+        ]);
+    }
+
+
+    if (!$user && (!$admin || $admin->role_id != 1)) {
+        return response()->json([
+            'error' => 'Unauthorized access to this exam.'
+        ]);
+    }
+
+
+    return response()->json([
+        'data' => new ExamByIdResource($exam)
+    ]);
+}
 
 
     public function showExamResults($examId, $studentId)
