@@ -16,6 +16,7 @@ use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\User\CourseWithExamsLessonsResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
+use App\Http\Resources\User\StudentShowHisCourseByIdResource;
 
 
 class ShowByIdController extends Controller
@@ -24,23 +25,23 @@ class ShowByIdController extends Controller
     {
         $user = auth()->guard('api')->user();
         $admin = auth()->guard('admin')->user();
-
-        // Check if the user is a student with paid access to the course
-        if ($user && !$user->courses()->where('course_id', $id)->wherePivot('status', 'paid')->exists()) {
+        if ($user && !$user->courses()
+        ->where('course_id', $id)
+        ->wherePivot('status', 'paid')
+        ->exists()) {
             return response()->json([
                 'error' => 'Unauthorized access to this course.'
             ]);
         }
 
-        // Check if the user is an admin with role_id 1
         if (!$user && (!$admin || $admin->role_id != 1)) {
             return response()->json([
                 'error' => 'Unauthorized access to this course.'
             ]);
         }
-        $course = Course::with(['lessons.exam.questions'])->findOrFail($id);
+        $course = Course::with(['lessons.exam'])->findOrFail($id);
         return response()->json([
-       'data' =>new CourseWithLessonsExamsResource($course)
+       'data' =>new StudentShowHisCourseByIdResource($course)
         ]);
     }
 
