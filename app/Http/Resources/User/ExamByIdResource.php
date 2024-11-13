@@ -3,6 +3,7 @@
 namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\Admin\MainResource;
 use App\Http\Resources\Admin\CourseResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,23 +16,60 @@ class ExamByIdResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lesson = $this->lesson;
 
 
         return [
-            'course' => new CourseResource($this),
-            'id' => $this->id,
-            'title' => $this->title,
+            'course' => [
+                'id' => $this->course->id,
+                'name' => $this->course->name,  // إذا كنت تريد إظهار اسم الكورس
+                'month' => [
+                    'id' => $this->course->month->id,
+                    'name' => $this->course->month->name,
+                ],
+                'grade' => [
+                    'id' => $this->course->grade->id,
+                    'name' => $this->course->grade->grade,
+                ],
 
+            ],
 
-            'exam' => $this->exam ? [
-                'id' => $this->exam->id,
-                'title' => $this->exam->title,
-                'duration' => $this->exam->duration,
-                'creationDate' => $this->exam->creationDate,
-                'numOfQ' => $this->exam->numOfQ,
-                'question_order' => $this->exam->question_order,
-                'formatted_deadLineExam' => $this->exam->formatted_deadLineExam,
-                'questions' => $this->exam->questions->map(function ($question) {
+            'lesson' => [
+                'id' => $lesson ? $lesson->id : null,
+                'title' => $lesson ? $lesson->title : null,
+            ],
+            'exam' => [
+                'id' => $this->id,
+                'title' => $this->title,
+                'duration' => $this->duration,
+                'creationDate' => $this->creationDate,
+                'numOfQ' => $this->numOfQ,
+                'question_order' => $this->question_order,
+                'formatted_deadLineExam' => $this->formatted_deadLineExam,
+                'test' => new MainResource($this->test),
+            ],
+            'questions' => $this->questions->map(function ($question) {
+                return [
+                    'id' => $question->id,
+                    'question' => $question->question,
+                    'choices' => [
+                        'choice_1' => $question->choice_1,
+                        'choice_2' => $question->choice_2,
+                        'choice_3' => $question->choice_3,
+                        'choice_4' => $question->choice_4,
+                    ],
+                    'correct_choice' => $question->correct_choice,
+                ];
+            }),
+            'final_exam' => !$lesson ? [
+                'id' => $this->id,
+                'title' => $this->title,
+                'duration' => $this->duration,
+                'numOfQ' => $this->numOfQ,
+                'question_order' => $this->question_order,
+                'formatted_deadLineExam' => $this->formatted_deadLineExam,
+                'test' => new MainResource($this->test),
+                'questions' => $this->questions->map(function ($question) {
                     return [
                         'id' => $question->id,
                         'question' => $question->question,
@@ -46,6 +84,7 @@ class ExamByIdResource extends JsonResource
                 }),
             ] : null,
         ];
+
     }
 
 

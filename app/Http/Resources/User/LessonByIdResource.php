@@ -17,17 +17,13 @@ class LessonByIdResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-           
-            // 'course_id' => $this->course->id,
             'course' => [
                 'id' => $this->course->id,
                 'month' => [
-                    'id' => $this->course->month->id,  // تأكد أن `month` موجود على الـ `course`
+                    'id' => $this->course->month->id,  
                     'name' => $this->course->month->name,
                 ],
             ],
-
-
             'id' => $this->id,
             'title' => $this->title,
             'poster' => $this->poster,

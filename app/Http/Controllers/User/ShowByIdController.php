@@ -108,8 +108,9 @@ public function showExamById($examId)
 
 
     return response()->json([
-        'data' => new ExamByIdResource($exam)
-    ]);
+        'data' => new ExamByIdResource($exam),
+    ], 200, [], JSON_UNESCAPED_UNICODE);
+
 }
 
 
