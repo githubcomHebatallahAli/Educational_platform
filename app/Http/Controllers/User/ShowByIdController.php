@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\ExamResource;
 use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
+use App\Http\Resources\User\LessonByIdResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\User\CourseWithExamsLessonsResource;
 use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
@@ -44,6 +45,39 @@ class ShowByIdController extends Controller
        'data' =>new StudentShowHisCourseByIdResource($course)
         ]);
     }
+
+
+    public function showLessonById($lessonId)
+{
+    $user = auth()->guard('api')->user();
+    $admin = auth()->guard('admin')->user();
+
+
+    $lesson = Lesson::with('course')->findOrFail($lessonId);
+    $courseId = $lesson->course->id;
+
+    if ($user && !$user->courses()
+        ->where('course_id', $courseId)
+        ->wherePivot('status', 'paid')
+        ->exists()) {
+        return response()->json([
+            'error' => 'Unauthorized access to this lesson.'
+        ]);
+    }
+
+
+    if (!$user && (!$admin || $admin->role_id != 1)) {
+        return response()->json([
+            'error' => 'Unauthorized access to this lesson.'
+        ]);
+    }
+
+
+    return response()->json([
+        'data' => new LessonByIdResource($lesson)
+    ]);
+}
+
 
 
     public function showExamResults($examId, $studentId)
