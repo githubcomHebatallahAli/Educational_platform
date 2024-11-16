@@ -16,9 +16,9 @@ use App\Http\Resources\Admin\GradeResource;
 use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\User\ExamByIdResource;
 use App\Http\Resources\User\LessonByIdResource;
+use App\Http\Resources\Auth\ParentRegisterResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 use App\Http\Resources\User\CourseWithExamsLessonsResource;
-use App\Http\Resources\Admin\CourseWithLessonsExamsResource;
 use App\Http\Resources\User\StudentShowHisCourseByIdResource;
 
 
@@ -270,9 +270,9 @@ $totalExamsCount = $attemptedCount +
 $overallTotalPercentage = ($overallTotalScore / (5 * 100)) * 100;
 
 return response()->json([
-    'student' => new StudentResultResource($student),
+    'data' => new StudentResultResource($student),
     'four_exam_results' => $fourExamResults,
-    'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+    // 'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
     'final_exam_result' => $finalExamResult,
     'overall_total_percentage' => round($overallTotalPercentage, 2),
 ]);
@@ -902,6 +902,28 @@ public function showCourse(string $id)
         return response()->json([
             'data' => new StudentRegisterResource($Student),
             'message' => "Edit Student By ID Successfully."
+        ]);
+    }
+
+    public function parentEditProfile(string $id)
+    {
+        $authParent = auth()->guard('parnt')->user();
+        if ($authParent->id != $id) {
+           return response()->json([
+               'message' => "Unauthorized to edit this profile."
+           ]);
+       }
+        $Parent = Parnt::find($id);
+
+        if (!$Parent) {
+            return response()->json([
+                'message' => "Parent not found."
+            ]);
+        }
+
+        return response()->json([
+            'data' => new ParentRegisterResource($Parent),
+            'message' => "Edit Parent By ID Successfully."
         ]);
     }
 

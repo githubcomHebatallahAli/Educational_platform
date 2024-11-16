@@ -7,7 +7,7 @@ use App\Http\Resources\Admin\GradeResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Auth\ParentRegisterResource;
 
-class StudentResultResource extends JsonResource
+class ResultResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,13 +17,20 @@ class StudentResultResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-
-     
+            'id'=>$this->id,
+            'name'=>$this->name,
+            'email'=>$this->email,
+            'studentPhoNum' => $this -> studentPhoNum ,
+            'parentPhoNum' => $this -> parentPhoNum ,
+            'governorate' => $this -> governorate ,
+            'parent_code'  => $this -> parent_code,
+            'img' => $this -> img,
+            'grade' => new GradeResource($this->grade),
+            'parnt' => new ParentRegisterResource($this->parent),
             'exams' => $this->exams->map(function ($exam) {
                 return [
                     'id' => $exam->id,
                     'title' => $exam->title,
-
                     'duration' => $exam->duration,
                     'numOfQ' => $exam->numOfQ,
                     'deadLineExam' => $exam->deadLineExam,
@@ -49,6 +56,5 @@ class StudentResultResource extends JsonResource
                 ];
             }),
         ];
-
     }
 }

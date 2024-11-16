@@ -27,7 +27,6 @@ class StudentCourseResource extends JsonResource
                     'parentPhoNum' => $student->parentPhoNum,
                     'governorate' => $student->governorate,
                     'img' => $student->img,
-
                     'grade' => $student->grade ? [
                         'id' => $student->grade->id,
                         'grade' => $student->grade->grade,

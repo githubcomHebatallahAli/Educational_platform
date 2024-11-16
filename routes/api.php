@@ -25,4 +25,5 @@ require __DIR__ . '/Apis/User/create.php';
 require __DIR__ . '/Apis/User/update.php';
 require __DIR__ . '/Apis/User/payment.php';
 require __DIR__ . '/Apis/User/showAll.php';
+require __DIR__ . '/Apis/User/result.php';
 require __DIR__ . '/Apis/Chat/chat.php';
