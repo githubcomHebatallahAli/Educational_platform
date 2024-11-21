@@ -65,6 +65,12 @@ class User extends Authenticatable implements JWTSubject
     return $this->belongsTo(Parnt::class, 'parnt_id');
 }
 
+public function transactions()
+{
+    return $this->hasMany(PaymobTransaction::class, 'user_id');
+}
+
+
     public function reactions()
 {
     return $this->morphMany(Reaction::class, 'reactable');

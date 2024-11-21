@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Models\User;
+use App\Models\Course;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ResultResource;
 use App\Http\Resources\StudentResultResource;
@@ -210,6 +211,59 @@ return response()->json([
 ]);
 
 }
+
+public function studentShowAll5ExamResultsOfAllCourses($studentId)
+{
+    // استرجاع الطالب مع الاختبارات والكورسات المرتبطة به
+    $studentWithExams = User::with(['exams.course.month' => function ($query) {
+        // لا نحدد course_id هنا لأننا نريد استرجاع جميع الكورسات
+    }])->findOrFail($studentId);
+
+    // معالجة نتائج الاختبارات لكل كورس
+    $coursesResults = $studentWithExams->exams->groupBy('course_id')->map(function ($exams, $courseId) {
+        // استرجاع بيانات الدورة الشهرية (month_id و month_name)
+        $course = $exams->first()->course;
+        $monthId = $course->month_id;
+        $monthName = $course->month->name ?? 'غير معروف'; // تأكد من أن لديك علاقة مع الـ Month في موديل Course
+
+        // معالجة نتائج الاختبارات (4 اختبارات فقط)
+        $fourExamResults = $exams->take(4)->map(function ($exam) {
+            return [
+                'exam_id' => $exam->id,
+                'test_id' => optional($exam->test)->id,
+                'test_name' => optional($exam->test)->name,
+                'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+                'has_attempted' => $exam->pivot->has_attempted ?? false,
+            ];
+        })->toArray();
+
+        // الحصول على نتيجة الاختبار النهائي (الاختبار الأخير)
+        $finalExam = $exams->last();
+        $finalExamResult = $finalExam ? [
+            'exam_id' => $finalExam->id,
+            'test_id' => optional($finalExam->test)->id,
+            'test_name' => optional($finalExam->test)->name,
+            'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+            'has_attempted' => $finalExam->pivot->has_attempted ?? false,
+        ] : null;
+
+        return [
+            'course_id' => $courseId,
+            'month_id' => $monthId,        // إضافة month_id
+            'month_name' => $monthName,    // إضافة month_name
+            'four_exam_results' => $fourExamResults,
+            'final_exam_result' => $finalExamResult,
+        ];
+    })->values()->toArray();
+
+    // إرجاع الريسبونس مع جميع نتائج الامتحانات
+    return response()->json([
+        'data' => $coursesResults,
+    ], 200, [], JSON_PRETTY_PRINT);
+}
+
+
+
 
 
 

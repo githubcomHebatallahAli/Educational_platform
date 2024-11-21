@@ -20,6 +20,7 @@ require __DIR__ . '/Apis/Admin/admin.php';
 require __DIR__ . '/Apis/Admin/parent.php';
 require __DIR__ . '/Apis/Admin/contact.php';
 require __DIR__ . '/Apis/Admin/order.php';
+require __DIR__ . '/Apis/Admin/paymob.php';
 require __DIR__ . '/Apis/User/showById.php';
 require __DIR__ . '/Apis/User/create.php';
 require __DIR__ . '/Apis/User/update.php';
