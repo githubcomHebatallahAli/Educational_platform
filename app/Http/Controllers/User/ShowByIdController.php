@@ -820,6 +820,22 @@ protected function authorizeStudentOrAdmin($student)
 }
 
 
+protected function authorizeParentOrAdmin($student)
+{
+    $parent = auth()->guard('parnt')->user();
+
+    if ($parent && $parent->id === $student->parent_id) {
+        return true;
+    }
+
+    $admin = auth()->guard('admin')->user();
+    if ($admin && $admin->role_id == 1) {
+        return true;
+    }
+    return false;
+}
+
+
 public function getLessonPdf($studentId)
 {
     $student = User::findOrFail($studentId);

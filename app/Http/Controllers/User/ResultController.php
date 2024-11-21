@@ -212,81 +212,49 @@ return response()->json([
 
 }
 
-// public function studentShowAll5ExamResultsOfAllCourses($studentId)
-// {
-//     $studentWithExams = User::with(['exams.course.month' => function ($query) {
-
-//     }])->findOrFail($studentId);
 
 
-//     $coursesResults = $studentWithExams->exams->groupBy('course_id')->map(function ($exams, $courseId) {
-
-//         $course = $exams->first()->course;
-//         $monthId = $course->month_id;
-//         $monthName = $course->month->name ?? 'غير معروف';
 
 
-//         $fourExamResults = $exams->take(4)->map(function ($exam) {
-//             return [
-//                 'exam_id' => $exam->id,
-//                 'test_id' => optional($exam->test)->id,
-//                 'test_name' => optional($exam->test)->name,
-//                 'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
-//                 'has_attempted' => $exam->pivot->has_attempted ?? false,
-//             ];
-//         })->toArray();
 
-//         $finalExam = $exams->last();
-//         $finalExamResult = $finalExam ? [
-//             'exam_id' => $finalExam->id,
-//             'test_id' => optional($finalExam->test)->id,
-//             'test_name' => optional($finalExam->test)->name,
-//             'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
-//             'has_attempted' => $finalExam->pivot->has_attempted ?? false,
-//         ] : null;
-
-//         return [
-//             'course_id' => $courseId,
-//             'month_id' => $monthId,
-//             'month_name' => $monthName,
-//             'four_exam_results' => $fourExamResults,
-//             'final_exam_result' => $finalExamResult,
-//         ];
-//     })->values()->toArray();
-
-
-//     return response()->json([
-//         'data' => $coursesResults,
-//     ], 200, [], JSON_PRETTY_PRINT);
-// }
 
 public function studentShowAll5ExamResultsOfAllCourses($studentId)
 {
+    $student = User::find($studentId);
+    if (!$student) {
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
+    }
+
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
+    }
     $studentWithExams = User::with(['exams.course.month' => function ($query) {
 
     }])->findOrFail($studentId);
 
-    $coursesResults = $studentWithExams->exams->groupBy('course_id')->map(function ($exams, $courseId) {
+    $coursesResults = $studentWithExams->exams
+    ->groupBy('course_id')->map(function ($exams, $courseId) {
 
-        // استرجاع بيانات الدورة الشهرية (month_id و month_name)
         $course = $exams->first()->course;
         $monthId = $course->month_id;
         $monthName = $course->month->name ?? 'غير معروف';
 
-        // تحويل المصفوفة إلى Collection لاستخدام map
         $fourExamResults = collect([1, 2, 3, 4])->map(function ($testId) use ($exams) {
-            $exam = $exams->firstWhere('test_id', $testId); // استرجاع الامتحان حسب test_id
+            $exam = $exams->firstWhere('test_id', $testId);
             return $exam ? [
                 'exam_id' => $exam->id,
                 'test_id' => $exam->test_id,
                 'test_name' => optional($exam->test)->name,
                 'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
                 'has_attempted' => $exam->pivot->has_attempted ?? false,
-            ] : null; // في حالة عدم وجود الامتحان
-        })->filter()->toArray(); // استخدام filter لإزالة القيم الفارغة
+            ] : null;
+        })->filter()->toArray();
 
-        // تحديد الامتحان النهائي (test_id = 5)
-        $finalExam = $exams->firstWhere('test_id', 5); // استرجاع الامتحان الذي test_id = 5
+        $finalExam = $exams->firstWhere('test_id', 5);
         $finalExamResult = $finalExam ? [
             'exam_id' => $finalExam->id,
             'test_id' => $finalExam->test_id,
@@ -304,10 +272,86 @@ public function studentShowAll5ExamResultsOfAllCourses($studentId)
         ];
     })->values()->toArray();
 
-    // إرجاع الريسبونس مع جميع نتائج الامتحانات
     return response()->json([
         'data' => $coursesResults,
     ]);
+}
+public function parentOrAdminShowAll5ExamResultsOfAllCourses($studentId)
+{
+    $student = User::find($studentId);
+    if (!$student) {
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
+    }
+
+    if (!$this->authorizeParentOrAdmin($student)) {
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
+    }
+    $studentWithExams = User::with([
+        'exams.course.month' => function ($query) {
+
+    }])->findOrFail($studentId);
+
+    $coursesResults = $studentWithExams->exams->
+    groupBy('course_id')->map(function ($exams, $courseId) {
+
+
+        $course = $exams->first()->course;
+        $monthId = $course->month_id;
+        $monthName = $course->month->name ?? 'غير معروف';
+
+        $fourExamResults = collect([1, 2, 3, 4])->map(function ($testId) use ($exams) {
+            $exam = $exams->firstWhere('test_id', $testId);
+            return $exam ? [
+                'exam_id' => $exam->id,
+                'test_id' => $exam->test_id,
+                'test_name' => optional($exam->test)->name,
+                'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+                'has_attempted' => $exam->pivot->has_attempted ?? false,
+            ] : null;
+        })->filter()->toArray();
+
+
+        $finalExam = $exams->firstWhere('test_id', 5);
+        $finalExamResult = $finalExam ? [
+            'exam_id' => $finalExam->id,
+            'test_id' => $finalExam->test_id,
+            'test_name' => optional($finalExam->test)->name,
+            'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+            'has_attempted' => $finalExam->pivot->has_attempted ?? false,
+        ] : null;
+
+        return [
+            'course_id' => $courseId,
+            'month_id' => $monthId,
+            'month_name' => $monthName,
+            'four_exam_results' => $fourExamResults,
+            'final_exam_result' => $finalExamResult,
+        ];
+    })->values()->toArray();
+
+    return response()->json([
+        'student' => new StudentRegisterResource($student),
+        'data' => $coursesResults,
+    ]);
+}
+
+protected function authorizeParentOrAdmin($student)
+{
+    $parent = auth()->guard('parnt')->user();
+
+    if ($parent && $parent->id === $student->parnt_id) {
+        return true;
+    }
+
+    $admin = auth()->guard('admin')->user();
+    if ($admin && $admin->role_id == 1) {
+        return true;
+    }
+    return false;
 }
 
 
