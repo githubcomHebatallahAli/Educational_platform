@@ -18,7 +18,7 @@ class StudentResultResource extends JsonResource
     {
         return [
 
-            'month_name' => $this->exams->first()?->course->month->name ?? null, 
+            'month_name' => $this->exams->first()?->course->month->name ?? null,
             'exams' => $this->exams->map(function ($exam) {
                 return [
                     'id' => $exam->id,
@@ -34,8 +34,8 @@ class StudentResultResource extends JsonResource
                     'test_name' => $exam->test->name ?? null,
                     'course' => [
                         'course_id' => $exam->course_id,
-                        'month_id' => $exam->course->month->id ?? null,
-                        'month_name' => $exam->course->month->name ?? null,
+                        // 'month_id' => $exam->course->month->id ?? null,
+                        // 'month_name' => $exam->course->month->name ?? null,
                     ],
                     'pivot' => [
                         'user_id' => $exam->pivot->user_id,
