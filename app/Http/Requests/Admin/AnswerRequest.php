@@ -28,7 +28,7 @@ class AnswerRequest extends FormRequest
             'exam_id' => 'required|exists:exams,id',
             'answers' => 'required|array',
             'answers.*.question_id' => 'required|exists:questions,id',
-            'answers.*.selected_choice' => 'required|in:choice_1,choice_2,choice_3,choice_4',
+            'answers.*.selected_choice' => 'nullable|in:choice_1,choice_2,choice_3,choice_4',
         ];
     }
 

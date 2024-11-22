@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('numOfQ')->nullable();
             $table->timestamp('deadLineExam')->nullable();
             $table->enum('question_order', ['random', 'regular'])->default('regular')->nullable();
+           
             $table->foreignId('grade_id')->constrained('grades')->cascadeOnDelete();
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
             $table->foreignId('lesson_id')->nullable()->constrained('lessons')->cascadeOnDelete();

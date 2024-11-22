@@ -53,16 +53,16 @@ public function create(AnswerRequest $request)
         ]);
     }
 
-    $studentExam = StudentExam::where('user_id', $request->user_id)
-        ->where('exam_id', $request->exam_id)
-        ->where('has_attempted', true)
-        ->first();
+    // $studentExam = StudentExam::where('user_id', $request->user_id)
+    //     ->where('exam_id', $request->exam_id)
+    //     ->where('has_attempted', true)
+    //     ->first();
 
-    if ($studentExam) {
-        return response()->json([
-            'message' => 'You have already taken this exam and cannot take it again.'
-        ]);
-    }
+    // if ($studentExam) {
+    //     return response()->json([
+    //         'message' => 'You have already taken this exam and cannot take it again.'
+    //     ]);
+    // }
 
     if (empty($request->answers)) {
         return response()->json([
@@ -82,10 +82,11 @@ public function create(AnswerRequest $request)
             'user_id' => $request->user_id,
             'exam_id' => $request->exam_id,
             'question_id' => $answer['question_id'],
-            'selected_choice' => $answer['selected_choice'],
+            'selected_choice' => $answer['selected_choice'] ?? null, // إذا كانت فارغة، خزنها كـ null,
         ]);
 
-        $question = Question::with('exam')->find($answer['question_id']);
+        $question = Question::with('exam')
+        ->find($answer['question_id']);
         $is_correct = $question->correct_choice === $answer['selected_choice'];
 
         if ($is_correct) {
@@ -114,12 +115,12 @@ public function create(AnswerRequest $request)
 
     $score = ($correctAnswers / $totalQuestions) * 100;
 
-
     $submittedAt = now();
 
-    $timeTaken = $submittedAt->diff($startedAt)->format('%H:%I:%S');
 
 
+// عند إرسال الوقت الفعلي بعد الحساب من الفرونت:
+$updatedTimeTaken = $request->time_taken;
     StudentExam::updateOrCreate(
         ['user_id' => $request->user_id, 'exam_id' => $request->exam_id],
         [
@@ -127,7 +128,7 @@ public function create(AnswerRequest $request)
             'has_attempted' => true,
             'started_at' => $startedAt ,
             'submitted_at' => $submittedAt,
-            'time_taken' => $timeTaken,
+            'time_taken' => $updatedTimeTaken,
             'correctAnswers' => $correctAnswers,
         ]
     );
@@ -138,9 +139,9 @@ public function create(AnswerRequest $request)
         'data' => $answers,
         'score' => $score,
         'correctAnswers' => $correctAnswers,
-        'started_at' => $startedAt->format('Y-m-d H:i:s'),
+        // 'started_at' => $startedAt->format('Y-m-d H:i:s'),
         'submitted_at' => $submittedAt->format('Y-m-d H:i:s'),
-        'time_taken' => $timeTaken,
+        'time_taken' =>  $updatedTimeTaken,
         'message' => 'Answers submitted and scored successfully.',
     ]);
 }

@@ -13,7 +13,7 @@ class Answer extends Model
         'user_id',
         'exam_id',
         'question_id',
-        'selected_choice'
+        'selected_choice',
     ];
 
     public function student()

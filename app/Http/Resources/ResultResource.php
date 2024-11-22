@@ -17,6 +17,7 @@ class ResultResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+
             'id'=>$this->id,
             'name'=>$this->name,
             'email'=>$this->email,
@@ -27,6 +28,7 @@ class ResultResource extends JsonResource
             'img' => $this -> img,
             'grade' => new GradeResource($this->grade),
             'parnt' => new ParentRegisterResource($this->parent),
+            'month_name' => $this->exams->first()?->course->month->name ?? null,
             'exams' => $this->exams->map(function ($exam) {
                 return [
                     'id' => $exam->id,
@@ -36,12 +38,13 @@ class ResultResource extends JsonResource
                     'deadLineExam' => $exam->deadLineExam,
                     'grade_id' => $exam->grade_id,
                     'lesson_id' => $exam->lesson_id,
+                    'lesson_name' => $exam->lesson ? $exam->lesson->title : null,
                     'test_id' => $exam->test_id,
                     'test_name' => $exam->test->name ?? null,
                     'course' => [
                         'course_id' => $exam->course_id,
-                        'month_id' => $exam->course->month->id ?? null,
-                        'month_name' => $exam->course->month->name ?? null,
+                        // 'month_id' => $exam->course->month->id ?? null,
+                        // 'month_name' => $exam->course->month->name ?? null,
                     ],
                     'pivot' => [
                         'user_id' => $exam->pivot->user_id,
@@ -49,7 +52,7 @@ class ResultResource extends JsonResource
                         'score' => $exam->pivot->score,
                         'has_attempted' => $exam->pivot->has_attempted,
                         // 'started_at' => $exam->pivot->started_at,
-                        // 'submitted_at' => $exam->pivot->submitted_at,
+                        'submitted_at' => $exam->pivot->submitted_at,
                         'time_taken' => $exam->pivot->time_taken,
                         'correctAnswers' => $exam->pivot->correctAnswers,
                     ]

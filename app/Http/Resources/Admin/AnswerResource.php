@@ -30,7 +30,7 @@ class AnswerResource extends JsonResource
         ],
         'correct_choice' => $question->correct_choice,
         'student_choice' => $this->when($question->answers->isNotEmpty(), function () use ($question) {
-            return $question->answers->first()->selected_choice; 
+            return $question->answers->first()->selected_choice;
         }),
         'is_correct' => $this->when($question->answers->isNotEmpty(), function () use ($question) {
             return $question->answers->first()->selected_choice === $question->correct_choice;

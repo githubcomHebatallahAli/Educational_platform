@@ -68,6 +68,7 @@ class ExamByIdResource extends JsonResource
                 'numOfQ' => $this->numOfQ,
                 'question_order' => $this->question_order,
                 'formatted_deadLineExam' => $this->formatted_deadLineExam,
+                
                 'test' => new MainResource($this->test),
                 'questions' => $this->questions->map(function ($question) {
                     return [

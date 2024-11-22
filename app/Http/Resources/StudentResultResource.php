@@ -23,7 +23,6 @@ class StudentResultResource extends JsonResource
                 return [
                     'id' => $exam->id,
                     'title' => $exam->title,
-
                     'duration' => $exam->duration,
                     'numOfQ' => $exam->numOfQ,
                     'deadLineExam' => $exam->deadLineExam,
@@ -43,7 +42,7 @@ class StudentResultResource extends JsonResource
                         'score' => $exam->pivot->score,
                         'has_attempted' => $exam->pivot->has_attempted,
                         // 'started_at' => $exam->pivot->started_at,
-                        // 'submitted_at' => $exam->pivot->submitted_at,
+                        'submitted_at' => $exam->pivot->submitted_at,
                         'time_taken' => $exam->pivot->time_taken,
                         'correctAnswers' => $exam->pivot->correctAnswers,
                     ]
