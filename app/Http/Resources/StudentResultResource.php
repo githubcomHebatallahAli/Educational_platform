@@ -29,7 +29,7 @@ class StudentResultResource extends JsonResource
                     'deadLineExam' => $exam->deadLineExam,
                     'grade_id' => $exam->grade_id,
                     'lesson_id' => $exam->lesson_id,
-                    'lesson_name' => $exam->title,
+                    'lesson_name' => $exam->lesson_id ? $exam->lesson->name : null,
                     'test_id' => $exam->test_id,
                     'test_name' => $exam->test->name ?? null,
                     'course' => [
