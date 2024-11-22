@@ -18,7 +18,7 @@ class StudentResultResource extends JsonResource
     {
         return [
 
-
+            'month_name' => $this->exams->first()?->course->month->name ?? null, 
             'exams' => $this->exams->map(function ($exam) {
                 return [
                     'id' => $exam->id,
