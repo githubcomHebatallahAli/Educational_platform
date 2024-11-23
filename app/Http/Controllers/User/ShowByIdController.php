@@ -308,11 +308,15 @@ public function getStudentExamResults($studentId, $courseId)
     }
 
     if (!$this->authorizeStudentOrParent($student)) {
-        return response()->json(['message' => 'Unauthorized access.']);
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
     }
     $course = Course::find($courseId);
     if (!$course) {
-        return response()->json(['message' => 'الكورس غير موجود.'], 404);
+        return response()->json([
+            'message' => 'الكورس غير موجود.'
+        ]);
     }
     $course->loadCount('students');
 
@@ -323,7 +327,9 @@ public function getStudentExamResults($studentId, $courseId)
 
 
 
-    $fourExams = $student->exams->take(4);
+    $fourExams = $student->exams
+    ->whereIn('test_id', [1, 2, 3, 4])
+    ->values();
     $finalExam = $student->exams->firstWhere('test_id', 5);
 
     // حساب درجات الطالب (اعتبار الامتحانات الغير محضورة كـ 0)
