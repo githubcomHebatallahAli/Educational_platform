@@ -271,11 +271,12 @@ public function attachStudentToCourse(StudentCourseRequest $request)
             ]);
 
     }
-
+    $course->loadCount('students');
     return response()->json([
         'message' => 'Student successfully added to the course.',
         'student' => new StudentRegisterResource($student),
         'data' => new AddStudentToCourse($course),
+        'student_count' => $course->students_count, // عدد الطلاب المحدث
     ]);
 }
 
@@ -309,9 +310,10 @@ public function detachStudentFromCourse(DetachStudentFromCourseRequest $request)
 
 
     $student->courses()->detach($courseId);
-
+    $course->loadCount('students');
     return response()->json([
-        'message' => 'Student successfully removed from the course.'
+        'message' => 'Student successfully removed from the course.',
+        'student_count' => $course->students_count, 
     ]);
 }
 

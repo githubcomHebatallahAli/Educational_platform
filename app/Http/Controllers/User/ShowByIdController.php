@@ -286,17 +286,26 @@ public function getStudentExamResults($studentId, $courseId)
 {
     $student = User::find($studentId);
     if (!$student) {
-        return response()->json(['message' => 'الطالب غير موجود.']);
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
     }
 
     if (!$this->authorizeStudentOrParent($student)) {
         return response()->json(['message' => 'Unauthorized access.']);
     }
+    $course = Course::find($courseId);
+    if (!$course) {
+        return response()->json(['message' => 'الكورس غير موجود.'], 404);
+    }
+    $course->loadCount('students');
 
     // جلب درجات الطالب
     $student = User::with(['exams' => function ($query) use ($courseId) {
         $query->where('course_id', $courseId);
     }])->findOrFail($studentId);
+
+
 
     $fourExams = $student->exams->take(4);
     $finalExam = $student->exams->firstWhere('test_id', 5);
@@ -333,9 +342,9 @@ public function getStudentExamResults($studentId, $courseId)
     $studentsScores = $studentsScores->sortByDesc('total_score')->values();
 
     // إيجاد ترتيب الطالب الحالي
-    $studentRank = $studentsScores->search(fn($score) => $score['user_id'] === $studentId) + 1;
+    $studentRank = $studentsScores->
+    search(fn($score) => $score['user_id'] === $studentId) + 1;
 
-    // إعداد البيانات لتكون جاهزة للإرسال
     return response()->json([
         'data' => new StudentResultResource($student),
         'four_exam_results' => $fourExams->map(fn($exam) => [
@@ -351,7 +360,7 @@ public function getStudentExamResults($studentId, $courseId)
             'has_attempted' => $finalExam->pivot->has_attempted,
         ] : null,
         'overall_total_percentage' => round($overallTotalPercentage, 2),
-        'students_count' => $studentsScores->count(),
+        'students_count' => $course->students_count,
         'student_rank' => $studentRank,
     ]);
 }

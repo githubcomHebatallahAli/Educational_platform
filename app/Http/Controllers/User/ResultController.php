@@ -32,6 +32,21 @@ class ResultController extends Controller
     return false;
 }
 
+protected function authorizeParentOrAdmin($student)
+{
+    $parent = auth()->guard('parnt')->user();
+
+    if ($parent && $parent->id === $student->parent_id) {
+        return true;
+    }
+
+    $admin = auth()->guard('admin')->user();
+    if ($admin && $admin->role_id == 1) {
+        return true;
+    }
+    return false;
+}
+
     public function studentShowResultOf5Exams($studentId, $courseId)
 {
     $student = User::find($studentId);
@@ -52,11 +67,7 @@ class ResultController extends Controller
         $query->where('course_id', $courseId);
     }])->findOrFail($studentId);
 
-
-
-
     $fourExams = $studentWithExams->exams->take(4);
-
 
     $fourExamResults = $fourExams->map(function ($exam) {
         return [
@@ -98,7 +109,7 @@ class ResultController extends Controller
         ]);
     }
 
-    if (!$this->authorizeStudentOrParent($student)) {
+    if (!$this->authorizeParentOrAdmin($student)) {
         return response()->json([
             'message' => 'Unauthorized access.'
         ]);
@@ -142,6 +153,77 @@ class ResultController extends Controller
     ]);
 }
 
+// public function parentOrAdminShowExamResults($studentId, $courseId)
+// {
+//     $student = User::find($studentId);
+//     if (!$student) {
+//         return response()->json([
+//             'message' => 'الطالب غير موجود.'
+//         ]);
+//     }
+
+//     if (!$this->authorizeStudentOrParent($student)) {
+//         return response()->json([
+//             'message' => 'Unauthorized access.'
+//         ]);
+//     }
+
+
+// $student = User::with(['exams' => function ($query) use ($courseId) {
+//     $query->where('course_id', $courseId);
+// }])->findOrFail($studentId);
+
+// $fourExams = $student->exams
+// ->take(4);
+
+// $fourExamResults = $fourExams->map(function ($exam) {
+//     return [
+//         'exam_id' => $exam->id,
+//         'title' => $exam->title,
+//         'score' => $exam->pivot->has_attempted ? $exam->pivot->score
+//         : 'absent',
+//         'has_attempted' => $exam->pivot->has_attempted,
+//     ];
+// })->toArray();
+
+// $finalExam = $student->exams->last();
+// $finalExamResult = [
+//     'exam_id' => $finalExam->id,
+//     'title' => $finalExam->title,
+//     'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score :
+//      'absent',
+//     'has_attempted' => $finalExam->pivot->has_attempted,
+// ];
+// $totalScore = 0;
+// $attemptedCount = 0;
+
+// foreach ($fourExams as $exam) {
+//     if ($exam->pivot->has_attempted) {
+//         $totalScore += $exam->pivot->score;
+//         $attemptedCount++;
+//     }
+// }
+
+
+// $totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
+// $overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ?
+//  $finalExam->pivot->score : 0);
+// $totalExamsCount = $attemptedCount +
+//  ($finalExam->pivot->has_attempted ? 1 : 0);
+
+// $overallTotalPercentage = ($overallTotalScore / (5 * 100)) * 100;
+
+// return response()->json([
+//     'student' => new ResultResource($student),
+//     'four_exam_results' => $fourExamResults,
+//     // 'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
+//     'final_exam_result' => $finalExamResult,
+//     'overall_total_percentage' => round($overallTotalPercentage, 2),
+// ]);
+
+// }
+
+
 public function parentOrAdminShowExamResults($studentId, $courseId)
 {
     $student = User::find($studentId);
@@ -151,65 +233,82 @@ public function parentOrAdminShowExamResults($studentId, $courseId)
         ]);
     }
 
-    if (!$this->authorizeStudentOrParent($student)) {
+    if (!$this->authorizeParentOrAdmin($student)) {
         return response()->json([
             'message' => 'Unauthorized access.'
         ]);
     }
-
-
-$student = User::with(['exams' => function ($query) use ($courseId) {
-    $query->where('course_id', $courseId);
-}])->findOrFail($studentId);
-
-$fourExams = $student->exams
-->take(4);
-
-$fourExamResults = $fourExams->map(function ($exam) {
-    return [
-        'exam_id' => $exam->id,
-        'title' => $exam->title,
-        'score' => $exam->pivot->has_attempted ? $exam->pivot->score
-        : 'absent',
-        'has_attempted' => $exam->pivot->has_attempted,
-    ];
-})->toArray();
-
-$finalExam = $student->exams->last();
-$finalExamResult = [
-    'exam_id' => $finalExam->id,
-    'title' => $finalExam->title,
-    'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score :
-     'absent',
-    'has_attempted' => $finalExam->pivot->has_attempted,
-];
-$totalScore = 0;
-$attemptedCount = 0;
-
-foreach ($fourExams as $exam) {
-    if ($exam->pivot->has_attempted) {
-        $totalScore += $exam->pivot->score;
-        $attemptedCount++;
+    $course = Course::find($courseId);
+    if (!$course) {
+        return response()->json([
+            'message' => 'الكورس غير موجود.'
+        ]);
     }
-}
+    $course->loadCount('students');
+
+    // جلب درجات الطالب
+    $student = User::with(['exams' => function ($query) use ($courseId) {
+        $query->where('course_id', $courseId);
+    }])->findOrFail($studentId);
 
 
-$totalPercentageForFourExams = ($totalScore / (4 * 100)) * 100;
-$overallTotalScore = $totalScore + ($finalExam->pivot->has_attempted ?
- $finalExam->pivot->score : 0);
-$totalExamsCount = $attemptedCount +
- ($finalExam->pivot->has_attempted ? 1 : 0);
 
-$overallTotalPercentage = ($overallTotalScore / (5 * 100)) * 100;
+    $fourExams = $student->exams->take(4);
+    $finalExam = $student->exams->firstWhere('test_id', 5);
 
-return response()->json([
-    'student' => new ResultResource($student),
-    'four_exam_results' => $fourExamResults,
-    // 'total_percentage_for_four_exams' => round($totalPercentageForFourExams, 2),
-    'final_exam_result' => $finalExamResult,
-    'overall_total_percentage' => round($overallTotalPercentage, 2),
-]);
+    // حساب درجات الطالب (اعتبار الامتحانات الغير محضورة كـ 0)
+    $totalScore = $fourExams->sum(function ($exam) {
+        return $exam->pivot->has_attempted ? $exam->pivot->score : 0; // إذا لم يتم الحضور يتم استخدام 0
+    });
+    $finalScore = $finalExam && $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 0; // نفس الشيء هنا
 
+    // حساب النتيجة النهائية
+    $overallTotalScore = $totalScore + $finalScore;
+    $overallTotalPercentage = ($overallTotalScore / (5 * 100)) * 100; // 5 اختبارات وكل اختبار درجته 100
+
+    // جلب جميع الطلاب في الكورس وحساب درجاتهم
+    $studentsInCourse = User::whereHas('exams', function ($query) use ($courseId) {
+        $query->where('course_id', $courseId);
+    })->with(['exams' => function ($query) use ($courseId) {
+        $query->where('course_id', $courseId);
+    }])->get();
+
+    $studentsScores = $studentsInCourse->map(function ($student) {
+        // حساب الدرجات لجميع الطلاب في الكورس
+        $totalScore = $student->exams->sum(function ($exam) {
+            return $exam->pivot->has_attempted ? $exam->pivot->score : 0;
+        });
+        return [
+            'user_id' => $student->id,
+            'total_score' => $totalScore,
+        ];
+    });
+
+    // ترتيب الطلاب بناءً على الدرجات
+    $studentsScores = $studentsScores->sortByDesc('total_score')->values();
+
+    // إيجاد ترتيب الطالب الحالي
+    $studentRank = $studentsScores->
+    search(fn($score) => $score['user_id'] === $studentId) + 1;
+
+    return response()->json([
+        'data' => new ResultResource($student),
+        'four_exam_results' => $fourExams->map(fn($exam) => [
+            'exam_id' => $exam->id,
+            'title' => $exam->title,
+            'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
+            'has_attempted' => $exam->pivot->has_attempted,
+        ]),
+        'final_exam_result' => $finalExam ? [
+            'exam_id' => $finalExam->id,
+            'title' => $finalExam->title,
+            'score' => $finalExam->pivot->has_attempted ? $finalExam->pivot->score : 'absent',
+            'has_attempted' => $finalExam->pivot->has_attempted,
+        ] : null,
+        'overall_total_percentage' => round($overallTotalPercentage, 2),
+        'students_count' => $course->students_count,
+        'student_rank' => $studentRank,
+    ]);
 }
 
 
@@ -276,6 +375,7 @@ public function studentShowAll5ExamResultsOfAllCourses($studentId)
         'data' => $coursesResults,
     ]);
 }
+
 public function parentOrAdminShowAll5ExamResultsOfAllCourses($studentId)
 {
     $student = User::find($studentId);
@@ -339,20 +439,7 @@ public function parentOrAdminShowAll5ExamResultsOfAllCourses($studentId)
     ]);
 }
 
-protected function authorizeParentOrAdmin($student)
-{
-    $parent = auth()->guard('parnt')->user();
 
-    if ($parent && $parent->id === $student->parnt_id) {
-        return true;
-    }
-
-    $admin = auth()->guard('admin')->user();
-    if ($admin && $admin->role_id == 1) {
-        return true;
-    }
-    return false;
-}
 
 
 

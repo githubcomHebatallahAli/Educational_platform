@@ -53,16 +53,16 @@ public function create(AnswerRequest $request)
         ]);
     }
 
-    // $studentExam = StudentExam::where('user_id', $request->user_id)
-    //     ->where('exam_id', $request->exam_id)
-    //     ->where('has_attempted', true)
-    //     ->first();
+    $studentExam = StudentExam::where('user_id', $request->user_id)
+        ->where('exam_id', $request->exam_id)
+        ->where('has_attempted', true)
+        ->first();
 
-    // if ($studentExam) {
-    //     return response()->json([
-    //         'message' => 'You have already taken this exam and cannot take it again.'
-    //     ]);
-    // }
+    if ($studentExam) {
+        return response()->json([
+            'message' => 'You have already taken this exam and cannot take it again.'
+        ]);
+    }
 
     if (empty($request->answers)) {
         return response()->json([
@@ -82,7 +82,7 @@ public function create(AnswerRequest $request)
             'user_id' => $request->user_id,
             'exam_id' => $request->exam_id,
             'question_id' => $answer['question_id'],
-            'selected_choice' => $answer['selected_choice'] ?? null, // إذا كانت فارغة، خزنها كـ null,
+            'selected_choice' => $answer['selected_choice'] ?? null,
         ]);
 
         $question = Question::with('exam')
