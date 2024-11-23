@@ -415,7 +415,9 @@ public function getStudent4ExamsResult($studentId, $courseId)
 
     $fourExams = $student->exams()
     ->where('course_id', $courseId)
-    ->take(4)
+    // ->take(4)
+    ->whereIn('test_id', [1, 2, 3, 4])
+    ->values()
     ->get();
 
     $fourExamResults = $fourExams->map(function ($exam) {
@@ -727,7 +729,9 @@ public function getStudentRankOverallResults($studentId)
             $attendedExamsCount = 0;
 
             foreach ($course->exams as $exam) {
-                $studentExam = $exam->students()->where('user_id', $studentId)->first();
+                $studentExam = $exam->
+                students()->where('user_id', $studentId)
+                ->first();
 
                 if ($studentExam && !is_null($studentExam->pivot->score)) {
                     $courseTotalScore += $studentExam->pivot->score;
