@@ -106,9 +106,25 @@ public function showExamById($examId)
         ]);
     }
 
+    $score = null;
+    $hasAttempted = false;
+
+    if ($user) {
+        $pivotData = $exam->students()
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($pivotData) {
+            $score = $pivotData->pivot->score; // جلب النتيجة
+            $hasAttempted = true; // تأكيد أنه قام بالمحاولة
+        }
+    }
+
 
     return response()->json([
         'data' => new ExamByIdResource($exam),
+        'score' => $score,
+        'has_attempted' => $hasAttempted,
     ], 200, [], JSON_UNESCAPED_UNICODE);
 
 }
