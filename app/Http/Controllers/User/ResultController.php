@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Course;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ResultResource;
-use App\Http\Resources\StudentResultResource;
 use App\Http\Resources\Auth\StudentRegisterResource;
 
 class ResultController extends Controller
@@ -81,7 +80,7 @@ protected function authorizeParentOrAdmin($student)
     })->toArray();
 
 
-    $finalExam = $studentWithExams->exams->last();
+    $finalExam = $studentWithExams->exams->firstWhere('test_id', 5);
 
 
     $finalExamResult = $finalExam ? [
@@ -137,7 +136,7 @@ protected function authorizeParentOrAdmin($student)
     })->toArray();
 
 
-    $finalExam = $studentWithExams->exams->last();
+    $finalExam = $studentWithExams->exams->firstWhere('test_id', 5);
     $finalExamResult = $finalExam ? [
         'exam_id' => $finalExam->id,
         'test_id' => $finalExam->test->id ?? null,
@@ -253,7 +252,7 @@ public function parentOrAdminShowExamResults($studentId, $courseId)
 
 
 
-    $fourExams = $student->exams->take(4);
+    $fourExams = $student->exams->whereIn('test_id', [1, 2, 3, 4]);
     $finalExam = $student->exams->firstWhere('test_id', 5);
 
     // حساب درجات الطالب (اعتبار الامتحانات الغير محضورة كـ 0)
@@ -285,7 +284,8 @@ public function parentOrAdminShowExamResults($studentId, $courseId)
     });
 
     // ترتيب الطلاب بناءً على الدرجات
-    $studentsScores = $studentsScores->sortByDesc('total_score')->values();
+    $studentsScores = $studentsScores
+    ->sortByDesc('total_score')->values();
 
     // إيجاد ترتيب الطالب الحالي
     $studentRank = $studentsScores->
@@ -310,11 +310,6 @@ public function parentOrAdminShowExamResults($studentId, $courseId)
         'student_rank' => $studentRank,
     ]);
 }
-
-
-
-
-
 
 
 public function studentShowAll5ExamResultsOfAllCourses($studentId)
@@ -352,7 +347,7 @@ public function studentShowAll5ExamResultsOfAllCourses($studentId)
                 'has_attempted' => $exam->pivot->has_attempted ?? false,
             ] : null;
         // })->filter()->toArray();
-    })->filter()->values()->toArray(); 
+    })->filter()->values()->toArray();
 
         $finalExam = $exams->firstWhere('test_id', 5);
         $finalExamResult = $finalExam ? [
@@ -413,7 +408,8 @@ public function parentOrAdminShowAll5ExamResultsOfAllCourses($studentId)
                 'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
                 'has_attempted' => $exam->pivot->has_attempted ?? false,
             ] : null;
-        })->filter()->toArray();
+        // })->filter()->toArray();
+    })->filter()->values()->toArray();
 
 
         $finalExam = $exams->firstWhere('test_id', 5);
@@ -439,15 +435,5 @@ public function parentOrAdminShowAll5ExamResultsOfAllCourses($studentId)
         'data' => $coursesResults,
     ]);
 }
-
-
-
-
-
-
-
-
-
-
 
 }
