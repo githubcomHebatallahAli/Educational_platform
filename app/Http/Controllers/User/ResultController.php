@@ -252,7 +252,9 @@ public function parentOrAdminShowExamResults($studentId, $courseId)
 
 
 
-    $fourExams = $student->exams->whereIn('test_id', [1, 2, 3, 4]);
+    $fourExams = $student->exams
+    ->whereIn('test_id', [1, 2, 3, 4])
+    ->values();
     $finalExam = $student->exams->firstWhere('test_id', 5);
 
     // حساب درجات الطالب (اعتبار الامتحانات الغير محضورة كـ 0)
