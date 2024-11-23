@@ -119,10 +119,9 @@ protected function authorizeParentOrAdmin($student)
         $query->where('course_id', $courseId);
     }])->findOrFail($studentId);
 
-
-
-
-    $fourExams = $studentWithExams->exams->take(4);
+    $fourExams = $studentWithExams->exams
+    ->whereIn('test_id', [1, 2, 3, 4])
+    ->values();
 
 
     $fourExamResults = $fourExams->map(function ($exam) {
