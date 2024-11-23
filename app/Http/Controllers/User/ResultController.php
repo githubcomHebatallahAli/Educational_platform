@@ -351,7 +351,8 @@ public function studentShowAll5ExamResultsOfAllCourses($studentId)
                 'score' => $exam->pivot->has_attempted ? $exam->pivot->score : 'absent',
                 'has_attempted' => $exam->pivot->has_attempted ?? false,
             ] : null;
-        })->filter()->toArray();
+        // })->filter()->toArray();
+    })->filter()->values()->toArray(); 
 
         $finalExam = $exams->firstWhere('test_id', 5);
         $finalExamResult = $finalExam ? [

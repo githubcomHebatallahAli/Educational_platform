@@ -115,8 +115,8 @@ public function showExamById($examId)
             ->first();
 
         if ($pivotData) {
-            $score = $pivotData->pivot->score; // جلب النتيجة
-            $hasAttempted = true; // تأكيد أنه قام بالمحاولة
+            $score = $pivotData->pivot->score;
+            $hasAttempted = true;
         }
     }
 
