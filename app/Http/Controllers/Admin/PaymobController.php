@@ -56,6 +56,9 @@ class PaymobController extends Controller
 
             // 2. الحصول على التوكن من Paymob
             $authToken = $this->paymobService->authenticate();
+            if (!$authToken) {
+                return response()->json(['message' => 'Authentication failed'], 401);
+            }
 
             // 3. تسجيل الطلب في Paymob
             $orderData = [
@@ -73,6 +76,9 @@ class PaymobController extends Controller
             ];
 
             $paymobOrder = $this->paymobService->registerOrder($authToken, $orderData, $request->payment_method);
+            if (isset($paymobOrder['error'])) {
+                return response()->json(['error' => $paymobOrder['error']], 500);
+            }
 
             // 4. إنشاء Payment Key
             $paymentData = [
@@ -95,7 +101,8 @@ class PaymobController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => $e->getMessage()], 500);
         }
     }
 
