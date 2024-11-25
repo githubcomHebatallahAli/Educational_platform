@@ -36,6 +36,11 @@ class PaymobController extends Controller
 
     public function initiatePayment(Request $request)
     {
+        $user = auth()->guard('api')->user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Auth failed'], 401);
+    }
         $request->validate([
             'course_id' => 'required|exists:courses,id',
             'payment_method' => 'required|in:card,wallet',
