@@ -42,39 +42,7 @@ class PaymobService
         throw new \Exception('Authentication failed');
     }
 
-    // دالة لإنشاء الطلب (Order) على بايموب
-    // public function registerOrder($authToken, $orderData, $paymentMethod = 'card')
-    // {
-    //     // الحصول على رقم التكامل بناءً على نوع الدفع
-    //     $integrationId = $this->getIntegrationId($paymentMethod);
 
-    //     $response = Http::withToken($authToken)->post('https://accept.paymob.com/api/ecommerce/orders', array_merge($orderData, [
-    //         'integration_id' => $integrationId, // استخدام التكامل المناسب
-    //     ]));
-
-    //     if ($response->successful()) {
-    //         return $response->json();
-    //     }
-
-    //     throw new \Exception('Failed to register order');
-    // }
-
-    // // دالة لإنشاء الـ Payment Key
-    // public function generatePaymentKey($authToken, $paymentData, $paymentMethod = 'card')
-    // {
-    //     // الحصول على رقم التكامل بناءً على نوع الدفع
-    //     $integrationId = $this->getIntegrationId($paymentMethod);
-
-    //     $response = Http::withToken($authToken)->post('https://accept.paymob.com/api/acceptance/payment_keys', array_merge($paymentData, [
-    //         'integration_id' => $integrationId, // استخدام التكامل المناسب
-    //     ]));
-
-    //     if ($response->successful()) {
-    //         return $response->json()['token'];
-    //     }
-
-    //     throw new \Exception('Failed to generate payment key');
-    // }
 
 
     public function registerOrder($authToken, $orderData, $paymentMethod)
@@ -114,4 +82,41 @@ class PaymobService
             ];
         }
     }
+
+    public function generatePaymentKey($authToken, $paymentData, $paymentMethod)
+{
+    $url = "https://accept.paymobsolutions.com/api/acceptance/payment_keys";
+
+    try {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $authToken,
+        ])->post($url, $paymentData);
+
+        if ($response->failed()) {
+            \Log::error('Failed to generate payment key:', [
+                'authToken' => $authToken,
+                'paymentData' => $paymentData,
+                'paymentMethod' => $paymentMethod,
+                'response' => $response->json(),
+            ]);
+            return [
+                'error' => $response->json()['message'] ?? 'Failed to generate payment key',
+            ];
+        }
+
+        return $response->json();
+
+    } catch (\Exception $e) {
+        \Log::error('Exception occurred while generating payment key:', [
+            'authToken' => $authToken,
+            'paymentData' => $paymentData,
+            'paymentMethod' => $paymentMethod,
+            'exception' => $e->getMessage(),
+        ]);
+        return [
+            'error' => 'An unexpected error occurred while generating payment key',
+        ];
+    }
+}
+
 }
