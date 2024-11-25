@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Basketin\Paymob\Pay;
 
 use Illuminate\Http\Request;
+use App\Services\OrderService;
 use App\Services\PaymobService;
 use App\Models\PaymobTransaction;
 use App\Http\Controllers\Controller;
@@ -24,66 +25,74 @@ class PaymobController extends Controller
     // }
 
     protected $paymobService;
+    protected $orderService;
 
-    public function __construct(PaymobService $paymobService)
+    public function __construct(PaymobService $paymobService,
+     OrderService $orderService)
     {
         $this->paymobService = $paymobService;
+        $this->orderService = $orderService;
     }
 
-       // دالة لبدء الدفع (Initiate Payment)
-       public function initiatePayment(Request $request)
-       {
-           // التحقق من أن جميع المدخلات المطلوبة موجودة
-           $request->validate([
-               'price' => 'required|numeric|min:1',
-               'name' => 'required|string',
-               'email' => 'required|email',
-               'phone' => 'required|string',
-               'payment_method' => 'required|in:card,wallet', // يمكن أن يكون إما "card" أو "wallet"
-           ]);
+    public function initiatePayment(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'payment_method' => 'required|in:card,wallet',
+        ]);
 
-           try {
-               // 1. الحصول على التوكن من بايموب (من خلال المصادقة)
-               $authToken = $this->paymobService->authenticate();
+        try {
+            // 1. إنشاء أوردر بحالة pending
+            $order = $this->orderService->createOrder(
+                auth()->guard('api')->user()->id,
+                $request->course_id,
+                $request->payment_method
+            );
 
-               // 2. تسجيل الطلب (Order)
-               $orderData = [
-                   'amount_cents' => $request->price * 100, // تحويل المبلغ إلى القروش
-                   'currency' => 'EGP',
-                   'delivery_needed' => 'false', // يمكن تخصيصها حسب الحاجة
-                   'merchant_order_ext_ref' => 'ORDER_' . uniqid(),
-                   'items' => [] // إذا كان هناك منتجات أو عناصر، يمكن تضمينها هنا
-               ];
+            // 2. الحصول على التوكن من Paymob
+            $authToken = $this->paymobService->authenticate();
 
-               $order = $this->paymobService->registerOrder($authToken, $orderData, $request->payment_method);
+            // 3. تسجيل الطلب في Paymob
+            $orderData = [
+                'amount_cents' => $order->course->price * 100, // فرضًا أن جدول الكورسات يحتوي على عمود `price`
+                'currency' => 'EGP',
+                'delivery_needed' => 'false',
+                'merchant_order_ext_ref' => 'ORDER_' . $order->id,
+                'items' => [
+                    [
+                        'name' => $order->course->title,
+                        'amount_cents' => $order->course->price * 100,
+                        'quantity' => 1,
+                    ]
+                ],
+            ];
 
-               // 3. إنشاء Payment Key
-               $paymentData = [
-                   'amount_cents' => $request->price * 100, // تحويل المبلغ إلى القروش
-                   'expiration' => time() + 3600, // المهلة (1 ساعة)
-                   'order_id' => $order['id'],
-                   'billing_data' => [
-                       'email' => $request->email,
-                       'phone_number' => $request->phone,
-                       'first_name' => $request->name,
-                   ],
-               ];
+            $paymobOrder = $this->paymobService->registerOrder($authToken, $orderData, $request->payment_method);
 
-               $paymentKey = $this->paymobService->generatePaymentKey($authToken, $paymentData, $request->payment_method);
+            // 4. إنشاء Payment Key
+            $paymentData = [
+                'amount_cents' => $order->course->price * 100,
+                'expiration' => time() + 3600,
+                'order_id' => $paymobOrder['id'],
+                'billing_data' => [
+                    'email' =>  auth()->guard('api')->user()->email,
+                    'phone_number' =>  auth()->guard('api')->user()->phone,
+                    'first_name' =>  auth()->guard('api')->user()->name,
+                ],
+            ];
 
-               // 4. إرسال الـ Payment Key للعميل لبدء الدفع
-               return response()->json([
-                   'payment_key' => $paymentKey,
-                   'order_id' => $order['id'],
-               ]);
+            $paymentKey = $this->paymobService->generatePaymentKey($authToken, $paymentData, $request->payment_method);
 
-           } catch (\Exception $e) {
-               // في حال حدوث خطأ في أي خطوة من الخطوات
-               return response()->json([
-                   'message' => $e->getMessage(),
-               ]);
-           }
-       }
+            // 5. إعادة رابط الدفع للمستخدم
+            return response()->json([
+                'payment_key' => $paymentKey,
+                'order_id' => $order->id,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
 
        // دالة لمعالجة رد بايموب (تحديث الحالة بعد الدفع)
        public function handlePaymentCallback(Request $request)
@@ -93,7 +102,9 @@ class PaymobController extends Controller
            $computedHmac = hash_hmac('sha512', json_encode($request->all()), config('paymob.hmac'));
 
            if ($hmac !== $computedHmac) {
-               return response()->json(['message' => 'Invalid HMAC'], 400);
+               return response()->json([
+                'message' => 'Invalid HMAC'
+            ]);
            }
 
            // تحديث حالة المعاملة بناءً على الرد من بايموب
