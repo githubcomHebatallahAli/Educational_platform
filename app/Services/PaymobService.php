@@ -119,4 +119,24 @@ class PaymobService
     }
 }
 
+public function createIntention($amount, $currency, $paymentMethods, $billingData)
+{
+    $response = Http::withHeaders([
+       'Authorization' => 'Token ' . env('PAYMOB_SECRET_KEY'),
+        'Content-Type' => 'application/json',
+    ])->post('https://accept.paymob.com/v1/intention/', [
+        'amount' => $amount,
+        'currency' => $currency,
+        'payment_methods' => $paymentMethods,
+        'billing_data' => $billingData,
+    ]);
+
+    if ($response->failed()) {
+        throw new \Exception('Failed to create intention: ' . $response->body());
+    }
+
+    return $response->json();
+}
+
+
 }

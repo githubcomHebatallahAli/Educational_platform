@@ -154,4 +154,30 @@ class PaymobController extends Controller
        }
 
 
+       public function createPaymentIntent(Request $request)
+{
+    $amount = $request->amount; // قيمة الطلب
+    $currency = 'EGP'; // العملة
+    $billingData = [
+        'apartment' => $request->apartment,
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'street' => $request->street,
+        'phone_number' => $request->phone_number,
+        'email' => $request->email,
+    ];
+
+    // إضافة طرق الدفع المطلوبة
+    $paymentMethods = ['card', 'wallet'];
+
+    try {
+        $response = $this->paymobService->createIntention($amount, $currency, $paymentMethods, $billingData);
+        return response()->json(['payment_link' => $response['url']]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+
+
 }
