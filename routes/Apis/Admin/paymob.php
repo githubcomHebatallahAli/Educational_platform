@@ -10,5 +10,6 @@ Route::controller(PaymobController::class)->group(
 Route::post('/paymob/initiate',  'initiatePayment')->name('paymob.initiate');
 Route::post('/paymob/callback', 'handlePaymentCallback')->name('paymob.callback');
 Route::post('/paymob/webhook','handleWebhook')->name('paymob.webhook');
+Route::post('/payments/create-intent', 'createPaymentIntent');
 
 });
