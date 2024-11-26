@@ -168,11 +168,12 @@ class PaymobController extends Controller
     ];
 
     // إضافة طرق الدفع المطلوبة
-    $paymentMethods = [    4873707, 
+    $paymentMethods = [    4873707,
     4871116];
 
     try {
         $response = $this->paymobService->createIntention($amount, $currency, $paymentMethods, $billingData);
+        dd($response->json());
         return response()->json(['payment_link' => $response['url']]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
