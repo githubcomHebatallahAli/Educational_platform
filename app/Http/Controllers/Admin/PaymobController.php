@@ -173,8 +173,9 @@ class PaymobController extends Controller
 
     try {
         $response = $this->paymobService->createIntention($amount, $currency, $paymentMethods, $billingData);
-        dd($response); 
-        return response()->json(['payment_link' => $response['url']]);
+        dd($response);
+        $paymentLink = $response['payment_keys'][0]['redirection_url'];
+        return response()->json(['payment_link' => $paymentLink]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
