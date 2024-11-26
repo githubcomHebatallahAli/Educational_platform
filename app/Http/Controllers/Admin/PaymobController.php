@@ -168,7 +168,8 @@ class PaymobController extends Controller
     ];
 
     // إضافة طرق الدفع المطلوبة
-    $paymentMethods = ['card', 'wallet'];
+    $paymentMethods = [    4873707, 
+    4871116];
 
     try {
         $response = $this->paymobService->createIntention($amount, $currency, $paymentMethods, $billingData);
