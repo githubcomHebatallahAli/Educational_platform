@@ -739,6 +739,7 @@ public function getStudentRankOverallResults($studentId)
         $score = $studentExam ? $studentExam->pivot->score : null;
 
         $lastExamDetails = [
+            'exam_id' => $lastExam->id,
             'title' => $lastExam->title,
             'test_id' => $lastExam->test_id,
             'test_name' => $lastExam->test->name,
