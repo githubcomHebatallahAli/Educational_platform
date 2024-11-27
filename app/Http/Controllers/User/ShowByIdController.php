@@ -464,6 +464,132 @@ public function getStudent4ExamsResult($studentId, $courseId)
 }
 
 
+public function getStudentOverallResults($studentId)
+{
+
+    $student = User::findOrFail($studentId);
+    if (!$student) {
+        return response()->json([
+            'message' => 'الطالب غير موجود.'
+        ]);
+    }
+
+
+    if (!$this->authorizeStudentOrParent($student)) {
+        return response()->json([
+            'message' => 'Unauthorized access.'
+        ]);
+    }
+
+    $totalOverallScore = 0;
+    $totalMaxScore = 0;
+
+    $courses = $student->courses()->with('exams')->get();
+
+    foreach ($courses as $course) {
+        foreach ($course->exams as $exam) {
+
+            $studentExam = $exam->students()
+            ->where('user_id', $studentId)
+            ->first();
+
+            if ($studentExam && !is_null($studentExam->pivot->score)) {
+                $totalOverallScore += $studentExam->pivot->score;
+            }
+            $totalMaxScore += 100;
+        }
+    }
+
+
+    $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+    return response()->json([
+        'student' => [
+            'id' => $student->id,
+            'name' => $student->name,
+            'email' => $student->email,
+            'img' => $student->img,
+            'grade' => new GradeResource($student->grade),
+        ],
+        'overall_score_percentage' => round($overallScorePercentage, 2),
+    ]);
+}
+
+
+public function edit(string $id)
+{
+    $authenticatedParent = auth()->guard('parnt')->user();
+    $authenticatedUser = auth()->guard('api')->user();
+    $admin = auth()->guard('admin')->user();
+    if ($authenticatedUser) {
+
+        if (!$admin || $admin->role_id != 1) {
+            return response()->json([
+                'message' => "Unauthorized access. You are not allowed to view this data."
+            ]);
+        }
+    }
+
+
+    if ($authenticatedParent && $authenticatedParent->id != $id) {
+        if (!$admin || $admin->role_id != 1) {
+            return response()->json([
+                'message' => "Unauthorized access. You can only view your own data."
+            ]);
+        }
+    }
+
+    $Parent = Parnt::with('users')->find($id);
+
+    if (!$Parent) {
+        return response()->json([
+            'message' => "Parent not found."
+        ]);
+    }
+
+    $sonsData = $Parent->users->map(function ($son) {
+
+        $totalOverallScore = 0;
+        $totalMaxScore = 0;
+
+        $courses = $son->courses()->with('exams')->get();
+
+        foreach ($courses as $course) {
+            foreach ($course->exams as $exam) {
+
+                $studentExam = $exam->students()->where('user_id', $son->id)->first();
+
+                if ($studentExam && !is_null($studentExam->pivot->score)) {
+                    $totalOverallScore += $studentExam->pivot->score;
+                }
+                $totalMaxScore += 100;
+            }
+        }
+
+        $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+        return [
+            'id' => $son->id,
+            'name' => $son->name,
+            'img' => $son->img,
+            'grade' => new GradeResource($son->grade),
+            'overall_score_percentage' => round($overallScorePercentage, 2),
+        ];
+    });
+
+    return response()->json([
+        'parent' => [
+            'id' => $Parent->id,
+            'name' => $Parent->name,
+            'email' => $Parent->email,
+        ],
+        'sons' => $sonsData,
+        'message' => "Edit Parent By ID Successfully."
+    ]);
+
+}
+
+// =============================
+
 public function getStudentRankOverallResults($studentId)
 {
     $student = User::findOrFail($studentId);
@@ -480,19 +606,33 @@ public function getStudentRankOverallResults($studentId)
         ]);
     }
 
+    // جلب كل الكورسات في نفس المرحلة الدراسية
     $allGradeCourses = Course::where('grade_id', $student->grade->id)
         ->with('exams', 'month')
         ->get();
+
+    // عدد الكورسات التي تم إنشاؤها لهذه المرحلة الدراسية
+    $totalGradeCoursesCount = $allGradeCourses->count();
+
+    // عدد الكورسات التي اشتراها الطالب
+    $purchasedCoursesCount = $student->courses()->where('grade_id', $student->grade->id)->count();
 
     $coursesScores = [];
     $totalOverallScore = 0;
     $totalMaxScore = 0;
     $totalCoursesCount = 0;
+
+    // هذه المتغيرات لحساب عدد الامتحانات الكلي وعدد الامتحانات التي امتحن فيها الطالب
+    $totalExamsCount = 0;  // عدد الامتحانات في كل الكورسات
+    $attendedExamsCount = 0; // عدد الامتحانات التي امتحن فيها الطالب
+
+    // التكرار عبر الكورسات
     foreach ($allGradeCourses as $course) {
         $courseTotalScore = 0;
-        $attendedExamsCount = 0;
+        $courseExamsCount = $course->exams->count(); // عدد الامتحانات في الكورس الحالي
+        $courseAttendedExamsCount = 0; // عدد الامتحانات التي امتحن فيها الطالب في هذا الكورس
 
-
+        // التكرار عبر الامتحانات
         foreach ($course->exams as $exam) {
             $studentExam = $exam->students()
                 ->where('user_id', $studentId)
@@ -500,13 +640,14 @@ public function getStudentRankOverallResults($studentId)
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $courseTotalScore += $studentExam->pivot->score;
-                $attendedExamsCount++;
+                $courseAttendedExamsCount++;
             }
         }
 
-        $courseScorePercentage = ($attendedExamsCount > 0) ? ($courseTotalScore / (5 * 100)) * 100 : 0;
+        // حساب النسبة المئوية للدرجة بناءً على 5 امتحانات
+        $courseScorePercentage = ($courseExamsCount > 0) ? ($courseTotalScore / (5 * 100)) * 100 : 0;
 
-
+        // تتبع الدرجات عبر الكورسات
         $coursesScores[] = [
             'nameOfCourse' => $course->nameOfCourse,
             'month' => [
@@ -514,26 +655,31 @@ public function getStudentRankOverallResults($studentId)
                 'name' => $course->month->name,
             ],
             'score_percentage' => round($courseScorePercentage, 2),
-            'attended_exams_count' => $attendedExamsCount,
-            'total_exams_count' => 5,
+            'attended_exams_count' => $courseAttendedExamsCount,
+            'total_exams_count' => 5, // القيمة ثابتة
         ];
 
-        if ($attendedExamsCount > 0) {
+        // جمع الدرجات الكلية للمجموع النهائي فقط للكورسات التي حضر فيها الطالب
+        if ($courseAttendedExamsCount > 0) {
             $totalOverallScore += $courseTotalScore;
-            $totalMaxScore += (5 * 100);
-            $totalCoursesCount++;
+            $totalMaxScore += (5 * 100); // 5 امتحانات × 100 درجة لكل امتحان
+            $totalCoursesCount++; // زيادة عدد الكورسات التي شارك فيها الطالب
         }
+
+        // حساب إجمالي عدد الامتحانات في كل الكورسات التي اشتراها الطالب
+        $totalExamsCount += $courseExamsCount; // جمع عدد الامتحانات في هذا الكورس
+        $attendedExamsCount += $courseAttendedExamsCount; // عدد الامتحانات التي امتحن فيها الطالب
     }
 
-
+    // حساب النسبة المئوية الإجمالية لجميع الكورسات التي شارك فيها الطالب فقط
     $overallScorePercentage = 0;
     if ($totalCoursesCount > 0) {
         $overallScorePercentage = ($totalOverallScore / $totalMaxScore) * 100;
     }
 
-
+    // في حالة إذا كانت هناك كورسات لم يشارك فيها الطالب (مثل الكورس الثاني الذي لم يشارك فيه)
     if ($totalCoursesCount == 0) {
-
+        // الطالب لم يشارك في أي كورس، التقييم النهائي يكون صفر
         $overallScorePercentage = 0;
     }
 
@@ -548,10 +694,21 @@ public function getStudentRankOverallResults($studentId)
                 'grade' => $student->grade->grade,
             ],
         ],
+        'total_courses_count' => $totalGradeCoursesCount, // عدد الكورسات في نفس المرحلة
+        'purchased_courses_count' => $purchasedCoursesCount, // عدد الكورسات التي اشتراها الطالب
+        'total_exams_count' => $totalExamsCount, // عدد الامتحانات الكلي في كل الكورسات التي اشتراها الطالب
+        'attended_exams_count' => $attendedExamsCount, // عدد الامتحانات التي امتحن فيها الطالب
         'overall_score_percentage' => round($overallScorePercentage, 2), // النسبة المئوية الإجمالية
         'courses_scores' => $coursesScores,
     ]);
 }
+
+
+
+
+
+
+
 
 
 
