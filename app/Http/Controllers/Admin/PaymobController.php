@@ -168,7 +168,7 @@ class PaymobController extends Controller
     ];
 
     // إضافة طرق الدفع المطلوبة
-    $paymentMethods = [    4873707,
+    $paymentMethods = [4873707,
     4871116];
 
     try {

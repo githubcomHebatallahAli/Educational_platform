@@ -35,7 +35,7 @@ protected function authorizeParentOrAdmin($student)
 {
     $parent = auth()->guard('parnt')->user();
 
-    if ($parent && $parent->id === $student->parent_id) {
+    if ($parent && $parent->id === $student->parnt_id) {
         return true;
     }
 
