@@ -22,7 +22,7 @@ class PaymobController extends Controller
     {
         // إعداد القيم الافتراضية
         $amountCents = $request->input('amount_cents', 10000); // القيمة بالقروش (EGP 100 افتراضيًا)
-        $merchantId = config('services.paymob.merchant_id'); // رقم الميرشانت الخاص بك
+        $merchantId = config('services.paymob.merchant_id');
         $currency = 'EGP';
 
         // بيانات العميل (قد تأتي من الطلب)
@@ -33,7 +33,7 @@ class PaymobController extends Controller
             'phone_number' => $request->input('phone_number', '+201234567890'),
             'street' => $request->input('street', '123 Main Street'),
             'city' => $request->input('city', 'Cairo'),
-            'country' => $request->input('country', 'EG'),
+            'country' => $request->input('country', 'EGP'),
         ];
 
         // 1. إنشاء Order
