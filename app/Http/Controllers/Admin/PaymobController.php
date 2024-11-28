@@ -34,9 +34,9 @@ class PaymobController extends Controller
             'api_key' => config('services.paymob.api_key'), // استخدام المفتاح من config
         ]);
 
-        // تحقق من استجابة الحصول على التوكن
         if ($response->failed()) {
-            return response()->json(['error' => 'Failed to obtain token from Paymob'], 400);
+            // طباعة محتوى الاستجابة لمساعدتك في التشخيص
+            return response()->json(['error' => 'Failed to obtain token from Paymob', 'details' => $response->json()], 400);
         }
 
         // الحصول على التوكن من استجابة Paymob
