@@ -5,6 +5,7 @@
 
 namespace App\Services;
 
+use Log;
 use Illuminate\Support\Facades\Http;
 
 class PaymobService
@@ -21,12 +22,16 @@ class PaymobService
     // 1. الحصول على Auth Token
     public function getAuthToken()
     {
-        $response = Http::post("{$this->baseUrl}/auth/tokens", [
+        $url = "{$this->baseUrl}/auth/tokens";
+        Log::info("Requesting Paymob Auth Token from: $url");
+
+        $response = Http::post($url, [
             'api_key' => $this->apiKey,
         ]);
 
         return $response->json('token');
     }
+
 
     // 2. إنشاء Order
     public function createOrder($merchantId, $amountCents, $currency, $shippingData)
