@@ -7,6 +7,8 @@ return [
     'secret_key' => env('PAYMOB_SECRET_KEY'),
     'public_key' => env('PAYMOB_PUBLIC_KEY'),
     'currency' => env('PAYMOB_CURRENCY', 'EGP'),
+    'base_url' => env('PAYMOB_BASE_URL'),
+    'merchant_id' => env('PAYMOB_MERCHANT_ID'),
     // 'iframe_id' => env('PAYMOB_IFRAME_ID'),
 ];
 

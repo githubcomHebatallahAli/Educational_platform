@@ -735,7 +735,8 @@ public function getStudentRankOverallResults($studentId)
         sortByDesc('created_at')
         ->first();
 
-        $studentExam = $lastExam->students()->where('user_id', $student->id)->first();
+        $studentExam = $lastExam->
+        students()->where('user_id', $student->id)->first();
         $score = $studentExam ? $studentExam->pivot->score : null;
 
         $lastExamDetails = [
@@ -759,7 +760,9 @@ public function getStudentRankOverallResults($studentId)
         ->get();
 
     $totalGradeCoursesCount = $allGradeCourses->count();
-    $purchasedCoursesCount = $student->courses()->where('grade_id', $student->grade->id)->count();
+    $purchasedCoursesCount = $student->courses()
+    ->where('grade_id', $student->grade->id)
+    ->count();
 
     $coursesScores = [];
     $totalOverallScore = 0;
@@ -776,7 +779,9 @@ public function getStudentRankOverallResults($studentId)
 
 
         foreach ($course->exams as $exam) {
-            $studentExam = $exam->students()->where('user_id', $studentId)->first();
+            $studentExam = $exam->students()
+            ->where('user_id', $studentId)
+            ->first();
 
             if ($studentExam && !is_null($studentExam->pivot->score)) {
                 $courseTotalScore += $studentExam->pivot->score;
@@ -847,7 +852,6 @@ public function getStudentRankOverallResults($studentId)
 
 public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
 {
-    // الحصول على جميع الطلاب المشاركين في نفس الكورس والذين لديهم grade_id محدد
     $students = User::where('grade_id', $gradeId)
                     ->whereHas('courses', function ($query) use ($courseId) {
                         $query->where('course_id', $courseId);
@@ -858,9 +862,9 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
 
     foreach ($students as $student) {
         $totalOverallScore = 0;
-        $totalMaxScore = 500; // عدد الامتحانات الكلي هو 5 وكل امتحان درجته 100
+        $totalMaxScore = 500;
 
-        // الحصول على الكورس المحدد للطالب وحساب درجاته
+
         $course = $student->courses()
         ->where('course_id', $courseId)
         ->with('exams')
@@ -877,7 +881,6 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
                 }
             }
 
-            // حساب النسبة المئوية للتقييم الإجمالي لكل طالب
             $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
             $studentResults[] = [
@@ -907,7 +910,7 @@ public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
 
 public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
 {
-    // الحصول على جميع الطلاب المشاركين في نفس الكورس والذين لديهم grade_id محدد
+
     $students = User::where('grade_id', $gradeId)
                     ->whereHas('courses', function ($query) use ($courseId) {
                         $query->where('course_id', $courseId);
@@ -918,9 +921,8 @@ public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
 
     foreach ($students as $student) {
         $totalOverallScore = 0;
-        $totalMaxScore = 500; // عدد الامتحانات الكلي هو 5 وكل امتحان درجته 100
+        $totalMaxScore = 500;
 
-        // الحصول على الكورس المحدد للطالب وحساب درجاته
         $course = $student->courses()
         ->where('course_id', $courseId)
         ->with('exams')
@@ -937,7 +939,7 @@ public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
                 }
             }
 
-            // حساب النسبة المئوية للتقييم الإجمالي لكل طالب
+            
             $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
             $studentResults[] = [
