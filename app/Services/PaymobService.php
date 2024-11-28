@@ -33,7 +33,9 @@ class PaymobService
     {
         $authToken = $this->getAuthToken();
 
-        $response = Http::withToken($authToken)->post("{$this->baseUrl}/ecommerce/orders", [
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $authToken
+        ])->post("{$this->baseUrl}/ecommerce/orders", [
             'merchant_id' => $merchantId,
             'amount_cents' => $amountCents,
             'currency' => $currency,
@@ -48,7 +50,9 @@ class PaymobService
     {
         $authToken = $this->getAuthToken();
 
-        $response = Http::withToken($authToken)->post("{$this->baseUrl}/acceptance/payment_keys", [
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $authToken
+        ])->post("{$this->baseUrl}/acceptance/payment_keys", [
             'amount_cents' => $amountCents,
             'currency' => 'EGP',
             'order_id' => $orderId,
@@ -59,6 +63,7 @@ class PaymobService
         return $response->json('token'); // إرجاع Payment Key
     }
 }
+
 
 
 // namespace App\Services;

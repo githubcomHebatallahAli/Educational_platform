@@ -22,7 +22,6 @@ class PaymobController extends Controller
     {
         // إعداد القيم الافتراضية
         $amountCents = $request->input('amount_cents', 10000); // القيمة بالقروش (EGP 100 افتراضيًا)
-        $merchantId = config('services.paymob.merchant_id');
         $currency = 'EGP';
 
         // بيانات العميل (قد تأتي من الطلب)
@@ -33,33 +32,48 @@ class PaymobController extends Controller
             'phone_number' => $request->input('phone_number', '+201234567890'),
             'street' => $request->input('street', '123 Main Street'),
             'city' => $request->input('city', 'Cairo'),
-            'country' => $request->input('country', 'EGP'),
+            'country' => $request->input('country', 'EG'),
         ];
 
-        // 1. إنشاء Order
-        $orderId = $this->paymob->createOrder($merchantId, $amountCents, $currency, $billingData);
+        // الحصول على التوكن من Paymob عبر خدمة PaymobService
+        $paymobService = new PaymobService();
+        $token = $paymobService->getAuthToken();
 
-        // 2. اختيار الـ Integration ID بناءً على نوع الدفع
-        $integrationId = $paymentType === 'wallet'
-            ? config('services.paymob.wallet_integration_id')
-            : config('services.paymob.card_integration_id');
+        // تحقق من وجود التوكن
+        if (!$token) {
+            return response()->json(['error' => 'Failed to obtain token from Paymob'], 400);
+        }
 
-        // 3. إنشاء Payment Key
-        $paymentKey = $this->paymob->createPaymentKey($orderId, $amountCents, $billingData, $integrationId);
+        // 1. إنشاء Order باستخدام الخدمة
+        $orderId = $paymobService->createOrder(config('services.paymob.merchant_id'), $amountCents, $currency, $billingData);
 
-        // 4. إعداد رابط الـ Iframe
+        // تحقق من نجاح إنشاء الطلب
+        if (!$orderId) {
+            return response()->json(['error' => 'Failed to create order'], 400);
+        }
+
+        // 2. إنشاء Payment Key باستخدام الخدمة
+        $paymentKey = $paymobService->createPaymentKey($orderId, $amountCents, $billingData,
+            $paymentType === 'wallet' ? config('services.paymob.wallet_integration_id') : config('services.paymob.card_integration_id'));
+
+        // تحقق من وجود مفتاح الدفع
+        if (!$paymentKey) {
+            return response()->json(['error' => 'Failed to create payment key'], 400);
+        }
+
+        // إعداد رابط iframe
         $iframeUrl = "https://accept.paymobsolutions.com/api/acceptance/iframes/default?payment_token={$paymentKey}";
 
-        // إعادة الرد كـ JSON
+        // إعادة الرد كـ JSON مع رابط الـ Iframe
         return response()->json([
             'success' => true,
             'iframe_url' => $iframeUrl,
         ]);
-    }
+
 }
 
 
-
+}
 
 // use Illuminate\Http\Request;
 // use App\Services\OrderService;
