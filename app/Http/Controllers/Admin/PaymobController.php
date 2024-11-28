@@ -69,8 +69,7 @@ class PaymobController extends Controller
             'success' => true,
             'iframe_url' => $iframeUrl,
         ]);
-
-}
+    }
 
 
 }

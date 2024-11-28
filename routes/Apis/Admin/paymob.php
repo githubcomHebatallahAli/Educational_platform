@@ -12,7 +12,6 @@ Route::post('/paymob/callback', 'handlePaymentCallback')->name('paymob.callback'
 Route::post('/paymob/webhook','handleWebhook')->name('paymob.webhook');
 Route::post('/payments/create-intent', 'createPaymentIntent');
 
-Route::get('/pay-with-card', 'initiatePayment')->defaults('paymentType', 'card');
-Route::get('/pay-with-wallet','initiatePayment')->defaults('paymentType', 'wallet');
+Route::post('/initiate-payment/{paymentType}', 'initiatePayment');
 
 });
