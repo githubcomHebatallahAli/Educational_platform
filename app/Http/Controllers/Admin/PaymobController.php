@@ -35,6 +35,7 @@ class PaymobController extends Controller
             'username' => config('services.paymob.username'), // أضف اسم المستخدم
             'password' => config('services.paymob.password'),  // استخدام المفتاح من config
         ]);
+        dd($response->json());
 
         if ($response->failed()) {
             // طباعة محتوى الاستجابة لمساعدتك في التشخيص
