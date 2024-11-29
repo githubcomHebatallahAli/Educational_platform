@@ -31,7 +31,9 @@ class PaymobController extends Controller
 
         // 1. الحصول على التوكن من Paymob
         $response = Http::post('https://accept.paymobsolutions.com/api/auth/tokens', [
-            'api_key' => config('services.paymob.api_key'), // استخدام المفتاح من config
+            'api_key' => config('services.paymob.api_key'),
+            'username' => config('services.paymob.username'), // أضف اسم المستخدم
+            'password' => config('services.paymob.password'),  // استخدام المفتاح من config
         ]);
 
         if ($response->failed()) {
