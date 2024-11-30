@@ -565,6 +565,8 @@ public function edit(string $id)
         }
 
         $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+
+        $lastExamDetails = null;
         $allExams = $son->courses()->with('exams')->get()->flatMap(function ($course) {
             return $course->exams;
         });
