@@ -6,92 +6,14 @@ namespace App\Http\Controllers\Admin;
 
 
 use Illuminate\Http\Request;
-use App\Services\PaymobService;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
 
 class PaymobController extends Controller
 {
-    public function initiatePayment(Request $request, $paymentType)
-    {
-        // إعداد القيم الافتراضية
-        $amountCents = $request->input('amount_cents', 10000); // القيمة بالقروش (EGP 100 افتراضيًا)
-        $currency = 'EGP';
-
-        // بيانات العميل (قد تأتي من الطلب)
-        $billingData = [
-            'first_name' => $request->input('first_name', 'John'),
-            'last_name' => $request->input('last_name', 'Doe'),
-            'email' => $request->input('email', 'example@mail.com'),
-            'phone_number' => $request->input('phone_number', '+201234567890'),
-            'street' => $request->input('street', '123 Main Street'),
-            'city' => $request->input('city', 'Cairo'),
-            'country' => $request->input('country', 'EG'),
-        ];
-
-        // 1. الحصول على التوكن من Paymob
-        $response = Http::post('https://accept.paymobsolutions.com/api/auth/tokens', [
-            'api_key' => config('services.paymob.api_key'),
-            'username' => config('services.paymob.username'), // أضف اسم المستخدم
-            'password' => config('services.paymob.password'),  // استخدام المفتاح من config
-        ]);
-        dd($response->json());
-
-        if ($response->failed()) {
-            // طباعة محتوى الاستجابة لمساعدتك في التشخيص
-            return response()->json(['error' => 'Failed to obtain token from Paymob', 'details' => $response->json()], 400);
-        }
-
-        // الحصول على التوكن من استجابة Paymob
-        $token = $response->json()['token'];
-
-        // 2. إنشاء Order باستخدام التوكن
-        $orderResponse = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token
-        ])->post('https://accept.paymobsolutions.com/api/ecommerce/orders', [
-            'merchant_id' => config('services.paymob.merchant_id'),
-            'amount_cents' => $amountCents,
-            'currency' => $currency,
-            'integration_id' => $paymentType === 'wallet' ? config('services.paymob.wallet_integration_id') : config('services.paymob.card_integration_id'),
-            'billing_data' => $billingData,
-        ]);
-
-        // تحقق من استجابة إنشاء الطلب
-        if ($orderResponse->failed()) {
-            return response()->json(['error' => 'Failed to create order'], 400);
-        }
-
-        $orderId = $orderResponse->json()['id'];
-
-        // 3. إنشاء Payment Key باستخدام التوكن
-        $paymentKeyResponse = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token
-        ])->post('https://accept.paymobsolutions.com/api/acceptance/payment_keys', [
-            'amount_cents' => $amountCents,
-            'currency' => $currency,
-            'order_id' => $orderId,
-            'integration_id' => $paymentType === 'wallet' ? config('services.paymob.wallet_integration_id') : config('services.paymob.card_integration_id'),
-        ]);
-
-        // تحقق من استجابة إنشاء مفتاح الدفع
-        if ($paymentKeyResponse->failed()) {
-            return response()->json(['error' => 'Failed to create payment key'], 400);
-        }
-
-        $paymentKey = $paymentKeyResponse->json()['token'];
-
-        // إعداد رابط iframe
-        $iframeUrl = "https://accept.paymobsolutions.com/api/acceptance/iframes/default?payment_token={$paymentKey}";
-
-        // إعادة الرد كـ JSON مع رابط الـ Iframe
-        return response()->json([
-            'success' => true,
-            'iframe_url' => $iframeUrl,
-        ]);
-    }
-
-
 }
+
+
 
 // use Illuminate\Http\Request;
 // use App\Services\OrderService;

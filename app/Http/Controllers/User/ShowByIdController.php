@@ -5,7 +5,6 @@ namespace App\Http\Controllers\User;
 
 use App\Models\Exam;
 use App\Models\User;
-use App\Models\Month;
 use App\Models\Parnt;
 use App\Models\Answer;
 use App\Models\Course;
@@ -566,22 +565,45 @@ public function edit(string $id)
         }
 
         $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
+        $allExams = $son->courses()->with('exams')->get()->flatMap(function ($course) {
+            return $course->exams;
+        });
 
+        if ($allExams->isNotEmpty()) {
+            $lastExam = $allExams->sortByDesc('created_at')->first();
+
+            $studentExam = $lastExam->students()->where('user_id', $son->id)->first();
+            $score = $studentExam ? $studentExam->pivot->score : null;
+
+            $lastExamDetails = [
+                'exam_id' => $lastExam->id,
+                'title' => $lastExam->title,
+                'test_id' => $lastExam->test_id,
+                'test_name' => $lastExam->test->name,
+                'course_id' => $lastExam->course_id,
+                'course_name' => $lastExam->course->nameOfCourse,
+                'month_id' => $lastExam->course->month->id,
+                'month_name' => $lastExam->course->month->name,
+                'score' => $score,
+            ];
+        }
         return [
             'id' => $son->id,
             'name' => $son->name,
             'img' => $son->img,
             'grade' => new GradeResource($son->grade),
             'overall_score_percentage' => round($overallScorePercentage, 2),
+            'last_exam' => $lastExamDetails,
         ];
     });
 
     return response()->json([
-        'parent' => [
-            'id' => $Parent->id,
-            'name' => $Parent->name,
-            'email' => $Parent->email,
-        ],
+        // 'parent' => [
+        //     'id' => $Parent->id,
+        //     'name' => $Parent->name,
+        //     'email' => $Parent->email,
+        // ],
+        'parent'=> new ParentRegisterResource($Parent),
         'sons' => $sonsData,
         'message' => "Edit Parent By ID Successfully."
     ]);
@@ -840,16 +862,6 @@ public function getStudentRankOverallResults($studentId)
 }
 
 
-
-
-
-
-
-
-
-
-
-
 public function getRankAndOverAllResultsForAllStudents($courseId, $gradeId)
 {
     $students = User::where('grade_id', $gradeId)
@@ -939,7 +951,7 @@ public function getRankAndOverAllResultsForTopThreeStudents($courseId, $gradeId)
                 }
             }
 
-            
+
             $overallScorePercentage = ($totalMaxScore > 0) ? ($totalOverallScore / $totalMaxScore) * 100 : 0;
 
             $studentResults[] = [
