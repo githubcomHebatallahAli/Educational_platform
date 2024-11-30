@@ -21,13 +21,13 @@ class StatisticsController extends Controller
         $paidOrdersCount = Order::where('status', 'paid')->count();
 
         $gradesStatistics = Grade::withCount([
-            'users as students_count', // عدد الطلاب في المرحلة
-            'courses as courses_count', // عدد الكورسات في المرحلة
+            'users as students_count', 
+            'courses as courses_count',
             'courses as lessons_count' => function ($query) {
-                $query->withCount('lessons'); // عدد الدروس في كل الكورسات
+                $query->withCount('lessons');
             },
             'courses as exams_count' => function ($query) {
-                $query->withCount('exams'); // عدد الامتحانات في كل الكورسات
+                $query->withCount('exams');
             },
         ])->get()->map(function ($grade) {
             return [
