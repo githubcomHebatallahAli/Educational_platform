@@ -28,24 +28,22 @@ public function createIntention(Request $request)
 
     $data = [
         "amount" => $request->input('amount'),
-        "currency" => $request->input('currency', 'EGP'), // العملة الافتراضية هي EGP
+        "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $request->input('billing_data'),
-        "payment_methods" => $request->input('payment_methods', []), // طرق الدفع
-        "items" => $request->input('items', []), // قائمة السلع
-        "special_reference" => $request->input('special_reference'), // المرجع الخاص
-        "expiration" => $request->input('expiration', 3600), // مدة انتهاء الطلب
-        "notification_url" => $request->input('notification_url'), // رابط الإشعار
-        "redirection_url" => $request->input('redirection_url'), // رابط إعادة التوجيه
+        "payment_methods" => $request->input('payment_methods', []),
+        "items" => $request->input('items', []),
+        "special_reference" => $request->input('special_reference'),
+        "expiration" => $request->input('expiration', 3600),
+        "notification_url" => $request->input('notification_url'),
+        "redirection_url" => $request->input('redirection_url'),
     ];
 
     try {
-        // إرسال الطلب باستخدام HTTP Client
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('paymob.secret_key'),
             'Content-Type' => 'application/json',
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
-        // التحقق من نجاح الطلب
         if ($response->successful()) {
             return response()->json($response->json());
         } else {
@@ -56,70 +54,39 @@ public function createIntention(Request $request)
         }
 
     } catch (\Exception $e) {
-        // معالجة الأخطاء
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
 
-    public function createPaymentRequest(Request $request)
-    {
-        $data = [
-            "amount" => 1000,  // المبلغ المطلوب دفعه
-            "currency" => "EGP",  // العملة
-            "payment_methods" => [4873707, 4871116],  // طرق الدفع المدعومة (البطاقات والمحفظة)
-            "items" => [
-                [
-                    "name" => "Item name",
-                    "amount" => 1000,  // سعر السلعة
-                    "description" => "Item description",  // وصف السلعة
-                    "quantity" => 1  // الكمية
-                ]
-            ],
-            "billing_data" => [
-                "apartment" => "dumy",
-                "first_name" => "ala",
-                "last_name" => "zain",
-                "street" => "dumy",
-                "building" => "dumy",
-                "phone_number" => "+92345111111",
-                "city" => "dumy",
-                "country" => "dumy",
-                "email" => "ali@gmail.com",
-                "floor" => "dumy",
-                "state" => "dumy"
-            ],
-            "extras" => [
-                "ee" => 22  // بيانات إضافية
-            ],
-            "special_reference" => "phe4sjw11q-1xxxxxxxxx",  // مرجع خاص
-            "expiration" => 3600,  // مدة انتهاء الطلب (بالثواني)
-            "notification_url" => "https://example.com/webhook",  // رابط إشعار وهمي
-            "redirection_url" => "https://example.com/success"  // رابط التوجيه بعد الدفع
-        ];
+public function postPayment(Request $request)
+{
+    $data = [
+        "integration_id" => $request->input('integration_id'),
+        "order_id" => $request->input('order_id'),
+        "client_secret" => $request->input('client_secret'),
+        "intention_order_id" => $request->input('intention_order_id'),
+    ];
 
-        try {
-            // إرسال الطلب إلى Paymob باستخدام HTTP Client الخاص بـ Laravel
-            $response = Http::withHeaders([
-                'Authorization' => 'Token YOUR_API_KEY',  // استخدم التوكن الخاص بك
-                'Content-Type' => 'application/json'
-            ])
-            ->post('https://accept.paymob.com/v1/intention/', $data);
+    try {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('paymob.secret_key'), // استخدام التوكن السري
+            'Content-Type' => 'application/json',
+        ])->post('https://accept.paymobsolutions.com/api/acceptance/post_pay', $data);
 
-            // التحقق من حالة الاستجابة
-            if ($response->successful()) {
-                $responseData = $response->json();
-                return response()->json($responseData);
-            } else {
-                return response()->json(['error' => 'Request failed', 'details' => $response->json()], 400);
-            }
-
-        } catch (\Exception $e) {
-            // معالجة الأخطاء في حال حدوث أي مشكلة أثناء الطلب
-            return response()->json(['error' => $e->getMessage()], 500);
+        if ($response->successful()) {
+            return response()->json($response->json());
+        } else {
+            return response()->json([
+                'error' => 'Request failed',
+                'details' => $response->json()
+            ], 400);
         }
-    }
 
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
 
     public function generateCheckoutUrl(Request $request)
 {
