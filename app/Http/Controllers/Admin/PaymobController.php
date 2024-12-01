@@ -11,6 +11,18 @@ use App\Http\Controllers\Controller;
 
 class PaymobController extends Controller
 {
+
+    public function generateToken(Request $request)
+{
+    $apiKey = $request->input('api_key');
+
+    $response = Http::post('https://accept.paymobsolutions.com/api/auth/tokens', [
+        'api_key' => $apiKey,
+    ]);
+
+    return $response->json();
+}
+
     public function createPaymentRequest(Request $request)
     {
         $data = [
