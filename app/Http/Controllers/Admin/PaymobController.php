@@ -25,9 +25,7 @@ class PaymobController extends Controller
 
 public function createIntention(Request $request)
 {
-    $authToken = $request->input('auth_token');
 
-    // إعداد البيانات المطلوبة
     $data = [
         "amount_cents" => $request->input('amount_cents'),
         "currency" => $request->input('currency', 'EGP'), // العملة الافتراضية هي EGP
@@ -43,7 +41,7 @@ public function createIntention(Request $request)
     try {
         // إرسال الطلب باستخدام HTTP Client
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $authToken, // استخدم التوكن الخاص بك
+            'Authorization' => 'Bearer ' . config('paymob.secret_key'),
             'Content-Type' => 'application/json',
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 

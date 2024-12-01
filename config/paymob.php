@@ -9,8 +9,7 @@ return [
     'currency' => env('PAYMOB_CURRENCY', 'EGP'),
     'base_url' => env('PAYMOB_BASE_URL'),
     'merchant_id' => env('PAYMOB_MERCHANT_ID'),
-    'username' => env('PAYMOB_USERNAME'),
-    'password' => env('PAYMOB_PASSWORD'),
+
     // 'iframe_id' => env('PAYMOB_IFRAME_ID'),
 ];
 
