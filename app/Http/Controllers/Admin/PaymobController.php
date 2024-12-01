@@ -11,7 +11,76 @@ use App\Http\Controllers\Controller;
 
 class PaymobController extends Controller
 {
+    public function createPaymentRequest(Request $request)
+    {
+        $data = [
+            "amount" => 1000,  // المبلغ المطلوب دفعه
+            "currency" => "EGP",  // العملة
+            "payment_methods" => [4873707, 4871116],  // طرق الدفع المدعومة (البطاقات والمحفظة)
+            "items" => [
+                [
+                    "name" => "Item name",
+                    "amount" => 1000,  // سعر السلعة
+                    "description" => "Item description",  // وصف السلعة
+                    "quantity" => 1  // الكمية
+                ]
+            ],
+            "billing_data" => [
+                "apartment" => "dumy",
+                "first_name" => "ala",
+                "last_name" => "zain",
+                "street" => "dumy",
+                "building" => "dumy",
+                "phone_number" => "+92345111111",
+                "city" => "dumy",
+                "country" => "dumy",
+                "email" => "ali@gmail.com",
+                "floor" => "dumy",
+                "state" => "dumy"
+            ],
+            "extras" => [
+                "ee" => 22  // بيانات إضافية
+            ],
+            "special_reference" => "phe4sjw11q-1xxxxxxxxx",  // مرجع خاص
+            "expiration" => 3600,  // مدة انتهاء الطلب (بالثواني)
+            "notification_url" => "https://example.com/webhook",  // رابط إشعار وهمي
+            "redirection_url" => "https://example.com/success"  // رابط التوجيه بعد الدفع
+        ];
+
+        try {
+            // إرسال الطلب إلى Paymob باستخدام HTTP Client الخاص بـ Laravel
+            $response = Http::withHeaders([
+                'Authorization' => 'Token YOUR_API_KEY',  // استخدم التوكن الخاص بك
+                'Content-Type' => 'application/json'
+            ])
+            ->post('https://accept.paymob.com/v1/intention/', $data);
+
+            // التحقق من حالة الاستجابة
+            if ($response->successful()) {
+                $responseData = $response->json();
+                return response()->json($responseData);
+            } else {
+                return response()->json(['error' => 'Request failed', 'details' => $response->json()], 400);
+            }
+
+        } catch (\Exception $e) {
+            // معالجة الأخطاء في حال حدوث أي مشكلة أثناء الطلب
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function generateCheckoutUrl(Request $request)
+{
+    $publicKey = $request->input('public_key');
+    $clientSecret = $request->input('client_secret');
+
+    $checkoutUrl = "https://accept.paymob.com/unifiedcheckout/?publicKey={$publicKey}&clientSecret={$clientSecret}";
+
+    return response()->json(['checkout_url' => $checkoutUrl]);
 }
+}
+
 
 
 

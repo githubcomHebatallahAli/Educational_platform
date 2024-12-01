@@ -14,4 +14,7 @@ Route::post('/payments/create-intent', 'createPaymentIntent');
 
 Route::post('/initiate-payment/{paymentType}', 'initiatePayment');
 
+Route::post('/api/checkout-url', 'generateCheckoutUrl');
+
+
 });
