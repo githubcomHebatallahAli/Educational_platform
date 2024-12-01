@@ -27,7 +27,7 @@ public function createIntention(Request $request)
 {
 
     $data = [
-        "amount_cents" => $request->input('amount_cents'),
+        "amount" => $request->input('amount'),
         "currency" => $request->input('currency', 'EGP'), // العملة الافتراضية هي EGP
         "billing_data" => $request->input('billing_data'),
         "payment_methods" => $request->input('payment_methods', []), // طرق الدفع
