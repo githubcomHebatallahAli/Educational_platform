@@ -6,8 +6,9 @@ namespace App\Http\Controllers\Admin;
 
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Models\PaymobTransaction;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 
 class PaymobController extends Controller
 {
@@ -33,16 +34,52 @@ public function getPaymobSecretKey(Request $request)
 }
 
 
+// public function createIntention(Request $request)
+// {
+
+//     $data = [
+//         "amount" => $request->input('amount'),
+//         "currency" => $request->input('currency', 'EGP'),
+//         "billing_data" => $request->input('billing_data'),
+//         "payment_methods" => $request->input('payment_methods', []),
+//         "items" => $request->input('items', []),
+//         "special_reference" => $request->input('special_reference'),
+//         "expiration" => $request->input('expiration', 3600),
+//         "notification_url" => $request->input('notification_url'),
+//         "redirection_url" => $request->input('redirection_url'),
+//     ];
+
+//     try {
+//         $response = Http::withHeaders([
+//             'Authorization' => 'Bearer ' . config('paymob.secret_key'),
+//             'Content-Type' => 'application/json',
+//         ])->post('https://accept.paymob.com/v1/intention/', $data);
+
+//         if ($response->successful()) {
+//             return response()->json($response->json());
+//         } else {
+//             return response()->json([
+//                 'error' => 'Request failed',
+//                 'details' => $response->json()
+//             ], 400);
+//         }
+
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'error' => $e->getMessage()], 500);
+//     }
+// }
+
+
 public function createIntention(Request $request)
 {
-
     $data = [
         "amount" => $request->input('amount'),
         "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $request->input('billing_data'),
         "payment_methods" => $request->input('payment_methods', []),
         "items" => $request->input('items', []),
-        "special_reference" => $request->input('special_reference'),
+        "special_reference" => uniqid('ref_', true),
         "expiration" => $request->input('expiration', 3600),
         "notification_url" => $request->input('notification_url'),
         "redirection_url" => $request->input('redirection_url'),
@@ -55,7 +92,21 @@ public function createIntention(Request $request)
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
         if ($response->successful()) {
-            return response()->json($response->json());
+            // تسجيل المعاملة في قاعدة البيانات
+            $transaction = PaymobTransaction::create([
+                'merchant_order_reference' => $data['special_reference'],
+                'paymob_order_id' => $response->json()['id'],
+                'payment_method_id' => $request->input('payment_method_id'),
+                'user_id' => $request->user()->id ?? null,
+                'price' => $data['amount'],
+                'currency' => $data['currency'],
+                'status' => 'pending', // سيتم تحديث الحالة بعد الدفع
+            ]);
+
+            return response()->json([
+                'transaction' => $transaction,
+                'response' => $response->json(),
+            ]);
         } else {
             return response()->json([
                 'error' => 'Request failed',
@@ -64,9 +115,12 @@ public function createIntention(Request $request)
         }
 
     } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
     }
 }
+
 
 
 public function postPayment(Request $request)
