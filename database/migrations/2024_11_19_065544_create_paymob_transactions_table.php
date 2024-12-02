@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('paymob_transactions', function (Blueprint $table) {
             $table->id();
-            $table->string('merchant_order_reference')->nullable();
+            $table->string('special_reference')->nullable()->unique();
             $table->string('paymob_order_id')->nullable();
             $table->foreignId('payment_method_id')->constrained('paymob_methods')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();

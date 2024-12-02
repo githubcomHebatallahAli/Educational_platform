@@ -92,9 +92,9 @@ public function createIntention(Request $request)
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
         if ($response->successful()) {
-            // تسجيل المعاملة في قاعدة البيانات
+
             $transaction = PaymobTransaction::create([
-                'merchant_order_reference' => $data['special_reference'],
+                'special_reference' => $data['special_reference'],
                 'paymob_order_id' => $response->json()['id'],
                 'payment_method_id' => $request->input('payment_method_id'),
                 'user_id' => $request->user()->id ?? null,
