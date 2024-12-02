@@ -11,10 +11,10 @@ Route::controller(PaymobController::class)->group(
 
 Route::post('/initiate-payment/{paymentType}', 'initiatePayment');
 
-Route::post('/api/generate-token', 'generateToken');
-Route::post('/api/create-intention', 'createIntention');
-Route::post('/api/post-payment', 'postPayment');
-Route::post('/api/checkout-url', 'generateCheckoutUrl');
-Route::get('api/secret-key', 'getPaymobSecretKey')
-->middleware('admin');
+Route::post('generate-token', 'generateToken');
+Route::post('create-intention', 'createIntention');
+Route::post('post-payment', 'postPayment');
+Route::post('checkout-url', 'generateCheckoutUrl');
+Route::get('secret-key', 'getPaymobSecretKey')->middleware('admin');
+
 });
