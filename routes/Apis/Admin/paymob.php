@@ -15,6 +15,6 @@ Route::post('/api/generate-token', 'generateToken');
 Route::post('/api/create-intention', 'createIntention');
 Route::post('/api/post-payment', 'postPayment');
 Route::post('/api/checkout-url', 'generateCheckoutUrl');
-
-
+Route::get('api/secret-key', 'getPaymobSecretKey')
+->middleware('admin');
 });

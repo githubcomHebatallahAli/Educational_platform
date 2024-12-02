@@ -23,6 +23,16 @@ class PaymobController extends Controller
     return $response->json();
 }
 
+public function getPaymobSecretKey(Request $request)
+{
+    $this->authorize('manage_users');
+
+    return response()->json([
+        'secret_key' => config('paymob.secret_key'),
+    ]);
+}
+
+
 public function createIntention(Request $request)
 {
 
