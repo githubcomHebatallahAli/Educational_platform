@@ -75,7 +75,7 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
-    
+
     $user = auth()->guard('api')->user();
     if (!$user) {
         return response()->json(['error' => 'User not authenticated.'], 401);
@@ -117,7 +117,7 @@ public function createIntention(Request $request)
         'first_name' => $user->name ?? 'Unknown',
         'last_name' => 'N/A',
         'email' => $user->email ?? 'Unknown',
-        'phone_number' => $user->phone_number ?? 'Unknown',
+        'phone_number' => $user->studentPhoNum ?? 'Unknown',
     ]);
 
 
