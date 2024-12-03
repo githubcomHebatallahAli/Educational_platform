@@ -80,6 +80,28 @@ public function createIntention(Request $request)
         return response()->json(['error' => 'User not authenticated.'], 401);
     }
 
+    $integrationIds = $request->input('payment_methods', []); // مصفوفة طرق الدفع
+    $selectedIndex = $request->input('selected_method_index', 0); // الفهرس الافتراضي هو 0
+
+    // التحقق من صحة الفهرس
+    if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
+        return response()->json([
+            'error' => 'Invalid selected_method_index. Please choose a valid index.',
+        ], 400);
+    }
+
+    // استخراج القيمة بناءً على الفهرس
+    $paymentMethodId = $integrationIds[$selectedIndex];
+
+    // التحقق من وجود integration_id في قاعدة البيانات
+    $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
+
+    if (!$paymentMethod) {
+        return response()->json([
+            'error' => 'Invalid payment method ID (integration_id).',
+        ], 400);
+    }
+
     // تعبئة بيانات الفوترة من المستخدم
     $billingData = $request->input('billing_data', [
         'first_name' => $user->name ?? 'Unknown', // استخدام الاسم الكامل كاسم أول
@@ -92,7 +114,7 @@ public function createIntention(Request $request)
         "amount" => $request->input('amount'),
         "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $billingData,
-        "payment_methods" => $request->input('payment_methods', []),
+        "payment_methods" => $integrationIds,
         "items" => $request->input('items', []),
         "special_reference" => uniqid('ref_', true),
         "expiration" => $request->input('expiration', 3600),
@@ -114,7 +136,7 @@ public function createIntention(Request $request)
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
                 'paymob_order_id' => $response->json()['id'],
-                'payment_method_id' => $selectedIntegrationId,
+                'payment_method_id' => $paymentMethod->id,
                 'user_id' => $user->id,
                 'price' => $data['amount'],
                 'currency' => $data['currency'],
