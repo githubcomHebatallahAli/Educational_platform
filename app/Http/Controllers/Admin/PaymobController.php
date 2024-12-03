@@ -75,33 +75,42 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
+    
     $user = auth()->guard('api')->user();
     if (!$user) {
-        return response()->json([
-            'error' => 'User not authenticated.'
-        ]);
+        return response()->json(['error' => 'User not authenticated.'], 401);
     }
 
-    $integrationIds = $request->input('payment_methods', []); // مصفوفة طرق الدفع
-    $selectedIndex = $request->input('selected_method_index', 0); // الفهرس الافتراضي هو 0
+
+    $integrationIds = $request->input('payment_methods', []);
+    $selectedIndex = $request->input('selected_method_index', 0);
 
 
     if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
         return response()->json([
             'error' => 'Invalid selected_method_index. Please choose a valid index.',
-        ]);
+        ], 400);
     }
 
 
     $paymentMethodId = $integrationIds[$selectedIndex];
-
-
     $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
+
     if (!$paymentMethod) {
         return response()->json([
             'error' => 'Invalid payment method ID (integration_id).',
-        ]);
+        ], 400);
     }
+
+    $course = Course::find($request->input('course_id'));
+    if (!$course) {
+        return response()->json([
+            'error' => 'Course not found.',
+        ], 404);
+    }
+
+
+    $priceInCents = $course->price * 100;
 
 
     $billingData = $request->input('billing_data', [
@@ -112,28 +121,18 @@ public function createIntention(Request $request)
     ]);
 
 
-    $course = Course::find($request->input('course_id'));
-    if (!$course) {
-        return response()->json([
-            'error' => 'Course not found',
-        ]);
-    }
-
-
-    $items = [
-        [
-            'name' => $course->nameOfCourse,
-            'amount' => $course->price,
-            'description' => $course->description,
-        ],
-    ];
-
     $data = [
-        "amount" => $course->price,
+        "amount" => $priceInCents,
         "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $billingData,
         "payment_methods" => $integrationIds,
-        "items" => $items,
+        "items" => [
+            [
+                'name' => $course->nameOfCourse,
+                'amount' => $priceInCents,
+                'description' => $course->description,
+            ],
+        ],
         "special_reference" => uniqid('ref_', true),
         "expiration" => $request->input('expiration', 3600),
         "notification_url" => $request->input('notification_url'),
@@ -166,7 +165,7 @@ public function createIntention(Request $request)
             return response()->json([
                 'error' => 'Request failed',
                 'details' => $response->json(),
-            ]);
+            ], 400);
         }
     } catch (\Exception $e) {
         return response()->json([
@@ -174,6 +173,7 @@ public function createIntention(Request $request)
         ], 500);
     }
 }
+
 
 
 
