@@ -75,23 +75,19 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
-
     $user = auth()->guard('api')->user();
     if (!$user) {
         return response()->json(['error' => 'User not authenticated.'], 401);
     }
 
-
     $integrationIds = $request->input('payment_methods', []);
     $selectedIndex = $request->input('selected_method_index', 0);
-
 
     if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
         return response()->json([
             'error' => 'Invalid selected_method_index. Please choose a valid index.',
         ], 400);
     }
-
 
     $paymentMethodId = $integrationIds[$selectedIndex];
     $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
@@ -109,9 +105,7 @@ public function createIntention(Request $request)
         ], 404);
     }
 
-
     $priceInCents = $course->price * 100;
-
 
     $billingData = $request->input('billing_data', [
         'first_name' => $user->name ?? 'Unknown',
@@ -119,7 +113,6 @@ public function createIntention(Request $request)
         'email' => $user->email ?? 'Unknown',
         'phone_number' => $user->studentPhoNum ?? 'Unknown',
     ]);
-
 
     $data = [
         "amount" => $priceInCents,
@@ -146,9 +139,13 @@ public function createIntention(Request $request)
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
         if ($response->successful()) {
+
+            $paymobOrderId = $response->json()['id']; 
+
+
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
-                'paymob_order_id' => $response->json()['id'],
+                'paymob_order_id' => $paymobOrderId,
                 'payment_method_id' => $paymentMethod->id,
                 'user_id' => $user->id,
                 'course_id' => $course->id,
@@ -173,6 +170,7 @@ public function createIntention(Request $request)
         ], 500);
     }
 }
+
 
 
 
