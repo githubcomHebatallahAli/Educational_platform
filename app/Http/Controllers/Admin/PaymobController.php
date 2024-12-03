@@ -83,7 +83,7 @@ public function createIntention(Request $request)
     // تعبئة بيانات الفوترة من المستخدم
     $billingData = $request->input('billing_data', [
         'first_name' => $user->name ?? 'Unknown', // استخدام الاسم الكامل كاسم أول
-        'last_name' => null, // لا يوجد اسم عائلة
+        'last_name' =>  'N/A', // لا يوجد اسم عائلة
         'email' => $user->email ?? 'Unknown',
         'phone_number' => $user->phone_number ?? 'Unknown',
     ]);
