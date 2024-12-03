@@ -75,20 +75,24 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
+    // الحصول على المستخدم المصادق عليه من خلال الحارس 'api'
     $user = auth()->guard('api')->user();
     if (!$user) {
         return response()->json(['error' => 'User not authenticated.'], 401);
     }
 
+    // الحصول على طرق الدفع والفهرس المختار
     $integrationIds = $request->input('payment_methods', []);
     $selectedIndex = $request->input('selected_method_index', 0);
 
+    // التحقق من صحة الفهرس
     if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
         return response()->json([
             'error' => 'Invalid selected_method_index. Please choose a valid index.',
         ], 400);
     }
 
+    // استخراج القيمة بناءً على الفهرس
     $paymentMethodId = $integrationIds[$selectedIndex];
     $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
 
@@ -98,6 +102,7 @@ public function createIntention(Request $request)
         ], 400);
     }
 
+    // الحصول على الكورس
     $course = Course::find($request->input('course_id'));
     if (!$course) {
         return response()->json([
@@ -105,8 +110,10 @@ public function createIntention(Request $request)
         ], 404);
     }
 
+    // تحويل السعر إلى سنت
     $priceInCents = $course->price * 100;
 
+    // تعبئة بيانات الفوترة من المستخدم
     $billingData = $request->input('billing_data', [
         'first_name' => $user->name ?? 'Unknown',
         'last_name' => 'N/A',
@@ -114,6 +121,7 @@ public function createIntention(Request $request)
         'phone_number' => $user->studentPhoNum ?? 'Unknown',
     ]);
 
+    // بيانات الدفع
     $data = [
         "amount" => $priceInCents,
         "currency" => $request->input('currency', 'EGP'),
@@ -133,19 +141,21 @@ public function createIntention(Request $request)
     ];
 
     try {
+        // إرسال الطلب إلى Paymob API
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('paymob.secret_key'),
             'Content-Type' => 'application/json',
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
+        // التحقق من نجاح الاستجابة
         if ($response->successful()) {
+            // استخراج الـ Order ID من الاستجابة
+            $paymobOrderId = $response->json()['intention_order_id']; // استخدم المفتاح الصحيح
 
-            $paymobOrderId = $response->json()['id']; 
-
-
+            // إنشاء سجل المعاملة في قاعدة البيانات
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
-                'paymob_order_id' => $paymobOrderId,
+                'paymob_order_id' => $paymobOrderId, // تخزين الـ Order ID
                 'payment_method_id' => $paymentMethod->id,
                 'user_id' => $user->id,
                 'course_id' => $course->id,
@@ -154,6 +164,7 @@ public function createIntention(Request $request)
                 'status' => 'pending',
             ]);
 
+            // إعادة الاستجابة مع تفاصيل المعاملة
             return response()->json([
                 'transaction' => $transaction,
                 'response' => $response->json(),
@@ -171,41 +182,6 @@ public function createIntention(Request $request)
     }
 }
 
-
-
-
-
-
-
-
-public function postPayment(Request $request)
-{
-    $data = [
-        "integration_id" => $request->input('integration_id'),
-        "order_id" => $request->input('order_id'),
-        "client_secret" => $request->input('client_secret'),
-        "intention_order_id" => $request->input('intention_order_id'),
-    ];
-
-    try {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('paymob.secret_key'), // استخدام التوكن السري
-            'Content-Type' => 'application/json',
-        ])->post('https://accept.paymobsolutions.com/api/acceptance/post_pay', $data);
-
-        if ($response->successful()) {
-            return response()->json($response->json());
-        } else {
-            return response()->json([
-                'error' => 'Request failed',
-                'details' => $response->json()
-            ], 400);
-        }
-
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
 
     public function generateCheckoutUrl(Request $request)
 {
