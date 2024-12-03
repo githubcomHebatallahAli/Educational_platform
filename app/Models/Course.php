@@ -30,6 +30,11 @@ class Course extends Model
         return $this->belongsTo(MainCourse::class);
     }
 
+    public function transactions()
+{
+    return $this->hasMany(PaymobTransaction::class, 'user_id');
+}
+
     public function orders()
     {
         return $this->hasMany(Order::class);

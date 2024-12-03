@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 
 
 
+use App\Models\Course;
 use App\Models\PaymobMethod;
 use Illuminate\Http\Request;
 use App\Models\PaymobTransaction;
@@ -74,48 +75,65 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
-    // الحصول على المستخدم المصادق عليه من خلال الحارس 'api'
     $user = auth()->guard('api')->user();
     if (!$user) {
-        return response()->json(['error' => 'User not authenticated.'], 401);
+        return response()->json([
+            'error' => 'User not authenticated.'
+        ]);
     }
 
     $integrationIds = $request->input('payment_methods', []); // مصفوفة طرق الدفع
     $selectedIndex = $request->input('selected_method_index', 0); // الفهرس الافتراضي هو 0
 
-    // التحقق من صحة الفهرس
+
     if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
         return response()->json([
             'error' => 'Invalid selected_method_index. Please choose a valid index.',
-        ], 400);
+        ]);
     }
 
-    // استخراج القيمة بناءً على الفهرس
+
     $paymentMethodId = $integrationIds[$selectedIndex];
 
-    // التحقق من وجود integration_id في قاعدة البيانات
-    $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
 
+    $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
     if (!$paymentMethod) {
         return response()->json([
             'error' => 'Invalid payment method ID (integration_id).',
-        ], 400);
+        ]);
     }
 
-    // تعبئة بيانات الفوترة من المستخدم
+
     $billingData = $request->input('billing_data', [
-        'first_name' => $user->name ?? 'Unknown', // استخدام الاسم الكامل كاسم أول
-        'last_name' =>  'N/A', // لا يوجد اسم عائلة
+        'first_name' => $user->name ?? 'Unknown',
+        'last_name' => 'N/A',
         'email' => $user->email ?? 'Unknown',
         'phone_number' => $user->phone_number ?? 'Unknown',
     ]);
 
+
+    $course = Course::find($request->input('course_id'));
+    if (!$course) {
+        return response()->json([
+            'error' => 'Course not found',
+        ]);
+    }
+
+
+    $items = [
+        [
+            'name' => $course->nameOfCourse,
+            'amount' => $course->price,
+            'description' => $course->description,
+        ],
+    ];
+
     $data = [
-        "amount" => $request->input('amount'),
+        "amount" => $course->price,
         "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $billingData,
         "payment_methods" => $integrationIds,
-        "items" => $request->input('items', []),
+        "items" => $items,
         "special_reference" => uniqid('ref_', true),
         "expiration" => $request->input('expiration', 3600),
         "notification_url" => $request->input('notification_url'),
@@ -129,16 +147,13 @@ public function createIntention(Request $request)
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
         if ($response->successful()) {
-            $paymentMethodId = $request->input('selected_method_index', 0);
-            $integrationIds = $request->input('payment_methods', []);
-            $selectedIntegrationId = $integrationIds[$paymentMethodId] ?? null;
-
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
                 'paymob_order_id' => $response->json()['id'],
                 'payment_method_id' => $paymentMethod->id,
                 'user_id' => $user->id,
-                'price' => $data['amount'],
+                'course_id' => $course->id,
+                'price' => $course->price,
                 'currency' => $data['currency'],
                 'status' => 'pending',
             ]);
@@ -150,16 +165,16 @@ public function createIntention(Request $request)
         } else {
             return response()->json([
                 'error' => 'Request failed',
-                'details' => $response->json()
-            ], 400);
+                'details' => $response->json(),
+            ]);
         }
-
     } catch (\Exception $e) {
         return response()->json([
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ], 500);
     }
 }
+
 
 
 
