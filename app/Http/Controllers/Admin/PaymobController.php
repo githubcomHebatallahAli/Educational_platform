@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 
 
 
+use App\Models\PaymobMethod;
 use Illuminate\Http\Request;
 use App\Models\PaymobTransaction;
 use App\Http\Controllers\Controller;
@@ -73,11 +74,33 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
+    $integrationIds = $request->input('payment_methods', []); // مصفوفة طرق الدفع
+    $selectedIndex = $request->input('selected_method_index', 0); // الفهرس الافتراضي هو 0
+
+    // التحقق من صحة الفهرس
+    if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
+        return response()->json([
+            'error' => 'Invalid selected_method_index. Please choose a valid index.',
+        ], 400);
+    }
+
+    // استخراج القيمة بناءً على الفهرس
+    $paymentMethodId = $integrationIds[$selectedIndex];
+
+    // التحقق من وجود integration_id في قاعدة البيانات
+    $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
+
+    if (!$paymentMethod) {
+        return response()->json([
+            'error' => 'Invalid payment method ID (integration_id).',
+        ], 400);
+    }
+
     $data = [
         "amount" => $request->input('amount'),
         "currency" => $request->input('currency', 'EGP'),
         "billing_data" => $request->input('billing_data'),
-        "payment_methods" => $request->input('payment_methods', []),
+        "payment_methods" => $integrationIds,
         "items" => $request->input('items', []),
         "special_reference" => uniqid('ref_', true),
         "expiration" => $request->input('expiration', 3600),
@@ -92,11 +115,11 @@ public function createIntention(Request $request)
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
         if ($response->successful()) {
-
+            // إنشاء المعاملة
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
                 'paymob_order_id' => $response->json()['id'],
-                'payment_method_id' => $request->input('payment_method_id'),
+                'payment_method_id' => $paymentMethod->id, // استخدام الـ id الخاص بطريقة الدفع
                 'user_id' => $request->user()->id ?? null,
                 'price' => $data['amount'],
                 'currency' => $data['currency'],
@@ -110,16 +133,16 @@ public function createIntention(Request $request)
         } else {
             return response()->json([
                 'error' => 'Request failed',
-                'details' => $response->json()
+                'details' => $response->json(),
             ], 400);
         }
-
     } catch (\Exception $e) {
         return response()->json([
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ], 500);
     }
 }
+
 
 
 
