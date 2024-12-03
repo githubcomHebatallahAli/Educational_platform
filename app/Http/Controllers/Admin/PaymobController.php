@@ -75,45 +75,41 @@ public function getPaymobSecretKey(Request $request)
 
 public function createIntention(Request $request)
 {
-    // الحصول على المستخدم المصادق عليه من خلال الحارس 'api'
     $user = auth()->guard('api')->user();
     if (!$user) {
-        return response()->json(['error' => 'User not authenticated.'], 401);
+        return response()->json([
+            'error' => 'User not authenticated.'
+        ]);
     }
 
-    // الحصول على طرق الدفع والفهرس المختار
     $integrationIds = $request->input('payment_methods', []);
     $selectedIndex = $request->input('selected_method_index', 0);
 
-    // التحقق من صحة الفهرس
     if (!is_numeric($selectedIndex) || !isset($integrationIds[$selectedIndex])) {
         return response()->json([
             'error' => 'Invalid selected_method_index. Please choose a valid index.',
-        ], 400);
+        ]);
     }
 
-    // استخراج القيمة بناءً على الفهرس
     $paymentMethodId = $integrationIds[$selectedIndex];
     $paymentMethod = PaymobMethod::where('integration_id', $paymentMethodId)->first();
 
     if (!$paymentMethod) {
         return response()->json([
             'error' => 'Invalid payment method ID (integration_id).',
-        ], 400);
+        ]);
     }
 
-    // الحصول على الكورس
+
     $course = Course::find($request->input('course_id'));
     if (!$course) {
         return response()->json([
             'error' => 'Course not found.',
-        ], 404);
+        ]);
     }
 
-    // تحويل السعر إلى سنت
-    $priceInCents = $course->price * 100;
 
-    // تعبئة بيانات الفوترة من المستخدم
+    $priceInCents = $course->price * 100;
     $billingData = $request->input('billing_data', [
         'first_name' => $user->name ?? 'Unknown',
         'last_name' => 'N/A',
@@ -121,7 +117,6 @@ public function createIntention(Request $request)
         'phone_number' => $user->studentPhoNum ?? 'Unknown',
     ]);
 
-    // بيانات الدفع
     $data = [
         "amount" => $priceInCents,
         "currency" => $request->input('currency', 'EGP'),
@@ -141,18 +136,15 @@ public function createIntention(Request $request)
     ];
 
     try {
-        // إرسال الطلب إلى Paymob API
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('paymob.secret_key'),
             'Content-Type' => 'application/json',
         ])->post('https://accept.paymob.com/v1/intention/', $data);
 
-        // التحقق من نجاح الاستجابة
         if ($response->successful()) {
-            // استخراج الـ Order ID من الاستجابة
+
             $paymobOrderId = $response->json()['intention_order_id']; // استخدم المفتاح الصحيح
 
-            // إنشاء سجل المعاملة في قاعدة البيانات
             $transaction = PaymobTransaction::create([
                 'special_reference' => $data['special_reference'],
                 'paymob_order_id' => $paymobOrderId, // تخزين الـ Order ID
@@ -164,7 +156,6 @@ public function createIntention(Request $request)
                 'status' => 'pending',
             ]);
 
-            // إعادة الاستجابة مع تفاصيل المعاملة
             return response()->json([
                 'transaction' => $transaction,
                 'response' => $response->json(),
@@ -173,7 +164,7 @@ public function createIntention(Request $request)
             return response()->json([
                 'error' => 'Request failed',
                 'details' => $response->json(),
-            ], 400);
+            ]);
         }
     } catch (\Exception $e) {
         return response()->json([
