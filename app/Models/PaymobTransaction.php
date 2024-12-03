@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class PaymobTransaction extends Model
 {
     protected $fillable = [
-        'merchant_order_reference',
         'special_reference',
         'paymob_order_id',
         'payment_method_id',
