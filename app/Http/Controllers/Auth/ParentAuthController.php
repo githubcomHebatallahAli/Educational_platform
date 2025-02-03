@@ -36,22 +36,15 @@ class ParentAuthController extends Controller
             return response()->json(['message' => 'Invalid data'], 422);
 
         }
-        // $parent = auth()->guard('parnt')->user();
+       
 
         return $this->createNewToken($token);
     }
 
-    /**
-     * Register an Admin.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    // Register an Admin.
+
     public function register(ParentRegisterRequest $request)
     {
-        // if (!Gate::allows('create', Parnt::class)) {
-        //     return response()->json(['message' => 'Unauthorized'], 403);
-        // }
+
 
         $validator = Validator::make($request->all(), $request->rules());
 

@@ -52,6 +52,16 @@ return [
             'throw' => false,
         ],
 
+        'bunnycdn' => [
+            'driver' => 's3',
+            // 'driver' => 'bunnycdn',
+            'api_key' => env('BUNNY_CDN_KEY'),
+            'api_secret' => env('BUNNY_CDN_SECRET'),
+            'region' => env('BUNNY_CDN_REGION', 'ny'), // افتراض المنطقة إذا لم يتم تحديدها
+            'bucket' => env('BUNNY_CDN_BUCKET_NAME'),
+            'url' => env('BUNNY_CDN_URL'),
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

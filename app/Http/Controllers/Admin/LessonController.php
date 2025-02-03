@@ -45,25 +45,48 @@ class LessonController extends Controller
             "duration" => $request->duration,
         ]);
 
-        if ($request->hasFile('poster')) {
-            $posterPath = $request->file('poster')->store(Lesson::storageFolder);
-            $Lesson->poster = $posterPath;
-        }
+        // if ($request->hasFile('poster')) {
+        //     $posterPath = $request->file('poster')->store(Lesson::storageFolder);
+        //     $Lesson->poster = $posterPath;
+        // }
 
+
+        // if ($request->hasFile('video')) {
+        //     $videoPath = $request->file('video')->store(Lesson::storageFolder);
+        //     $Lesson->video = $videoPath;
+
+        // }
+
+
+        // if ($request->hasFile('ExplainPdf')) {
+        //     $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+        //     $Lesson->ExplainPdf = $ExplainPdfPath;
+
+        //     $pdfParser = new PdfParser();
+        //     $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+        //     $numberOfPages = count($pdf->getPages());
+
+
+        if ($request->hasFile('poster')) {
+            $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
+            $Lesson->poster = $posterPath;
+            $Lesson->poster_url = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
+        }
 
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store(Lesson::storageFolder);
+            $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             $Lesson->video = $videoPath;
-
+            $Lesson->video_url = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
         }
 
-
         if ($request->hasFile('ExplainPdf')) {
-            $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+            $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
             $Lesson->ExplainPdf = $ExplainPdfPath;
+            $Lesson->ExplainPdf_url = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
 
+            // قراءة عدد صفحات PDF
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+            $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
 
             $Lesson->numOfPdf = $numberOfPages;
@@ -89,78 +112,6 @@ class LessonController extends Controller
         ], 500);
     }
     }
-
-//     public function create(LessonRequest $request)
-// {
-//     ini_set('memory_limit', '2G');
-//     $this->authorize('manage_users');
-
-//     try {
-//         $Lesson = Lesson::create([
-//             "grade_id" => $request->grade_id,
-//             "lec_id" => $request->lec_id,
-//             "course_id" => $request->course_id,
-//             "title" => $request->title,
-//             "description" => $request->description,
-//         ]);
-
-//         // تخزين الصورة
-//         if ($request->hasFile('poster')) {
-//             $posterPath = $request->file('poster')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
-//             $Lesson->poster = Storage::url($posterPath); // استخدام Storage لعرض الرابط
-//         }
-
-//         // تخزين الفيديو
-//         if ($request->hasFile('video')) {
-//             $videoPath = $request->file('video')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
-//             $videoFullPath = public_path($videoPath);
-
-//             $getID3 = new getID3;
-//             $fileInfo = $getID3->analyze($videoFullPath);
-
-//             if (isset($fileInfo['playtime_string'])) {
-//                 $duration = $fileInfo['playtime_string'];
-//             } else {
-//                 $duration = '00:00:00';
-//             }
-
-//             $Lesson->video = Storage::url($videoPath); // استخدام Storage لعرض الرابط
-//             $Lesson->duration = $duration;
-//         }
-
-//         // تخزين PDF
-//         if ($request->hasFile('ExplainPdf')) {
-//             $ExplainPdfPath = $request->file('ExplainPdf')->store('uploads', 'bunny'); // استخدام 'bunny' كسائق
-//             $Lesson->ExplainPdf = Storage::url($ExplainPdfPath); // استخدام Storage لعرض الرابط
-
-//             $pdfParser = new PdfParser();
-//             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-//             $numberOfPages = count($pdf->getPages());
-
-//             $Lesson->numOfPdf = $numberOfPages;
-//         }
-
-//         $Lesson->save();
-//         $course = $Lesson->course;
-//         $course->numOfLessons = $course->lessons()->count();
-//         $course->save();
-
-//         return response()->json([
-//             'data' => new LessonResource($Lesson),
-//             'message' => "Lesson Created Successfully."
-//         ]);
-
-//     } catch (\Exception $e) {
-//         Log::error($e->getMessage());
-
-//         return response()->json([
-//             'error' => 'An error occurred while creating the lesson.',
-//             'details' => $e->getMessage()
-//         ], 500);
-//     }
-// }
-
-
 
 
 
@@ -278,30 +229,63 @@ class LessonController extends Controller
 
         if ($request->hasFile('poster')) {
             if ($Lesson->poster) {
-                Storage::disk('public')->delete($Lesson->poster);
+                Storage::disk('bunnycdn')->delete($Lesson->poster);
             }
-            $posterPath = $request->file('poster')->store('Lessons', 'public');
+            $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             $Lesson->poster = $posterPath;
+            $Lesson->poster_url = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
         }
 
+        // تحديث الفيديو إذا تم رفع واحد جديد
         if ($request->hasFile('video')) {
             if ($Lesson->video) {
-                Storage::disk('public')->delete($Lesson->video);
+                Storage::disk('bunnycdn')->delete($Lesson->video);
             }
-            $videoPath = $request->file('video')->store('Lessons', 'public');
+            $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             $Lesson->video = $videoPath;
+            $Lesson->video_url = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
         }
 
+        // تحديث ملف PDF إذا تم رفع واحد جديد
         if ($request->hasFile('ExplainPdf')) {
             if ($Lesson->ExplainPdf) {
-                Storage::disk('public')->delete($Lesson->ExplainPdf);
+                Storage::disk('bunnycdn')->delete($Lesson->ExplainPdf);
             }
-            $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'public');
+            $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
             $Lesson->ExplainPdf = $ExplainPdfPath;
+            $Lesson->ExplainPdf_url = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
 
+            // قراءة عدد صفحات PDF
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+            $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
+
+        // if ($request->hasFile('poster')) {
+        //     if ($Lesson->poster) {
+        //         Storage::disk('public')->delete($Lesson->poster);
+        //     }
+        //     $posterPath = $request->file('poster')->store('Lessons', 'public');
+        //     $Lesson->poster = $posterPath;
+        // }
+
+        // if ($request->hasFile('video')) {
+        //     if ($Lesson->video) {
+        //         Storage::disk('public')->delete($Lesson->video);
+        //     }
+        //     $videoPath = $request->file('video')->store('Lessons', 'public');
+        //     $Lesson->video = $videoPath;
+        // }
+
+        // if ($request->hasFile('ExplainPdf')) {
+        //     if ($Lesson->ExplainPdf) {
+        //         Storage::disk('public')->delete($Lesson->ExplainPdf);
+        //     }
+        //     $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'public');
+        //     $Lesson->ExplainPdf = $ExplainPdfPath;
+
+        //     $pdfParser = new PdfParser();
+        //     $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+        //     $numberOfPages = count($pdf->getPages());
 
             $Lesson->numOfPdf = $numberOfPages;
         }
