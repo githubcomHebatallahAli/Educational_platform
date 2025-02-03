@@ -71,7 +71,7 @@ class LessonController extends Controller
         if ($request->hasFile('poster')) {
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             $Lesson->poster = $posterPath;
-            $Lesson->poster_url = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
+            $Lesson->poster = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
         }
 
         if ($request->hasFile('video')) {
