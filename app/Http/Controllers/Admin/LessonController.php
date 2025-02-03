@@ -77,13 +77,13 @@ class LessonController extends Controller
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             $Lesson->video = $videoPath;
-            $Lesson->video_url = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
+            $Lesson->video = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
         }
 
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
             $Lesson->ExplainPdf = $ExplainPdfPath;
-            $Lesson->ExplainPdf_url = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
+            $Lesson->ExplainPdf = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
 
             // قراءة عدد صفحات PDF
             $pdfParser = new PdfParser();
