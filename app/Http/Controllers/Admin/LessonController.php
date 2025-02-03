@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Http\Requests\Admin\LessonRequest;
 use App\Http\Resources\Admin\LessonResource;
+use Smalot\PdfParser\Parser;
 
 
 
@@ -115,85 +116,6 @@ class LessonController extends Controller
 
 
 
-//         public function assignStudentsToLesson(StudentLessonRequest $request)
-//         {
-//             $this->authorize('manage_users');
-
-
-// $Lesson = Lesson::with('students.user')->find($request->lesson_id);
-
-// $paidStudentIds = Student::whereIn('id', $request->student_ids)
-//     ->where('isPay', 'pay')
-//     ->pluck('id')
-//     ->toArray();
-
-// $unpaidStudentIds = array_diff($request->student_ids, $paidStudentIds);
-
-// $syncResult = $Lesson->students()->sync($paidStudentIds);
-
-// if (!empty($syncResult['attached']) || !empty($syncResult['updated'])) {
-
-//     $paidStudents = Student::with('user')
-//         ->whereIn('id', $paidStudentIds)
-//         ->get();
-
-
-//     if (!empty($unpaidStudentIds)) {
-//         $unpaidStudents = Student::with('user')
-//             ->whereIn('id', $unpaidStudentIds)
-//             ->get();
-
-//         return response()->json([
-//             'message' => 'Only students who have paid were added to the Lesson successfully.',
-//             'paid_students' => StudentResource::collection($paidStudents),
-//             'error' => 'Some students have not paid.',
-//             'unpaid_students' => StudentResource::collection($unpaidStudents),
-//         ], 400);
-//     }
-
-//     return response()->json([
-//         'message' => 'Only students who have paid were added to the Lesson successfully.',
-//         'paid_students' => StudentResource::collection($paidStudents),
-//     ]);
-// } else {
-//     return response()->json([
-//         'error' => 'Failed to add paid students to the lesson.',
-//     ], 500);
-// }
-
-//         }
-
-//         public function revokeAllStudentsFromLesson(Request $request)
-// {
-
-//     $this->authorize('manage_users');
-//     $validator = Validator::make($request->all(), [
-//         'lesson_id' => 'required|exists:lessons,id',
-//     ]);
-
-//     // إذا كانت البيانات المدخلة غير صحيحة
-//     if ($validator->fails()) {
-//         return response()->json([
-//             'errors' => $validator->errors(),
-//         ], 422);
-//     }
-
-//     $Lesson = Lesson::with('students')->find($request->lesson_id);
-//     if (!$Lesson) {
-//         return response()->json([
-//             'error' => 'Lesson not found.',
-//         ], 404);
-//     }
-
-//     $Lesson->students()->detach();
-
-//     return response()->json([
-//         'message' => 'All students have been removed from the Lesson successfully.',
-//     ], 200);
-// }
-
-
-
     public function edit(string $id)
     {
         $this->authorize('manage_users');
@@ -254,11 +176,17 @@ class LessonController extends Controller
             $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
             $Lesson->ExplainPdf = $ExplainPdfPath;
             $Lesson->ExplainPdf_url = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
+            try {
+                $pdfParser = new PdfParser();
+                $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
+                $numberOfPages = count($pdf->getPages());
+                $Lesson->numOfPdf = $numberOfPages;
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Error processing PDF: ' . $e->getMessage()
+                ], 500);
+            }
 
-            // قراءة عدد صفحات PDF
-            $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
-            $numberOfPages = count($pdf->getPages());
 
         // if ($request->hasFile('poster')) {
         //     if ($Lesson->poster) {
@@ -360,65 +288,7 @@ public function forceDelete(string $id){
     ]);
 }
 
-// public function assignExamToLesson(ExamLessonRequest $request)
-// {
-//     $this->authorize('manage_users');
 
-//     $lesson = Lesson::with('exams')->find($request->lesson_id);
-//     if (!$lesson) {
-//         return response()->json([
-//             'message' => 'Lesson not found'
-//         ], 404);
-//     }
-
-//     $exam = Exam::find($request->exam_id);
-//     if (!$exam) {
-//         return response()->json([
-//             'message' => 'Exam not found'
-//         ], 404);
-//     }
-
-
-//     $lesson->exams()->attach($exam->id);
-//     $lesson->load('exams');
-
-//     return response()->json([
-//         'data' => new LessonResource($lesson),
-//         'message' => 'Exam added to Lesson successfully'
-//     ]);
-// }
-
-// public function revokeExamFromLesson(ExamLessonRequest $request)
-// {
-
-//     $this->authorize('manage_users');
-
-
-//     $lesson = Lesson::with('exams')->find($request->lesson_id);
-//     if (!$lesson) {
-//         return response()->json([
-//             'message' => 'Lesson not found'
-//         ], 404);
-//     }
-
-
-//     $exam = Exam::find($request->exam_id);
-//     if (!$exam) {
-//         return response()->json([
-//             'message' => 'Exam not found'
-//         ], 404);
-//     }
-
-//     $lesson->exams()->detach($request->exam_id);
-
-//     $lesson->load('exams');
-
-
-//     return response()->json([
-//         'data' => new LessonResource($lesson),
-//         'message' => 'Exam revoked from Lesson successfully'
-//     ]);
-// }
 
 
 }
