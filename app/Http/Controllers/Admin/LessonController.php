@@ -95,6 +95,14 @@ public function create(LessonRequest $request)
     $this->authorize('manage_users');
 
     try {
+        // اختبار الاتصال بـ StreamBunny
+        $client = new Client();
+        try {
+            $client->get('https://api.streambunny.com');
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to connect to StreamBunny: " . $e->getMessage());
+        }
+
         // إنشاء الدرس
         $lesson = Lesson::create([
             "grade_id" => $request->grade_id,
@@ -116,7 +124,6 @@ public function create(LessonRequest $request)
             $videoFile = $request->file('video');
 
             // إعداد طلب HTTP لرفع الفيديو إلى StreamBunny
-            $client = new Client();
             $uploadUrl = "https://api.streambunny.com/v1/upload";
 
             $response = $client->post($uploadUrl, [
