@@ -141,6 +141,7 @@ public function create(LessonRequest $request)
 
         // فحص هل يتم رفع الملفات أم لا
         if ($request->hasFile('poster')) {
+            dd($request->file('poster'));
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             if ($posterPath) {
                 $Lesson->poster = $posterPath;
