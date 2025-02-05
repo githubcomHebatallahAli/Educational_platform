@@ -122,14 +122,28 @@ class LessonController extends Controller
 //             'details' => $e->getMessage()
 //         ], 500);
 //     }
-//     }
-
-public function create(LessonRequest $request)
+//     }public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
     try {
+        // اختبار الاتصال بـ BunnyCDN
+        $disk = Storage::disk('bunnycdn');
+        $testFile = 'test.txt';
+        $disk->put($testFile, 'Hello, BunnyCDN!');
+
+        if ($disk->exists($testFile)) {
+            Log::info('Successfully connected to BunnyCDN and uploaded a test file.');
+            $disk->delete($testFile); // حذف الملف الاختباري بعد التأكد من نجاح العملية
+        } else {
+            Log::error('Failed to upload test file to BunnyCDN.');
+            return response()->json([
+                'error' => 'Failed to connect to BunnyCDN.'
+            ], 500);
+        }
+
+        // إنشاء الدرس
         $Lesson = Lesson::create([
             "grade_id" => $request->grade_id,
             "lec_id" => $request->lec_id,
@@ -139,8 +153,8 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
+        // رفع ملف الصورة (Poster)
         if ($request->hasFile('poster')) {
-            // dd($request->file('poster'));
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             if ($posterPath) {
                 $Lesson->poster = $posterPath;
@@ -151,8 +165,7 @@ public function create(LessonRequest $request)
             Log::error('Poster file not detected in request');
         }
 
-
-
+        // رفع ملف الفيديو (Video)
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             if ($videoPath) {
@@ -164,6 +177,7 @@ public function create(LessonRequest $request)
             Log::error('Video file not detected in request');
         }
 
+        // رفع ملف الـ PDF (ExplainPdf)
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             if ($ExplainPdfPath) {
@@ -181,6 +195,7 @@ public function create(LessonRequest $request)
 
         $Lesson->save();
 
+        // تحديث عدد الدروس في الكورس
         $course = $Lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
@@ -199,6 +214,7 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
 
 
 
