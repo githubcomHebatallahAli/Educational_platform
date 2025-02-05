@@ -123,13 +123,11 @@ public function create(LessonRequest $request)
             if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
                 throw new \Exception('Video file size exceeds the maximum limit of 2GB.');
             }
-
-            // إعداد طلب HTTP لرفع الفيديو إلى Bunny.net
-            $uploadUrl = "https://video.bunnycdn.com/library/" . config('services.bunny.library_id') . "/videos";
+            $uploadUrl = "https://video.bunnycdn.com/vod/library/" . config('services.bunny.library_id') . "/videos";
 
             $response = $client->post($uploadUrl, [
                 'headers' => [
-                    'AccessKey' => config('services.bunny.api_key'),
+                    'Authorization' => 'Bearer ' . config('services.bunny.api_key'),
                 ],
                 'multipart' => [
                     [
