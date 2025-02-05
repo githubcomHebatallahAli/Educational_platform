@@ -57,7 +57,7 @@ return [
             // 'driver' => 'bunnycdn',
             'api_key' => env('BUNNY_CDN_KEY'),
             'api_secret' => env('BUNNY_CDN_SECRET'),
-            'region' => env('BUNNY_CDN_REGION', 'ny'), // افتراض المنطقة إذا لم يتم تحديدها
+            'region' => env('BUNNY_CDN_REGION', 'uk'), // افتراض المنطقة إذا لم يتم تحديدها
             'bucket' => env('BUNNY_CDN_BUCKET_NAME'),
             'url' => env('BUNNY_CDN_URL'),
         ],
