@@ -71,24 +71,34 @@ class LessonController extends Controller
         if ($request->hasFile('poster')) {
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             $Lesson->poster = $posterPath;
-            $Lesson->poster = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
+            $Lesson->poster_url = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
         }
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             $Lesson->video = $videoPath;
-            $Lesson->video = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
+            $Lesson->video_url = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
         }
 
-        if ($request->hasFile('ExplainPdf')) {
-            $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
-            $Lesson->ExplainPdf = $ExplainPdfPath;
-            $Lesson->ExplainPdf = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
+        // if ($request->hasFile('ExplainPdf')) {
+        //     $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
+        //     $Lesson->ExplainPdf = $ExplainPdfPath;
+        //     $Lesson->ExplainPdf = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
 
-            // قراءة عدد صفحات PDF
-            $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
-            $numberOfPages = count($pdf->getPages());
+        //     // قراءة عدد صفحات PDF
+        //     $pdfParser = new PdfParser();
+        //     $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
+
+        //     $numberOfPages = count($pdf->getPages());
+
+
+         if ($request->hasFile('ExplainPdf')) {
+             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+             $Lesson->ExplainPdf = $ExplainPdfPath;
+
+             $pdfParser = new PdfParser();
+             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+             $numberOfPages = count($pdf->getPages());
 
             $Lesson->numOfPdf = $numberOfPages;
         }
