@@ -141,26 +141,34 @@ public function create(LessonRequest $request)
 
         if ($request->hasFile('poster')) {
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
-            $Lesson->poster = $posterPath;
+            if ($posterPath) {
+                $Lesson->poster = $posterPath;
+            }
         }
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
-            $Lesson->video = $videoPath;
+            if ($videoPath) {
+                $Lesson->video = $videoPath;
+            }
         }
 
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
-            $Lesson->ExplainPdf = $ExplainPdfPath;
+            if ($ExplainPdfPath) {
+                $Lesson->ExplainPdf = $ExplainPdfPath;
 
-            $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-            $numberOfPages = count($pdf->getPages());
-
-            $Lesson->numOfPdf = $numberOfPages;
+                // قراءة عدد صفحات PDF
+                $pdfParser = new PdfParser();
+                $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+                $Lesson->numOfPdf = count($pdf->getPages());
+            }
         }
 
+        // تأكد من تحديث الكائن قبل الحفظ
         $Lesson->save();
+
+        // تحديث عدد الدروس في الكورس
         $course = $Lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
@@ -179,6 +187,8 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
+
 
 
 
