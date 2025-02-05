@@ -123,7 +123,8 @@ class LessonController extends Controller
 //         ], 500);
 //     }
 //     }public function create(LessonRequest $request)
-{
+public function create(LessonRequest $request)
+    {
     ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
