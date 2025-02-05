@@ -139,18 +139,27 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
+        // فحص هل يتم رفع الملفات أم لا
         if ($request->hasFile('poster')) {
             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
             if ($posterPath) {
                 $Lesson->poster = $posterPath;
+            } else {
+                Log::error('Poster upload failed');
             }
+        } else {
+            Log::error('Poster file not detected in request');
         }
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
             if ($videoPath) {
                 $Lesson->video = $videoPath;
+            } else {
+                Log::error('Video upload failed');
             }
+        } else {
+            Log::error('Video file not detected in request');
         }
 
         if ($request->hasFile('ExplainPdf')) {
@@ -162,7 +171,11 @@ public function create(LessonRequest $request)
                 $pdfParser = new PdfParser();
                 $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
                 $Lesson->numOfPdf = count($pdf->getPages());
+            } else {
+                Log::error('ExplainPdf upload failed');
             }
+        } else {
+            Log::error('ExplainPdf file not detected in request');
         }
 
         // تأكد من تحديث الكائن قبل الحفظ
