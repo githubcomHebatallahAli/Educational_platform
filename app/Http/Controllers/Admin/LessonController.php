@@ -115,23 +115,19 @@ public function create(LessonRequest $request)
             $lesson->poster = $posterPath;
         }
 
-        // رفع الفيديو إلى Bunny.net إذا وجد
         if ($request->hasFile('video')) {
             $videoFile = $request->file('video');
 
-            // التحقق من حجم الفيديو (مثال: 2GB كحد أقصى)
+            // التحقق من حجم الفيديو (حد أقصى 2 جيجابايت)
             if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
-                throw new \Exception('Video file size exceeds the maximum limit of 2GB.');
+                throw new \Exception('حجم الفيديو يتجاوز الحد المسموح به (2 جيجابايت).');
             }
 
             $libraryId = config('services.bunny.library_id');
-            if (!$libraryId) {
-                throw new \Exception('BunnyCDN library_id is missing from configuration.');
-            }
-
             $apiKey = config('services.bunny.api_key');
-            if (!$apiKey) {
-                throw new \Exception('BunnyCDN API key is missing from configuration.');
+
+            if (!$libraryId || !$apiKey) {
+                throw new \Exception('معرف المكتبة أو مفتاح API مفقود في الإعدادات.');
             }
 
             // إنشاء فيديو جديد في Bunny Stream
@@ -149,11 +145,11 @@ public function create(LessonRequest $request)
             $createVideoData = json_decode($createVideoResponse->getBody(), true);
             $videoId = $createVideoData['guid'];
 
-            // توليد التوقيع المطلوب لرفع الفيديو
+            // إنشاء التوقيع المطلوب للرفع
             $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
             $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
 
-            // رفع الفيديو باستخدام TUS
+            // تهيئة عميل TUS
             $upload = new \tusphp\Tus\Client('https://video.bunnycdn.com/tusupload');
             $upload->setKey($signature);
             $upload->setMetadata([
@@ -166,13 +162,28 @@ public function create(LessonRequest $request)
             ]);
 
             $upload->file($videoFile->getRealPath(), $request->title);
-            $upload->upload();
 
-            // حفظ رابط الفيديو من Bunny.net في قاعدة البيانات
+            // آلية إعادة المحاولة
+            $retryCount = 0;
+            $maxRetries = 3; // الحد الأقصى لعدد المحاولات
+            $retryDelay = 5000; // انتظار 5 ثواني بين المحاولات
+
+            while ($retryCount < $maxRetries) {
+                try {
+                    $upload->upload();
+                    break; // الخروج من الحلقة إذا نجحت العملية
+                } catch (\Exception $e) {
+                    $retryCount++;
+                    if ($retryCount >= $maxRetries) {
+                        throw new \Exception('فشل رفع الفيديو بعد عدة محاولات: ' . $e->getMessage());
+                    }
+                    usleep($retryDelay * 1000); // الانتظار قبل المحاولة التالية
+                }
+            }
+
+            // حفظ رابط الفيديو في قاعدة البيانات
             $lesson->video = "https://video.bunnycdn.com/play/{$libraryId}/{$videoId}";
         }
-
-        // رفع ملف الـ PDF إذا وجد
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $lesson->ExplainPdf = $ExplainPdfPath;
