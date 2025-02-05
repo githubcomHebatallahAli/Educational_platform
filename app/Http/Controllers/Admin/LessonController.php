@@ -123,34 +123,53 @@ public function create(LessonRequest $request)
             if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
                 throw new \Exception('Video file size exceeds the maximum limit of 2GB.');
             }
+
             $libraryId = config('services.bunny.library_id');
-if (!$libraryId) {
-    throw new \Exception('BunnyCDN library_id is missing from configuration.');
-}
+            if (!$libraryId) {
+                throw new \Exception('BunnyCDN library_id is missing from configuration.');
+            }
 
-$uploadUrl = "https://video.bunnycdn.com/vod/library/{$libraryId}/videos";
+            $apiKey = config('services.bunny.api_key');
+            if (!$apiKey) {
+                throw new \Exception('BunnyCDN API key is missing from configuration.');
+            }
 
-            $response = $client->post($uploadUrl, [
+            // إنشاء فيديو جديد في Bunny Stream
+            $createVideoUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos";
+            $createVideoResponse = $client->post($createVideoUrl, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . config('services.bunny.api_key'),
+                    'AccessKey' => $apiKey,
+                    'Content-Type' => 'application/json',
                 ],
-                'multipart' => [
-                    [
-                        'name' => 'file',
-                        'contents' => fopen($videoFile->getRealPath(), 'r'),
-                        'filename' => $videoFile->getClientOriginalName(),
-                    ],
+                'json' => [
+                    'title' => $request->title,
                 ],
             ]);
 
-            $responseData = json_decode($response->getBody(), true);
+            $createVideoData = json_decode($createVideoResponse->getBody(), true);
+            $videoId = $createVideoData['guid'];
+
+            // توليد التوقيع المطلوب لرفع الفيديو
+            $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
+            $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
+
+            // رفع الفيديو باستخدام TUS
+            $upload = new \tusphp\Tus\Client('https://video.bunnycdn.com/tusupload');
+            $upload->setKey($signature);
+            $upload->setMetadata([
+                'filetype' => $videoFile->getMimeType(),
+                'title' => $request->title,
+                'AuthorizationSignature' => $signature,
+                'AuthorizationExpire' => $expirationTime,
+                'VideoId' => $videoId,
+                'LibraryId' => $libraryId,
+            ]);
+
+            $upload->file($videoFile->getRealPath(), $request->title);
+            $upload->upload();
 
             // حفظ رابط الفيديو من Bunny.net في قاعدة البيانات
-            if (isset($responseData['playbackUrl'])) {
-                $lesson->video = $responseData['playbackUrl'];
-            } else {
-                throw new \Exception('Failed to retrieve video URL from Bunny.net.');
-            }
+            $lesson->video = "https://video.bunnycdn.com/play/{$libraryId}/{$videoId}";
         }
 
         // رفع ملف الـ PDF إذا وجد
