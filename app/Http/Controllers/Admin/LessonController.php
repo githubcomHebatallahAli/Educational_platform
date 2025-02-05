@@ -139,21 +139,19 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
-        // // فحص هل يتم رفع الملفات أم لا
-        // if ($request->hasFile('poster')) {
-        //     dd($request->file('poster'));
-        //     $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
-        //     if ($posterPath) {
-        //         $Lesson->poster = $posterPath;
-        //     } else {
-        //         Log::error('Poster upload failed');
-        //     }
-        // } else {
-        //     Log::error('Poster file not detected in request');
-        // }
+        if ($request->hasFile('poster')) {
+            // dd($request->file('poster'));
+            $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
+            if ($posterPath) {
+                $Lesson->poster = $posterPath;
+            } else {
+                Log::error('Poster upload failed');
+            }
+        } else {
+            Log::error('Poster file not detected in request');
+        }
 
-        $posterPath = Storage::disk('bunnycdn')->putFile('Lessons', $request->file('poster'));
-        dd($posterPath);
+
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
@@ -171,7 +169,6 @@ public function create(LessonRequest $request)
             if ($ExplainPdfPath) {
                 $Lesson->ExplainPdf = $ExplainPdfPath;
 
-                // قراءة عدد صفحات PDF
                 $pdfParser = new PdfParser();
                 $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
                 $Lesson->numOfPdf = count($pdf->getPages());
@@ -182,10 +179,8 @@ public function create(LessonRequest $request)
             Log::error('ExplainPdf file not detected in request');
         }
 
-        // تأكد من تحديث الكائن قبل الحفظ
         $Lesson->save();
 
-        // تحديث عدد الدروس في الكورس
         $course = $Lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
