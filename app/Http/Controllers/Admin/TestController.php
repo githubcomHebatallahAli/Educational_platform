@@ -18,7 +18,7 @@ class TestController extends Controller
 
       $Tests = Test::get();
       return response()->json([
-          'data' => MainResource::colTesttion($Tests),
+          'data' => MainResource::collection($Tests),
           'message' => "Show All Tests Successfully."
       ]);
   }
@@ -93,7 +93,7 @@ class TestController extends Controller
     $this->authorize('manage_users');
 $categories=Test::onlyTrashed()->get();
 return response()->json([
-    'data' =>MainResource::colTesttion($categories),
+    'data' =>MainResource::collection($categories),
     'message' => "Show Deleted Categories Successfully."
 ]);
 }

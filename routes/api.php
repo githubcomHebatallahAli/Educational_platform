@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TestBunnyController;
+
 
 
 require __DIR__ . '/Apis/Auth/auth.php';
@@ -29,3 +32,7 @@ require __DIR__ . '/Apis/User/payment.php';
 require __DIR__ . '/Apis/User/showAll.php';
 require __DIR__ . '/Apis/User/result.php';
 require __DIR__ . '/Apis/Chat/chat.php';
+
+
+
+Route::get('/test-bunnycdn', [TestBunnyController::class, 'testBunnyCDNConnection']);
