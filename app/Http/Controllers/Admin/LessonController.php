@@ -123,7 +123,12 @@ public function create(LessonRequest $request)
             if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
                 throw new \Exception('Video file size exceeds the maximum limit of 2GB.');
             }
-            $uploadUrl = "https://video.bunnycdn.com/vod/library/" . config('services.bunny.library_id') . "/videos";
+            $libraryId = config('services.bunny.library_id');
+if (!$libraryId) {
+    throw new \Exception('BunnyCDN library_id is missing from configuration.');
+}
+
+$uploadUrl = "https://video.bunnycdn.com/vod/library/{$libraryId}/videos";
 
             $response = $client->post($uploadUrl, [
                 'headers' => [
