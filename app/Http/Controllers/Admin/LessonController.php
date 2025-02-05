@@ -139,18 +139,21 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
-        // فحص هل يتم رفع الملفات أم لا
-        if ($request->hasFile('poster')) {
-            dd($request->file('poster'));
-            $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
-            if ($posterPath) {
-                $Lesson->poster = $posterPath;
-            } else {
-                Log::error('Poster upload failed');
-            }
-        } else {
-            Log::error('Poster file not detected in request');
-        }
+        // // فحص هل يتم رفع الملفات أم لا
+        // if ($request->hasFile('poster')) {
+        //     dd($request->file('poster'));
+        //     $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
+        //     if ($posterPath) {
+        //         $Lesson->poster = $posterPath;
+        //     } else {
+        //         Log::error('Poster upload failed');
+        //     }
+        // } else {
+        //     Log::error('Poster file not detected in request');
+        // }
+
+        $posterPath = $request->file('poster')->store('Lessons', 'local');
+dd($posterPath);
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
