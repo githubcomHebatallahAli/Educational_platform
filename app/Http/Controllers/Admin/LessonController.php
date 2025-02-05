@@ -87,7 +87,10 @@ class LessonController extends Controller
 //             'details' => $e->getMessage()
 //         ], 500);
 //     }
+
+
 // }
+
 
 public function create(LessonRequest $request)
 {
@@ -189,6 +192,7 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
 
 
 
