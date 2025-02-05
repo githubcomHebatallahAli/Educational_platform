@@ -60,6 +60,7 @@ return [
             'region' => env('BUNNY_CDN_REGION', 'uk'), // افتراض المنطقة إذا لم يتم تحديدها
             'bucket' => env('BUNNY_CDN_BUCKET_NAME'),
             'url' => env('BUNNY_CDN_URL'),
+            'endpoint' => env('BUNNY_CDN_ENDPOINT'),
         ],
 
         's3' => [
