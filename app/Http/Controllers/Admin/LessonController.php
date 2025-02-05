@@ -96,13 +96,7 @@ public function create(LessonRequest $request)
     $this->authorize('manage_users');
 
     try {
-        // اختبار الاتصال بـ Bunny.net
         $client = new Client();
-        try {
-            $client->get('https://video.bunnycdn.com');
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to connect to Bunny.net: " . $e->getMessage());
-        }
 
         // إنشاء الدرس
         $lesson = Lesson::create([
@@ -116,13 +110,19 @@ public function create(LessonRequest $request)
 
         // رفع الصورة (Poster) إذا وجدت
         if ($request->hasFile('poster')) {
-            $posterPath = $request->file('poster')->store(Lesson::storageFolder);
+            $posterFile = $request->file('poster');
+            $posterPath = $posterFile->store(Lesson::storageFolder);
             $lesson->poster = $posterPath;
         }
 
         // رفع الفيديو إلى Bunny.net إذا وجد
         if ($request->hasFile('video')) {
             $videoFile = $request->file('video');
+
+            // التحقق من حجم الفيديو (مثال: 2GB كحد أقصى)
+            if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
+                throw new \Exception('Video file size exceeds the maximum limit of 2GB.');
+            }
 
             // إعداد طلب HTTP لرفع الفيديو إلى Bunny.net
             $uploadUrl = "https://video.bunnycdn.com/library/" . config('services.bunny.library_id') . "/videos";
@@ -177,8 +177,7 @@ public function create(LessonRequest $request)
         ]);
 
     } catch (\Exception $e) {
-        // تسجيل الخطأ في السجلات
-        Log::error($e->getMessage());
+        Log::error('Error creating lesson: ' . $e->getMessage());
 
         return response()->json([
             'error' => 'An error occurred while creating the lesson.',
