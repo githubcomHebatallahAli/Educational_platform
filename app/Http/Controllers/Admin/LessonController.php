@@ -6,13 +6,14 @@ use Log;
 
 
 use App\Models\Lesson;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Smalot\PdfParser\Parser;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Http\Requests\Admin\LessonRequest;
 use App\Http\Resources\Admin\LessonResource;
-use Smalot\PdfParser\Parser;
 
 
 
@@ -46,51 +47,15 @@ class LessonController extends Controller
 //             "duration" => $request->duration,
 //         ]);
 
-//         // if ($request->hasFile('poster')) {
-//         //     $posterPath = $request->file('poster')->store(Lesson::storageFolder);
-//         //     $Lesson->poster = $posterPath;
-//         // }
-
-
-//         // if ($request->hasFile('video')) {
-//         //     $videoPath = $request->file('video')->store(Lesson::storageFolder);
-//         //     $Lesson->video = $videoPath;
-
-//         // }
-
-
-//         // if ($request->hasFile('ExplainPdf')) {
-//         //     $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
-//         //     $Lesson->ExplainPdf = $ExplainPdfPath;
-
-//         //     $pdfParser = new PdfParser();
-//         //     $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-//         //     $numberOfPages = count($pdf->getPages());
-
-
 //         if ($request->hasFile('poster')) {
-//             $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
+//             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
 //             $Lesson->poster = $posterPath;
-//             $Lesson->poster_url = Storage::disk('bunnycdn')->url($posterPath); // الحصول على الرابط المباشر
 //         }
+
 
 //         if ($request->hasFile('video')) {
-//             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
+//             $videoPath = $request->file('video')->store(Lesson::storageFolder);
 //             $Lesson->video = $videoPath;
-//             $Lesson->video_url = Storage::disk('bunnycdn')->url($videoPath); // الحصول على الرابط المباشر
-//         }
-
-//         // if ($request->hasFile('ExplainPdf')) {
-//         //     $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'bunnycdn');
-//         //     $Lesson->ExplainPdf = $ExplainPdfPath;
-//         //     $Lesson->ExplainPdf = Storage::disk('bunnycdn')->url($ExplainPdfPath); // الحصول على الرابط المباشر
-
-//         //     // قراءة عدد صفحات PDF
-//         //     $pdfParser = new PdfParser();
-//         //     $pdf = $pdfParser->parseFile(Storage::disk('bunnycdn')->path($ExplainPdfPath));
-
-//         //     $numberOfPages = count($pdf->getPages());
-
 
 //          if ($request->hasFile('ExplainPdf')) {
 //              $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
@@ -114,7 +79,7 @@ class LessonController extends Controller
 //         ]);
 
 //     } catch (\Exception $e) {
-
+//         // تسجيل الخطأ في السجلات
 //         Log::error($e->getMessage());
 
 //         return response()->json([
@@ -122,30 +87,16 @@ class LessonController extends Controller
 //             'details' => $e->getMessage()
 //         ], 500);
 //     }
-//     }public function create(LessonRequest $request)
+// }
+
 public function create(LessonRequest $request)
-    {
+{
     ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
     try {
-        // اختبار الاتصال بـ BunnyCDN
-        $disk = Storage::disk('bunnycdn');
-        $testFile = 'test.txt';
-        $disk->put($testFile, 'Hello, BunnyCDN!');
-
-        if ($disk->exists($testFile)) {
-            Log::info('Successfully connected to BunnyCDN and uploaded a test file.');
-            $disk->delete($testFile); // حذف الملف الاختباري بعد التأكد من نجاح العملية
-        } else {
-            Log::error('Failed to upload test file to BunnyCDN.');
-            return response()->json([
-                'error' => 'Failed to connect to BunnyCDN.'
-            ], 500);
-        }
-
         // إنشاء الدرس
-        $Lesson = Lesson::create([
+        $lesson = Lesson::create([
             "grade_id" => $request->grade_id,
             "lec_id" => $request->lec_id,
             "course_id" => $request->course_id,
@@ -154,59 +105,75 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
-        // رفع ملف الصورة (Poster)
+        // رفع الصورة (Poster) إذا وجدت
         if ($request->hasFile('poster')) {
-            $posterPath = $request->file('poster')->store('Lessons', 'bunnycdn');
-            if ($posterPath) {
-                $Lesson->poster = $posterPath;
-            } else {
-                Log::error('Poster upload failed');
-            }
-        } else {
-            Log::error('Poster file not detected in request');
+            $posterPath = $request->file('poster')->store(Lesson::storageFolder);
+            $lesson->poster = $posterPath;
         }
 
-        // رفع ملف الفيديو (Video)
+        // رفع الفيديو إلى StreamBunny إذا وجد
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
-            if ($videoPath) {
-                $Lesson->video = $videoPath;
+            $videoFile = $request->file('video');
+
+            // إعداد طلب HTTP لرفع الفيديو إلى StreamBunny
+            $client = new Client();
+            $uploadUrl = "https://api.streambunny.com/v1/upload";
+
+            $response = $client->post($uploadUrl, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . config('services.streambunny.api_key'),
+                ],
+                'multipart' => [
+                    [
+                        'name' => 'project_id',
+                        'contents' => config('services.streambunny.project_id'),
+                    ],
+                    [
+                        'name' => 'file',
+                        'contents' => fopen($videoFile->getRealPath(), 'r'),
+                        'filename' => $videoFile->getClientOriginalName(),
+                    ],
+                ],
+            ]);
+
+            $responseData = json_decode($response->getBody(), true);
+
+            // حفظ رابط الفيديو من StreamBunny في قاعدة البيانات
+            if (isset($responseData['playback_url'])) {
+                $lesson->video = $responseData['playback_url'];
             } else {
-                Log::error('Video upload failed');
+                throw new \Exception('Failed to retrieve video URL from StreamBunny.');
             }
-        } else {
-            Log::error('Video file not detected in request');
         }
 
-        // رفع ملف الـ PDF (ExplainPdf)
+        // رفع ملف الـ PDF إذا وجد
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
-            if ($ExplainPdfPath) {
-                $Lesson->ExplainPdf = $ExplainPdfPath;
+            $lesson->ExplainPdf = $ExplainPdfPath;
 
-                $pdfParser = new PdfParser();
-                $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-                $Lesson->numOfPdf = count($pdf->getPages());
-            } else {
-                Log::error('ExplainPdf upload failed');
-            }
-        } else {
-            Log::error('ExplainPdf file not detected in request');
+            // تحليل ملف الـ PDF للحصول على عدد الصفحات
+            $pdfParser = new PdfParser();
+            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+            $numberOfPages = count($pdf->getPages());
+
+            $lesson->numOfPdf = $numberOfPages;
         }
 
-        $Lesson->save();
+        // حفظ التغييرات في الدرس
+        $lesson->save();
 
         // تحديث عدد الدروس في الكورس
-        $course = $Lesson->course;
+        $course = $lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
 
         return response()->json([
-            'data' => new LessonResource($Lesson),
+            'data' => new LessonResource($lesson),
             'message' => "Lesson Created Successfully."
         ]);
 
     } catch (\Exception $e) {
+        // تسجيل الخطأ في السجلات
         Log::error($e->getMessage());
 
         return response()->json([
@@ -215,6 +182,9 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
+
+
 
 
 
