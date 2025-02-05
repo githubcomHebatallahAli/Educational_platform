@@ -90,20 +90,18 @@ class LessonController extends Controller
 
 
 // }
-
-
 public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
     try {
-        // اختبار الاتصال بـ StreamBunny
+        // اختبار الاتصال بـ Bunny.net
         $client = new Client();
         try {
-            $client->get('https://api.streambunny.com');
+            $client->get('https://video.bunnycdn.com');
         } catch (\Exception $e) {
-            throw new \Exception("Failed to connect to StreamBunny: " . $e->getMessage());
+            throw new \Exception("Failed to connect to Bunny.net: " . $e->getMessage());
         }
 
         // إنشاء الدرس
@@ -122,22 +120,18 @@ public function create(LessonRequest $request)
             $lesson->poster = $posterPath;
         }
 
-        // رفع الفيديو إلى StreamBunny إذا وجد
+        // رفع الفيديو إلى Bunny.net إذا وجد
         if ($request->hasFile('video')) {
             $videoFile = $request->file('video');
 
-            // إعداد طلب HTTP لرفع الفيديو إلى StreamBunny
-            $uploadUrl = "https://api.streambunny.com/v1/upload";
+            // إعداد طلب HTTP لرفع الفيديو إلى Bunny.net
+            $uploadUrl = "https://video.bunnycdn.com/library/" . config('services.bunny.library_id') . "/videos";
 
             $response = $client->post($uploadUrl, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . config('services.streambunny.api_key'),
+                    'AccessKey' => config('services.bunny.api_key'),
                 ],
                 'multipart' => [
-                    [
-                        'name' => 'project_id',
-                        'contents' => config('services.streambunny.project_id'),
-                    ],
                     [
                         'name' => 'file',
                         'contents' => fopen($videoFile->getRealPath(), 'r'),
@@ -148,11 +142,11 @@ public function create(LessonRequest $request)
 
             $responseData = json_decode($response->getBody(), true);
 
-            // حفظ رابط الفيديو من StreamBunny في قاعدة البيانات
-            if (isset($responseData['playback_url'])) {
-                $lesson->video = $responseData['playback_url'];
+            // حفظ رابط الفيديو من Bunny.net في قاعدة البيانات
+            if (isset($responseData['playbackUrl'])) {
+                $lesson->video = $responseData['playbackUrl'];
             } else {
-                throw new \Exception('Failed to retrieve video URL from StreamBunny.');
+                throw new \Exception('Failed to retrieve video URL from Bunny.net.');
             }
         }
 
