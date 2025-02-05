@@ -152,8 +152,8 @@ public function create(LessonRequest $request)
         //     Log::error('Poster file not detected in request');
         // }
 
-        $posterPath = $request->file('poster')->store('Lessons', 'local');
-dd($posterPath);
+        $posterPath = Storage::disk('bunnycdn')->putFile('Lessons', $request->file('poster'));
+        dd($posterPath);
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('Lessons', 'bunnycdn');
