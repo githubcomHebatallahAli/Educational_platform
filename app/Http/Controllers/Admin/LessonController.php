@@ -149,6 +149,7 @@ public function create(LessonRequest $request)
             }
 
             $videoId = $createVideoData['guid'];
+            dd($createVideoData);
 
             // 2. **إنشاء التوقيع المطلوب للرفع**
             $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
