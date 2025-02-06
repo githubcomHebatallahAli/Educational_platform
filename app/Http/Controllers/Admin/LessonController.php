@@ -90,6 +90,7 @@ class LessonController extends Controller
 
 
 // }
+
 public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
@@ -130,7 +131,7 @@ public function create(LessonRequest $request)
                 throw new \Exception('معرف المكتبة أو مفتاح API مفقود في الإعدادات.');
             }
 
-            // إنشاء فيديو جديد في Bunny Stream
+            // 1. **إنشاء فيديو جديد في Bunny Stream**
             $createVideoUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos";
             $createVideoResponse = $client->post($createVideoUrl, [
                 'headers' => [
@@ -143,52 +144,47 @@ public function create(LessonRequest $request)
             ]);
 
             $createVideoData = json_decode($createVideoResponse->getBody(), true);
-            $videoId = $createVideoData['guid'];
-
-            // إنشاء التوقيع المطلوب للرفع
-            $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
-            $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
-
-            // تهيئة عميل TUS
-            $upload = new \tusphp\Tus\Client('https://video.bunnycdn.com/tusupload');
-            $upload->setKey($signature);
-            $upload->setMetadata([
-                'filetype' => $videoFile->getMimeType(),
-                'title' => $request->title,
-                'AuthorizationSignature' => $signature,
-                'AuthorizationExpire' => $expirationTime,
-                'VideoId' => $videoId,
-                'LibraryId' => $libraryId,
-            ]);
-
-            $upload->file($videoFile->getRealPath(), $request->title);
-
-            // آلية إعادة المحاولة
-            $retryCount = 0;
-            $maxRetries = 3; // الحد الأقصى لعدد المحاولات
-            $retryDelay = 5000; // انتظار 5 ثواني بين المحاولات
-
-            while ($retryCount < $maxRetries) {
-                try {
-                    $upload->upload();
-                    break; // الخروج من الحلقة إذا نجحت العملية
-                } catch (\Exception $e) {
-                    $retryCount++;
-                    if ($retryCount >= $maxRetries) {
-                        throw new \Exception('فشل رفع الفيديو بعد عدة محاولات: ' . $e->getMessage());
-                    }
-                    usleep($retryDelay * 1000); // الانتظار قبل المحاولة التالية
-                }
+            if (!isset($createVideoData['guid'])) {
+                throw new \Exception('فشل في إنشاء الفيديو على BunnyCDN.');
             }
 
-            // حفظ رابط الفيديو في قاعدة البيانات
+            $videoId = $createVideoData['guid'];
+
+            // 2. **إنشاء التوقيع المطلوب للرفع**
+            $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
+            $signature = hash('sha256', "{$libraryId}{$apiKey}{$expirationTime}{$videoId}");
+
+            // 3. **بدء رفع الفيديو باستخدام TUS Upload**
+            $tusUploadUrl = "https://video.bunnycdn.com/tusupload";
+            $videoStream = fopen($videoFile->getRealPath(), 'r');
+
+            $tusResponse = $client->request('POST', $tusUploadUrl, [
+                'headers' => [
+                    'AuthorizationSignature' => $signature,
+                    'AuthorizationExpire' => $expirationTime,
+                    'VideoId' => $videoId,
+                    'LibraryId' => $libraryId,
+                    'Tus-Resumable' => '1.0.0',
+                    'Upload-Length' => $videoFile->getSize(),
+                    'Content-Type' => 'application/offset+octet-stream',
+                ],
+                'body' => $videoStream,
+            ]);
+
+            if ($tusResponse->getStatusCode() !== 204) {
+                throw new \Exception('فشل رفع الفيديو عبر TUS.');
+            }
+
+            fclose($videoStream);
+
+            // 4. **حفظ رابط الفيديو بعد التأكد من نجاح الرفع**
             $lesson->video = "https://video.bunnycdn.com/play/{$libraryId}/{$videoId}";
         }
+
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $lesson->ExplainPdf = $ExplainPdfPath;
 
-            // تحليل ملف الـ PDF للحصول على عدد الصفحات
             $pdfParser = new PdfParser();
             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
@@ -196,10 +192,8 @@ public function create(LessonRequest $request)
             $lesson->numOfPdf = $numberOfPages;
         }
 
-        // حفظ التغييرات في الدرس
         $lesson->save();
 
-        // تحديث عدد الدروس في الكورس
         $course = $lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
@@ -218,6 +212,7 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
 
 
 
