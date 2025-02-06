@@ -7,6 +7,7 @@ use Log;
 
 use App\Models\Lesson;
 use GuzzleHttp\Client;
+use FFMpeg\Media\Video;
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
 use App\Http\Controllers\Controller;
