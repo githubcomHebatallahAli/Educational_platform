@@ -91,128 +91,77 @@ class LessonController extends Controller
 
 // }
 
-public function create(LessonRequest $request)
+public function create(Request $request)
 {
-    ini_set('memory_limit', '2G');
-    $this->authorize('manage_users');
+    // التحقق من أن الفيديو تم رفعه
+    $validated = $request->validate([
+        'title' => 'required|string',
+        'video' => 'required|mimes:mp4,mov,avi,wmv|max:100000',  // تأكد من تحديد المسموح به
+    ]);
 
-    try {
-        $client = new Client();
+    // تخزين الفيديو مؤقتًا
+    $videoFile = $request->file('video');
+    if ($videoFile) {
+        // البيانات المطلوبة من إعدادات BunnyCDN
+        $libraryId = config('services.bunny.library_id');
+        $apiKey = config('services.bunny.api_key');
+        $videoId = "fd1a981d-e030-40e4-861a-51ebd4bff1a8";  // استبدل بهذا الـ videoId الفعلي
+        $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
 
-        // إنشاء الدرس
-        $lesson = Lesson::create([
-            "grade_id" => $request->grade_id,
-            "lec_id" => $request->lec_id,
-            "course_id" => $request->course_id,
-            "title" => $request->title,
-            "description" => $request->description,
-            "duration" => $request->duration,
+        // توليد التوقيع
+        $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
+
+        // إعداد البيانات للرفع
+        $uploadUrl = "https://video.bunnycdn.com/tusupload";
+        $uploadHeaders = [
+            'AuthorizationSignature' => $signature,
+            'AuthorizationExpire' => $expirationTime,
+            'VideoId' => $videoId,
+            'LibraryId' => $libraryId,
+            'Content-Type' => 'application/json',
+        ];
+
+        // رفع الفيديو باستخدام TUS
+        $upload = new \tusphp\Tus\Client($uploadUrl);
+        $upload->setKey($signature);
+        $upload->setMetadata([
+            'filetype' => $videoFile->getMimeType(),
+            'title' => $validated['title']
+        ]);
+        $upload->file($videoFile->getRealPath(), $validated['title']);
+
+        // محاولات إعادة رفع الفيديو
+        $retryCount = 0;
+        $maxRetries = 3;
+        $retryDelay = 5000; // تأخير 5 ثواني بين المحاولات
+
+        while ($retryCount < $maxRetries) {
+            try {
+                $upload->upload();  // رفع الفيديو
+                break;
+            } catch (\Exception $e) {
+                $retryCount++;
+                if ($retryCount >= $maxRetries) {
+                    return response()->json(['error' => 'فشل رفع الفيديو بعد عدة محاولات: ' . $e->getMessage()], 500);
+                }
+                usleep($retryDelay * 1000);
+            }
+        }
+
+        // بعد رفع الفيديو، يمكن تخزين البيانات في قاعدة البيانات
+        // افترض أن هناك جدول "videos" لتخزين بيانات الفيديو
+        $video = Video::create([
+            'title' => $validated['title'],
+            'video_id' => $videoId,  // هذا هو الـ videoId الذي حصلت عليه من BunnyCDN بعد رفع الفيديو
+            'path' => $videoFile->getRealPath(),
         ]);
 
-        // رفع الصورة (Poster) إذا وجدت
-        if ($request->hasFile('poster')) {
-            $posterFile = $request->file('poster');
-            $posterPath = $posterFile->store(Lesson::storageFolder);
-            $lesson->poster = $posterPath;
-        }
-
-        if ($request->hasFile('video')) {
-            $videoFile = $request->file('video');
-
-            // التحقق من حجم الفيديو (حد أقصى 2 جيجابايت)
-            if ($videoFile->getSize() > 2 * 1024 * 1024 * 1024) {
-                throw new \Exception('حجم الفيديو يتجاوز الحد المسموح به (2 جيجابايت).');
-            }
-
-            $libraryId = config('services.bunny.library_id');
-            $apiKey = config('services.bunny.api_key');
-
-            if (!$libraryId || !$apiKey) {
-                throw new \Exception('معرف المكتبة أو مفتاح API مفقود في الإعدادات.');
-            }
-
-            // 1. **إنشاء فيديو جديد في Bunny Stream**
-            $createVideoUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos";
-            $createVideoResponse = $client->post($createVideoUrl, [
-                'headers' => [
-                    'AccessKey' => $apiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'title' => $request->title,
-                ],
-            ]);
-
-            $createVideoData = json_decode($createVideoResponse->getBody(), true);
-            if (!isset($createVideoData['guid'])) {
-                throw new \Exception('فشل في إنشاء الفيديو على BunnyCDN.');
-            }
-
-            $videoId = $createVideoData['guid'];
-            dd($createVideoData);
-
-            // 2. **إنشاء التوقيع المطلوب للرفع**
-            $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
-            $signature = hash('sha256', "{$libraryId}{$apiKey}{$expirationTime}{$videoId}");
-
-            // 3. **بدء رفع الفيديو باستخدام TUS Upload**
-            $tusUploadUrl = "https://video.bunnycdn.com/tusupload";
-            $videoStream = fopen($videoFile->getRealPath(), 'r');
-
-            $tusResponse = $client->request('POST', $tusUploadUrl, [
-                'headers' => [
-                    'AuthorizationSignature' => $signature,
-                    'AuthorizationExpire' => $expirationTime,
-                    'VideoId' => $videoId,
-                    'LibraryId' => $libraryId,
-                    'Tus-Resumable' => '1.0.0',
-                    'Upload-Length' => $videoFile->getSize(),
-                    'Content-Type' => 'application/offset+octet-stream',
-                ],
-                'body' => $videoStream,
-            ]);
-
-            if ($tusResponse->getStatusCode() !== 204) {
-                throw new \Exception('فشل رفع الفيديو عبر TUS.');
-            }
-
-            fclose($videoStream);
-
-            // 4. **حفظ رابط الفيديو بعد التأكد من نجاح الرفع**
-            $lesson->video = "https://video.bunnycdn.com/play/{$libraryId}/{$videoId}";
-        }
-
-        if ($request->hasFile('ExplainPdf')) {
-            $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
-            $lesson->ExplainPdf = $ExplainPdfPath;
-
-            $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-            $numberOfPages = count($pdf->getPages());
-
-            $lesson->numOfPdf = $numberOfPages;
-        }
-
-        $lesson->save();
-
-        $course = $lesson->course;
-        $course->numOfLessons = $course->lessons()->count();
-        $course->save();
-
-        return response()->json([
-            'data' => new LessonResource($lesson),
-            'message' => "Lesson Created Successfully."
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error creating lesson: ' . $e->getMessage());
-
-        return response()->json([
-            'error' => 'An error occurred while creating the lesson.',
-            'details' => $e->getMessage()
-        ], 500);
+        return response()->json(['success' => 'تم رفع الفيديو بنجاح', 'video' => $video], 200);
     }
+
+    return response()->json(['error' => 'فشل في رفع الفيديو'], 400);
 }
+
 
 
 
