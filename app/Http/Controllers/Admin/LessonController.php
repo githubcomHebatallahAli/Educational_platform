@@ -98,7 +98,7 @@ public function create(LessonRequest $request)
     $this->authorize('manage_users');
 
     try {
-        // إنشاء الـ Lesson
+        
         $Lesson = Lesson::create([
             "grade_id" => $request->grade_id,
             "lec_id" => $request->lec_id,
@@ -108,27 +108,22 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
-        // رفع الـ Poster إذا كان موجودًا
         if ($request->hasFile('poster')) {
             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
             $Lesson->poster = $posterPath;
         }
 
-        // رفع الفيديو باستخدام BunnyCDN
         if ($request->hasFile('video')) {
-            // تخزين الفيديو مؤقتًا
             $videoFile = $request->file('video');
 
-            // البيانات المطلوبة من إعدادات BunnyCDN
             $libraryId = config('services.bunny.library_id');
             $apiKey = config('services.bunny.api_key');
-            $videoId = "fd1a981d-e030-40e4-861a-51ebd4bff1a8";  // استبدل بهذا الـ videoId الفعلي
-            $expirationTime = time() + 3600; // صلاحية التوقيع لمدة ساعة
+            $videoId = "fd1a981d-e030-40e4-861a-51ebd4bff1a8";
+            $expirationTime = time() + 3600;
 
-            // توليد التوقيع
             $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
 
-            // إعداد البيانات للرفع
+
             $uploadUrl = "https://video.bunnycdn.com/tusupload";
             $uploadHeaders = [
                 'AuthorizationSignature' => $signature,
@@ -138,7 +133,6 @@ public function create(LessonRequest $request)
                 'Content-Type' => 'application/json',
             ];
 
-            // رفع الفيديو باستخدام TUS
             $upload = new \tusphp\Tus\Client($uploadUrl);
             $upload->setKey($signature);
             $upload->setMetadata([
@@ -147,14 +141,13 @@ public function create(LessonRequest $request)
             ]);
             $upload->file($videoFile->getRealPath(), $Lesson->title);
 
-            // محاولات إعادة رفع الفيديو
             $retryCount = 0;
             $maxRetries = 3;
-            $retryDelay = 5000; // تأخير 5 ثواني بين المحاولات
+            $retryDelay = 5000;
 
             while ($retryCount < $maxRetries) {
                 try {
-                    $upload->upload();  // رفع الفيديو
+                    $upload->upload();
                     break;
                 } catch (\Exception $e) {
                     $retryCount++;
@@ -165,16 +158,13 @@ public function create(LessonRequest $request)
                 }
             }
 
-            // تخزين الـ VideoId في الـ Lesson بعد رفعه
             $Lesson->video = $videoId;
         }
 
-        // رفع ملف الـ ExplainPdf إذا كان موجودًا
         if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
-            // حساب عدد الصفحات في ملف الـ PDF
             $pdfParser = new PdfParser();
             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
@@ -182,10 +172,8 @@ public function create(LessonRequest $request)
             $Lesson->numOfPdf = $numberOfPages;
         }
 
-        // حفظ الـ Lesson في قاعدة البيانات
         $Lesson->save();
 
-        // تحديث عدد الدروس في الـ Course
         $course = $Lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
@@ -196,7 +184,6 @@ public function create(LessonRequest $request)
         ]);
 
     } catch (\Exception $e) {
-        // تسجيل الخطأ في السجلات
         Log::error($e->getMessage());
 
         return response()->json([
