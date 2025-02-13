@@ -37,7 +37,7 @@ return [
 
     'streambunny' => [
     'api_key' => env('STREAMBUNNY_API_KEY'),
-    'project_id' => env('STREAMBUNNY_PROJECT_ID'),
+    'library_id' => env('STREAMBUNNY_LIBRARY_ID'),
 ],
 
 ];

@@ -171,7 +171,7 @@ public function create(LessonRequest $request)
         if ($request->hasFile('video')) {
             $videoFile = $request->file('video');
 
-            $libraryId = config('services.streambunny.project_id');
+            $libraryId = config('services.streambunny.library_id');
             $apiKey = config('services.streambunny.api_key');
             $videoId = "fd1a981d-e030-40e4-861a-51ebd4bff1a8";
             $expirationTime = time() + 3600;

@@ -1,5 +1,6 @@
 <?php
 
+use TusPhp\Tus\Client;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestBunnyController;
 
@@ -36,3 +37,7 @@ require __DIR__ . '/Apis/Chat/chat.php';
 
 
 Route::get('/test-bunnycdn', [TestBunnyController::class, 'testBunnyCDNConnection']);
+Route::get('/test-tus', function () {
+    $client = new Client('https://video.bunnycdn.com/tusupload');
+    echo "Client initialized successfully!";
+});
