@@ -146,6 +146,7 @@ class LessonController extends Controller
 
 
 
+
 public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
@@ -163,13 +164,13 @@ public function create(LessonRequest $request)
         ]);
 
         // رفع صورة الدرس (Poster)
-        if ($request->hasFile('poster') {
+        if ($request->hasFile('poster') && $request->file('poster')->isValid()) { // تم تصحيح الخطأ هنا
             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
             $Lesson->poster = $posterPath;
         }
 
         // رفع فيديو الدرس إلى BunnyCDN
-        if ($request->hasFile('video')) {
+        if ($request->hasFile('video') && $request->file('video')->isValid()) {
             $videoFile = $request->file('video');
 
             // إعداد بيانات BunnyCDN
@@ -240,7 +241,7 @@ public function create(LessonRequest $request)
         }
 
         // رفع ملف PDF (ExplainPdf)
-        if ($request->hasFile('ExplainPdf')) {
+        if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
