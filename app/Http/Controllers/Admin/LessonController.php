@@ -144,12 +144,15 @@ class LessonController extends Controller
 //     ]);
 // }
 
+
+
 public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
     try {
+        // إنشاء الدرس
         $Lesson = Lesson::create([
             "grade_id" => $request->grade_id,
             "lec_id" => $request->lec_id,
@@ -159,22 +162,26 @@ public function create(LessonRequest $request)
             "duration" => $request->duration,
         ]);
 
-        if ($request->hasFile('poster') && $request->file('poster')->isValid()) {
+        // رفع صورة الدرس (Poster)
+        if ($request->hasFile('poster') {
             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
             $Lesson->poster = $posterPath;
         }
 
-        if ($request->hasFile('video') && $request->file('video')->isValid()) {
+        // رفع فيديو الدرس إلى BunnyCDN
+        if ($request->hasFile('video')) {
             $videoFile = $request->file('video');
 
+            // إعداد بيانات BunnyCDN
             $libraryId = config('services.streambunny.library_id');
             $apiKey = config('services.streambunny.api_key');
 
+            // إنشاء فيديو جديد في BunnyCDN
             $createVideoUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos";
             $createVideoHeaders = [
                 'AccessKey' => $apiKey,
                 'Accept' => 'application/json',
-                  'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ];
 
             $client = new GuzzleClient();
@@ -187,9 +194,10 @@ public function create(LessonRequest $request)
 
             if ($createVideoResponse->getStatusCode() === 200) {
                 $videoData = json_decode($createVideoResponse->getBody(), true);
-                $videoId = $videoData['guid'];
+                $videoId = $videoData['guid']; // الحصول على VideoId
 
-                $expirationTime = time() + 3600;
+                // إعداد بيانات رفع الفيديو
+                $expirationTime = time() + 3600; // صلاحية التوقيع (1 ساعة)
                 $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
 
                 $uploadUrl = "https://video.bunnycdn.com/tusupload";
@@ -201,9 +209,10 @@ public function create(LessonRequest $request)
                     'Content-Type' => 'application/offset+octet-stream',
                 ];
 
+                // محاولة رفع الفيديو مع إعادة المحاولة في حالة الفشل
                 $retryCount = 0;
                 $maxRetries = 3;
-                $retryDelay = 5000;
+                $retryDelay = 5000; // 5 ثواني
 
                 while ($retryCount < $maxRetries) {
                     try {
@@ -213,7 +222,7 @@ public function create(LessonRequest $request)
                         ]);
 
                         if ($uploadResponse->getStatusCode() === 201) {
-                            $Lesson->video = $videoId;
+                            $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
                             break;
                         }
                     } catch (\Exception $e) {
@@ -222,7 +231,7 @@ public function create(LessonRequest $request)
                         if ($retryCount >= $maxRetries) {
                             return response()->json(['error' => 'فشل رفع الفيديو بعد عدة محاولات: ' . $e->getMessage()], 500);
                         }
-                        usleep($retryDelay * 1000);
+                        usleep($retryDelay * 1000); // انتظار قبل إعادة المحاولة
                     }
                 }
             } else {
@@ -230,29 +239,35 @@ public function create(LessonRequest $request)
             }
         }
 
-        if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
+        // رفع ملف PDF (ExplainPdf)
+        if ($request->hasFile('ExplainPdf')) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
+            // تحليل ملف PDF للحصول على عدد الصفحات
             $pdfParser = new PdfParser();
             $pdf = $pdfParser->parseFile(storage_path('app/' . $ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
 
-            $Lesson->numOfPdf = $numberOfPages;
+            $Lesson->numOfPdf = $numberOfPages; // حفظ عدد الصفحات
         }
 
+        // حفظ التغييرات في الدرس
         $Lesson->save();
 
+        // تحديث عدد الدروس في الكورس
         $course = $Lesson->course;
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
 
+        // إرجاع الاستجابة الناجحة
         return response()->json([
             'data' => new LessonResource($Lesson),
             'message' => "Lesson Created Successfully."
         ]);
 
     } catch (\Exception $e) {
+        // تسجيل الخطأ وإرجاع رسالة الخطأ
         Log::error($e->getMessage());
 
         return response()->json([
