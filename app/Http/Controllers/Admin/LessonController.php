@@ -174,11 +174,15 @@ public function create(LessonRequest $request)
             $createVideoHeaders = [
                 'AccessKey' => $apiKey,
                 'Accept' => 'application/json',
+                  'Content-Type' => 'application/json'
             ];
 
             $client = new GuzzleClient();
             $createVideoResponse = $client->post($createVideoUrl, [
                 'headers' => $createVideoHeaders,
+                'json' => [
+                    'title' => $Lesson->title, // إرسال البيانات كـ JSON
+                ],
             ]);
 
             if ($createVideoResponse->getStatusCode() === 200) {
