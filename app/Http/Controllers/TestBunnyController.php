@@ -13,7 +13,7 @@ class TestBunnyController extends Controller
     {
         try {
             // تأكد من وجود ملف الفيديو
-            if (!$request->hasFile('video')) { // تم تصحيح الخطأ هنا
+            if (!$request->hasFile('video')) {
                 return response()->json(['error' => 'لم يتم تقديم ملف فيديو.']);
             }
 
@@ -45,26 +45,19 @@ class TestBunnyController extends Controller
                 $videoData = json_decode($createVideoResponse->getBody(), true);
                 $videoId = $videoData['guid']; // الحصول على VideoId
 
-                // إعداد بيانات رفع الفيديو
-                $expirationTime = time() + 3600; // صلاحية التوقيع (1 ساعة)
-                $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
-
-                $uploadUrl = "https://video.bunnycdn.com/tusupload";
+                // رفع الفيديو إلى BunnyCDN
+                $uploadUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos/{$videoId}";
                 $uploadHeaders = [
-                    'AuthorizationSignature' => $signature,
-                    'AuthorizationExpire' => $expirationTime,
-                    'VideoId' => $videoId,
-                    'LibraryId' => $libraryId,
-                    'Content-Type' => 'application/offset+octet-stream',
+                    'AccessKey' => $apiKey,
+                    'Content-Type' => 'application/octet-stream',
                 ];
 
-                // محاولة رفع الفيديو
-                $uploadResponse = $client->post($uploadUrl, [
+                $uploadResponse = $client->put($uploadUrl, [
                     'headers' => $uploadHeaders,
                     'body' => fopen($videoFile->getRealPath(), 'r'),
                 ]);
 
-                if ($uploadResponse->getStatusCode() === 201) {
+                if ($uploadResponse->getStatusCode() === 200) {
                     return response()->json([
                         'message' => 'تم رفع الفيديو بنجاح.',
                         'videoId' => $videoId,
