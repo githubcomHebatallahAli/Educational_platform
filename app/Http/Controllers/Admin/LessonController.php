@@ -6,7 +6,7 @@ use Log;
 
 
 use App\Models\Lesson;
-use GuzzleHttp\Client;
+// use GuzzleHttp\Client;
 use FFMpeg\Media\Video;
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Smalot\PdfParser\Parser as PdfParser;
 use App\Http\Requests\Admin\LessonRequest;
 use App\Http\Resources\Admin\LessonResource;
+use TusPhp\Tus\Client;
 
 
 
@@ -177,7 +178,6 @@ public function create(LessonRequest $request)
 
             $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
 
-
             $uploadUrl = "https://video.bunnycdn.com/tusupload";
             $uploadHeaders = [
                 'AuthorizationSignature' => $signature,
@@ -187,7 +187,7 @@ public function create(LessonRequest $request)
                 'Content-Type' => 'application/json',
             ];
 
-            $upload = new \tusphp\Tus\Client($uploadUrl);
+            $upload = new Client($uploadUrl);
             $upload->setKey($signature);
             $upload->setMetadata([
                 'filetype' => $videoFile->getMimeType(),
