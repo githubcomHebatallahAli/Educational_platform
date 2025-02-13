@@ -164,7 +164,7 @@ public function create(LessonRequest $request)
         ]);
 
         // رفع صورة الدرس (Poster)
-        if ($request->hasFile('poster') && $request->file('poster')->isValid()) { // تم تصحيح الخطأ هنا
+        if ($request->hasFile('poster') && $request->file('poster')->isValid()) {
             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
             $Lesson->poster = $posterPath;
         }
@@ -197,43 +197,22 @@ public function create(LessonRequest $request)
                 $videoData = json_decode($createVideoResponse->getBody(), true);
                 $videoId = $videoData['guid']; // الحصول على VideoId
 
-                // إعداد بيانات رفع الفيديو
-                $expirationTime = time() + 3600; // صلاحية التوقيع (1 ساعة)
-                $signature = hash('sha256', $libraryId . $apiKey . $expirationTime . $videoId);
-
-                $uploadUrl = "https://video.bunnycdn.com/tusupload";
+                // رفع الفيديو إلى BunnyCDN
+                $uploadUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos/{$videoId}";
                 $uploadHeaders = [
-                    'AuthorizationSignature' => $signature,
-                    'AuthorizationExpire' => $expirationTime,
-                    'VideoId' => $videoId,
-                    'LibraryId' => $libraryId,
-                    'Content-Type' => 'application/offset+octet-stream',
+                    'AccessKey' => $apiKey,
+                    'Content-Type' => 'application/octet-stream',
                 ];
 
-                // محاولة رفع الفيديو مع إعادة المحاولة في حالة الفشل
-                $retryCount = 0;
-                $maxRetries = 3;
-                $retryDelay = 5000; // 5 ثواني
+                $uploadResponse = $client->put($uploadUrl, [
+                    'headers' => $uploadHeaders,
+                    'body' => fopen($videoFile->getRealPath(), 'r'),
+                ]);
 
-                while ($retryCount < $maxRetries) {
-                    try {
-                        $uploadResponse = $client->post($uploadUrl, [
-                            'headers' => $uploadHeaders,
-                            'body' => fopen($videoFile->getRealPath(), 'r'),
-                        ]);
-
-                        if ($uploadResponse->getStatusCode() === 201) {
-                            $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
-                            break;
-                        }
-                    } catch (\Exception $e) {
-                        Log::error('BunnyCDN Upload Error: ' . $e->getMessage());
-                        $retryCount++;
-                        if ($retryCount >= $maxRetries) {
-                            return response()->json(['error' => 'فشل رفع الفيديو بعد عدة محاولات: ' . $e->getMessage()], 500);
-                        }
-                        usleep($retryDelay * 1000); // انتظار قبل إعادة المحاولة
-                    }
+                if ($uploadResponse->getStatusCode() === 200) {
+                    $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
+                } else {
+                    return response()->json(['error' => 'فشل رفع الفيديو إلى BunnyCDN.'], 500);
                 }
             } else {
                 return response()->json(['error' => 'فشل إنشاء الفيديو في BunnyCDN.'], 500);
