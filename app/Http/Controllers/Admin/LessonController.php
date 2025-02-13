@@ -145,8 +145,6 @@ class LessonController extends Controller
 // }
 
 
-
-
 public function create(LessonRequest $request)
 {
     ini_set('memory_limit', '2G');
@@ -197,7 +195,6 @@ public function create(LessonRequest $request)
                 $videoData = json_decode($createVideoResponse->getBody(), true);
                 $videoId = $videoData['guid']; // الحصول على VideoId
 
-                // رفع الفيديو إلى BunnyCDN
                 $uploadUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos/{$videoId}";
                 $uploadHeaders = [
                     'AccessKey' => $apiKey,
@@ -219,20 +216,18 @@ public function create(LessonRequest $request)
             }
         }
 
-        // رفع ملف PDF (ExplainPdf)
+        // رفع ملف الـ ExplainPdf ومعالجة عدد الصفحات
         if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
-            // تحليل ملف PDF للحصول على عدد الصفحات
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(storage_path('app/' . $ExplainPdfPath));
+            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
 
-            $Lesson->numOfPdf = $numberOfPages; // حفظ عدد الصفحات
+            $Lesson->numOfPdf = $numberOfPages;
         }
 
-        // حفظ التغييرات في الدرس
         $Lesson->save();
 
         // تحديث عدد الدروس في الكورس
@@ -240,7 +235,6 @@ public function create(LessonRequest $request)
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
 
-        // إرجاع الاستجابة الناجحة
         return response()->json([
             'data' => new LessonResource($Lesson),
             'message' => "Lesson Created Successfully."
@@ -256,6 +250,9 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
+
+
+
 
 
 
