@@ -36,8 +36,4 @@ require __DIR__ . '/Apis/Chat/chat.php';
 
 
 
-Route::get('/test-bunnycdn', [TestBunnyController::class, 'testBunnyCDNConnection']);
-Route::get('/test-tus', function () {
-    $client = new Client('https://video.bunnycdn.com/tusupload');
-    echo "Client initialized successfully!";
-});
+Route::post('/upload-video', [TestBunnyController::class, 'uploadVideoToBunnyCDN']);
