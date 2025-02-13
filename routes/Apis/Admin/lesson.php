@@ -19,4 +19,6 @@ Route::get('/restore/lesson/{id}','restore');
 Route::delete('/forceDelete/lesson/{id}','forceDelete');
 Route::post('/addExam/to/lesson', 'assignExamToLesson');
 Route::post('/revokeExam/from/lesson', 'revokeExamFromLesson');
+Route::post('/upload-chunk',  'uploadChunk');
+Route::post('/merge-chunks',  'mergeChunks');
    });
