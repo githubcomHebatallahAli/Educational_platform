@@ -147,7 +147,7 @@ class LessonController extends Controller
 
 public function create(LessonRequest $request)
 {
-    ini_set('memory_limit', '2G');
+    // ini_set('memory_limit', '2G');
     $this->authorize('manage_users');
 
     try {
