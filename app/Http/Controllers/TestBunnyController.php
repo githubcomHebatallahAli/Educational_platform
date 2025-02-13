@@ -37,7 +37,7 @@ class TestBunnyController extends Controller
             $createVideoResponse = $client->post($createVideoUrl, [
                 'headers' => $createVideoHeaders,
                 'json' => [
-                    'title' => 'Test Video', // يمكنك تغيير العنوان حسب الحاجة
+                    'title' => 'aser', // يمكنك تغيير العنوان حسب الحاجة
                 ],
             ]);
 
