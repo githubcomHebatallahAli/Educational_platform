@@ -205,9 +205,7 @@ public function create(LessonRequest $request)
 
                 if ($uploadResponse->getStatusCode() === 200) {
                     $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
-
-                    // إنشاء رابط الفيديو
-                    $videoUrl = "https://{$libraryId}.b-cdn.net/{$videoId}/play_480p.mp4";
+                    $videoUrl = "https://educationVideos.b-cdn.net/{$videoId}/play_480p.mp4";
                 } else {
                     return response()->json(['error' => 'فشل رفع الفيديو إلى BunnyCDN.'], 500);
                 }
