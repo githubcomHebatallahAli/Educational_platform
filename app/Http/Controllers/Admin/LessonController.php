@@ -35,115 +35,112 @@ class LessonController extends Controller
     }
 
 
-//     public function create(LessonRequest $request)
-//     {
-//         ini_set('memory_limit', '2G');
-//         $this->authorize('manage_users');
 
-//         try {
-//             $Lesson = Lesson::create([
-//                 "grade_id" => $request->grade_id,
-//                 "lec_id" => $request->lec_id,
-//                 "course_id" => $request->course_id,
-//                 "title" => $request->title,
-//                 "description" => $request->description,
-//                 "duration" => $request->duration,
-//             ]);
+// public function create(LessonRequest $request)
+// {
+//     // ini_set('memory_limit', '2G');
+//     $this->authorize('manage_users');
 
-//             if ($request->hasFile('poster')) {
-//                 $posterPath = $request->file('poster')->store(Lesson::storageFolder);
-//                 $Lesson->poster = $posterPath;
-//             }
+//     try {
+//         // إنشاء الدرس
+//         $Lesson = Lesson::create([
+//             "grade_id" => $request->grade_id,
+//             "lec_id" => $request->lec_id,
+//             "course_id" => $request->course_id,
+//             "title" => $request->title,
+//             "description" => $request->description,
+//             "duration" => $request->duration,
+//         ]);
 
-//             // if ($request->hasFile('video')) {
-//             //     $videoPath = $request->file('video')->store(Lesson::storageFolder);
-//             //     $Lesson->video = $videoPath;
-//             // }
-
-//             if ($request->video_url) {
-//                 $Lesson->video = $request->video_url;
-//             }
-
-//             if ($request->hasFile('ExplainPdf')) {
-//                 $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
-//                 $Lesson->ExplainPdf = $ExplainPdfPath;
-
-//                 $pdfParser = new PdfParser();
-//                 $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
-//                 $numberOfPages = count($pdf->getPages());
-
-//                 $Lesson->numOfPdf = $numberOfPages;
-//             }
-
-//             $Lesson->save();
-
-//             $course = $Lesson->course;
-//             $course->numOfLessons = $course->lessons()->count();
-//             $course->save();
-
-//             return response()->json([
-//                 'data' => new LessonResource($Lesson),
-//                 'message' => "Lesson Created Successfully."
-//             ]);
-
-//         } catch (\Exception $e) {
-//             // تسجيل الخطأ في السجلات
-//             Log::error($e->getMessage());
-
-//             return response()->json([
-//                 'error' => 'An error occurred while creating the lesson.',
-//                 'details' => $e->getMessage()
-//             ], 500);
+//         // رفع صورة الدرس (Poster)
+//         if ($request->hasFile('poster') && $request->file('poster')->isValid()) {
+//             $posterPath = $request->file('poster')->store(Lesson::storageFolder);
+//             $Lesson->poster = $posterPath;
 //         }
+
+//         // رفع فيديو الدرس إلى BunnyCDN
+//         if ($request->hasFile('video') && $request->file('video')->isValid()) {
+//             $videoFile = $request->file('video');
+
+//             // إعداد بيانات BunnyCDN
+//             $libraryId = config('services.streambunny.library_id');
+//             $apiKey = config('services.streambunny.api_key');
+
+//             // إنشاء فيديو جديد في BunnyCDN
+//             $createVideoUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos";
+//             $createVideoHeaders = [
+//                 'AccessKey' => $apiKey,
+//                 'Accept' => 'application/json',
+//                 'Content-Type' => 'application/json',
+//             ];
+
+//             $client = new GuzzleClient();
+//             $createVideoResponse = $client->post($createVideoUrl, [
+//                 'headers' => $createVideoHeaders,
+//                 'json' => [
+//                     'title' => $Lesson->title, // إرسال البيانات كـ JSON
+//                 ],
+//             ]);
+
+//             if ($createVideoResponse->getStatusCode() === 200) {
+//                 $videoData = json_decode($createVideoResponse->getBody(), true);
+//                 $videoId = $videoData['guid']; // الحصول على VideoId
+
+//                 $uploadUrl = "https://video.bunnycdn.com/library/{$libraryId}/videos/{$videoId}";
+//                 $uploadHeaders = [
+//                     'AccessKey' => $apiKey,
+//                     'Content-Type' => 'application/octet-stream',
+//                 ];
+
+//                 $uploadResponse = $client->put($uploadUrl, [
+//                     'headers' => $uploadHeaders,
+//                     'body' => fopen($videoFile->getRealPath(), 'r'),
+//                 ]);
+
+//                 if ($uploadResponse->getStatusCode() === 200) {
+//                     $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
+//                 } else {
+//                     return response()->json(['error' => 'فشل رفع الفيديو إلى BunnyCDN.'], 500);
+//                 }
+//             } else {
+//                 return response()->json(['error' => 'فشل إنشاء الفيديو في BunnyCDN.'], 500);
+//             }
+//         }
+
+//         // رفع ملف الـ ExplainPdf ومعالجة عدد الصفحات
+//         if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
+//             $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+//             $Lesson->ExplainPdf = $ExplainPdfPath;
+
+//             $pdfParser = new PdfParser();
+//             $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+//             $numberOfPages = count($pdf->getPages());
+
+//             $Lesson->numOfPdf = $numberOfPages;
+//         }
+
+//         $Lesson->save();
+
+//         // تحديث عدد الدروس في الكورس
+//         $course = $Lesson->course;
+//         $course->numOfLessons = $course->lessons()->count();
+//         $course->save();
+
+//         return response()->json([
+//             'data' => new LessonResource($Lesson),
+//             'message' => "Lesson Created Successfully."
+//         ]);
+
+//     } catch (\Exception $e) {
+//         // تسجيل الخطأ وإرجاع رسالة الخطأ
+//         Log::error($e->getMessage());
+
+//         return response()->json([
+//             'error' => 'An error occurred while creating the lesson.',
+//             'details' => $e->getMessage()
+//         ], 500);
 //     }
-
-
-//     public function uploadChunk(Request $request)
-// {
-//     $file = $request->file('file');
-//     $chunkNumber = $request->input('chunkNumber');
-//     $fileName = $request->input('fileName');
-//     $totalChunks = $request->input('totalChunks');
-
-//     $tempPath = storage_path("app/temp_videos/{$fileName}");
-//     if (!file_exists($tempPath)) {
-//         mkdir($tempPath, 0777, true);
-//     }
-
-//     $file->move($tempPath, "{$fileName}.part{$chunkNumber}");
-
-//     return response()->json([
-//         'message' => "تم رفع الجزء {$chunkNumber} من {$totalChunks}"
-//     ]);
 // }
-
-
-// public function mergeChunks(Request $request)
-// {
-//     $fileName = $request->input('fileName');
-//     $tempPath = storage_path("app/temp_videos/{$fileName}");
-//     $finalPath = storage_path("app/videos/{$fileName}");
-
-//     $finalFile = fopen($finalPath, "w");
-//     $chunkNumber = 1;
-
-//     while (file_exists("$tempPath/{$fileName}.part{$chunkNumber}")) {
-//         $chunk = fopen("$tempPath/{$fileName}.part{$chunkNumber}", "r");
-//         stream_copy_to_stream($chunk, $finalFile);
-//         fclose($chunk);
-//         unlink("$tempPath/{$fileName}.part{$chunkNumber}");
-//         $chunkNumber++;
-//     }
-
-//     fclose($finalFile);
-//     rmdir($tempPath);
-
-//     return response()->json([
-//         'message' => 'تم دمج الفيديو بنجاح',
-//         'video_url' => url("storage/videos/{$fileName}")
-//     ]);
-// }
-
 
 public function create(LessonRequest $request)
 {
@@ -208,6 +205,9 @@ public function create(LessonRequest $request)
 
                 if ($uploadResponse->getStatusCode() === 200) {
                     $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
+
+                    // إنشاء رابط الفيديو
+                    $videoUrl = "https://{$libraryId}.b-cdn.net/{$videoId}/play_480p.mp4";
                 } else {
                     return response()->json(['error' => 'فشل رفع الفيديو إلى BunnyCDN.'], 500);
                 }
@@ -235,10 +235,14 @@ public function create(LessonRequest $request)
         $course->numOfLessons = $course->lessons()->count();
         $course->save();
 
-        return response()->json([
+        // إضافة رابط الفيديو إلى الـ response
+        $responseData = [
             'data' => new LessonResource($Lesson),
-            'message' => "Lesson Created Successfully."
-        ]);
+            'message' => "Lesson Created Successfully.",
+            'video_url' => $videoUrl ?? null, // إضافة رابط الفيديو إذا كان موجودًا
+        ];
+
+        return response()->json($responseData);
 
     } catch (\Exception $e) {
         // تسجيل الخطأ وإرجاع رسالة الخطأ
@@ -250,14 +254,6 @@ public function create(LessonRequest $request)
         ], 500);
     }
 }
-
-
-
-
-
-
-
-
 
 
     public function edit(string $id)
