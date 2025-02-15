@@ -239,7 +239,7 @@ public function create(LessonRequest $request)
         $responseData = [
             'data' => new LessonResource($Lesson),
             'message' => "Lesson Created Successfully.",
-            'video_url' => $Lesson->video, // رابط الفيديو المخزن في قاعدة البيانات
+            // 'video_url' => $Lesson->video, // رابط الفيديو المخزن في قاعدة البيانات
         ];
 
         return response()->json($responseData);
