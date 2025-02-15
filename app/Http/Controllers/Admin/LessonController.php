@@ -204,9 +204,10 @@ public function create(LessonRequest $request)
                 ]);
 
                 if ($uploadResponse->getStatusCode() === 200) {
-                    $Lesson->video = $videoId; // حفظ VideoId في قاعدة البيانات
                     $zone = config('services.streambunny.zone'); // سيتم قراءة الـ Zone من الإعدادات
-$videoUrl = "https://{$zone}.b-cdn.net/{$videoId}/play_480p.mp4";
+                    $videoUrl = "https://{$zone}.b-cdn.net/{$videoId}/play_480p.mp4";
+
+                    $Lesson->video = $videoUrl; // حفظ رابط الفيديو في قاعدة البيانات
                 } else {
                     return response()->json(['error' => 'فشل رفع الفيديو إلى BunnyCDN.'], 500);
                 }
@@ -238,7 +239,7 @@ $videoUrl = "https://{$zone}.b-cdn.net/{$videoId}/play_480p.mp4";
         $responseData = [
             'data' => new LessonResource($Lesson),
             'message' => "Lesson Created Successfully.",
-            'video_url' => $videoUrl ?? null, // إضافة رابط الفيديو إذا كان موجودًا
+            'video_url' => $Lesson->video, // رابط الفيديو المخزن في قاعدة البيانات
         ];
 
         return response()->json($responseData);
@@ -253,6 +254,7 @@ $videoUrl = "https://{$zone}.b-cdn.net/{$videoId}/play_480p.mp4";
         ], 500);
     }
 }
+
 
 
     public function edit(string $id)
