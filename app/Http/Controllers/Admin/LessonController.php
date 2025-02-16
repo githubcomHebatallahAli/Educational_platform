@@ -217,24 +217,16 @@ public function create(LessonRequest $request)
                 return response()->json(['error' => 'فشل إنشاء الفيديو في BunnyCDN.'], 500);
             }
         }
+        if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
+            $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+            $Lesson->ExplainPdf = $ExplainPdfPath;
 
-       // رفع ملف الـ ExplainPdf ومعالجة عدد الصفحات
-if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
-    // حذف الملف القديم إذا كان موجودًا
-    if ($Lesson->ExplainPdf) {
-        Storage::disk('public')->delete($Lesson->ExplainPdf);
-    }
+            $pdfParser = new PdfParser();
+            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
+            $numberOfPages = count($pdf->getPages());
 
-    // تخزين الملف الجديد في المجلد العام (public)
-    $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder, 'public');
-    $Lesson->ExplainPdf = $ExplainPdfPath;
-
-    // معالجة عدد الصفحات
-    $pdfParser = new PdfParser();
-    $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath)); // استخدام public_path
-    $numberOfPages = count($pdf->getPages());
-
-    $Lesson->numOfPdf = $numberOfPages;
+            $Lesson->numOfPdf = $numberOfPages;
+        
 }
 
 $Lesson->save();
