@@ -332,7 +332,7 @@ public function create(LessonRequest $request)
 
 // }
 
-public function update(LessonRequest $request, string $id)
+public function update(Request $request, string $id)
 {
     $this->authorize('manage_users');
     $Lesson = Lesson::findOrFail($id);
