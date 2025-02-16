@@ -425,8 +425,7 @@ public function update(Request $request, string $id)
             $Lesson->video = "https://{$zone}.b-cdn.net/{$newVideoId}/play_480p.mp4";
         }
 
-        // ✅ تحديث ملف الشرح (ExplainPdf) إذا تم رفع واحد جديد
-        if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
+        if ($request->hasFile('ExplainPdf')) {
             if ($Lesson->ExplainPdf) {
                 Storage::disk('public')->delete($Lesson->ExplainPdf);
             }
@@ -434,7 +433,7 @@ public function update(Request $request, string $id)
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path("storage/{$ExplainPdfPath}"));
+            $pdf = $pdfParser->parseFile(public_path($ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
 
             $Lesson->numOfPdf = $numberOfPages;
