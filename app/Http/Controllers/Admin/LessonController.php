@@ -427,7 +427,7 @@ public function update(Request $request, string $id)
 
             // Update number of pages in the PDF
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(storage_path('app/' . $ExplainPdfPath));
+            $pdf = $pdfParser->parseFile(public_path('app/' . $ExplainPdfPath));
             $numberOfPages = count($pdf->getPages());
             $Lesson->numOfPdf = $numberOfPages;
         }
