@@ -226,7 +226,7 @@ public function create(LessonRequest $request)
             $numberOfPages = count($pdf->getPages());
 
             $Lesson->numOfPdf = $numberOfPages;
-        
+
 }
 
 $Lesson->save();
@@ -415,18 +415,21 @@ public function update(Request $request, string $id)
             }
         }
 
-        // Handle ExplainPdf update
         if ($request->hasFile('ExplainPdf') && $request->file('ExplainPdf')->isValid()) {
+            // حذف الملف القديم إذا كان موجودًا
             if ($Lesson->ExplainPdf) {
-                Storage::delete($Lesson->ExplainPdf); // Delete old PDF
+                Storage::disk('public')->delete($Lesson->ExplainPdf);
             }
-            $ExplainPdfPath = $request->file('ExplainPdf')->store(Lesson::storageFolder);
+
+            // تخزين الملف الجديد في المجلد العام (public)
+            $ExplainPdfPath = $request->file('ExplainPdf')->store('Lessons', 'public'); // تخزين في مجلد Lessons داخل public
             $Lesson->ExplainPdf = $ExplainPdfPath;
 
-            // Update number of pages in the PDF
+            // معالجة عدد الصفحات
             $pdfParser = new PdfParser();
-            $pdf = $pdfParser->parseFile(public_path('app/' . $ExplainPdfPath));
+            $pdf = $pdfParser->parseFile(storage_path('app/public/' . $ExplainPdfPath)); // استخدام storage_path مع public
             $numberOfPages = count($pdf->getPages());
+
             $Lesson->numOfPdf = $numberOfPages;
         }
 
