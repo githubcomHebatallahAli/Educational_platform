@@ -3,7 +3,7 @@
 namespace App\Models;
 
 
-use Illuminate\Support\Str;
+use Illuminate\Support\Str; 
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;

@@ -36,7 +36,7 @@ class ParentAuthController extends Controller
             return response()->json(['message' => 'Invalid data'], 422);
 
         }
-       
+
 
         return $this->createNewToken($token);
     }
@@ -89,9 +89,6 @@ class ParentAuthController extends Controller
      */
     public function logout()
     {
-        // if (!Gate::allows('logout', Parnt::class)) {
-        //     return response()->json(['message' => 'Unauthorized'], 403);
-        // }
         auth()->guard('parnt')->logout();
         return response()->json([
             'message' => 'Parent successfully signed out']);

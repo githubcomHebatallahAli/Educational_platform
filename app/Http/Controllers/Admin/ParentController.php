@@ -7,9 +7,8 @@ use Illuminate\Http\Request;
 use App\Traits\ManagesModelsTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\GradeResource;
-use App\Http\Requests\Auth\UpdateParentRequest;
 use App\Http\Resources\Auth\ParentRegisterResource;
-use App\Http\Resources\Admin\ParentWithSonsResource;
+
 
 class ParentController extends Controller
 {

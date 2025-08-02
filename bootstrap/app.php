@@ -1,11 +1,9 @@
 <?php
 
 use App\Models\Admin;
-use Illuminate\Http\Request;
 use App\Policies\AdminPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Application;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
