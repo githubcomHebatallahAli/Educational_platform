@@ -20,24 +20,6 @@ class StatisticsController extends Controller
         // $ordersCount = Order::count();
         $paidOrdersCount = Order::where('status', 'paid')->count();
 
-        // إجمالي مبيعات الكلية
-        $totalSales = Order::join('courses', 'orders.course_id', '=', 'courses.id')
-            ->where('orders.status', 'paid')
-            ->sum('courses.price');
-
-        // مبيعات كل كورس على حدة
-        $salesPerCourse = Course::withCount(['orders as paid_orders_count' => function ($query) {
-            $query->where('status', 'paid');
-        }])->get(['id', 'nameOfCourse', 'price'])->map(function ($course) {
-            return [
-                'id' => $course->id,
-                'name' => $course->nameOfCourse,
-                'price' => $course->price,
-                'paid_orders_count' => $course->paid_orders_count,
-                'total_sales' => $course->paid_orders_count * $course->price,
-            ];
-        });
-
         $gradesStatistics = Grade::withCount([
             'users as students_count', 
             'courses as courses_count',
@@ -60,16 +42,13 @@ class StatisticsController extends Controller
 
 
         $statistics = [
-
             'General_statistics' => [
                 'Courses_count' => $coursesCount,
                 'Users_count' => $usersCount,
                 'Parents_count' => $parentsCount,
                 'Paid_orders_count' => $paidOrdersCount,
-                'Total_sales' => $totalSales,
             ],
             'Grades_statistics' => $gradesStatistics,
-            'Courses_sales' => $salesPerCourse,
         ];
 
         return response()->json($statistics);
