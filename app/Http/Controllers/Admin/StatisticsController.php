@@ -21,8 +21,8 @@ class StatisticsController extends Controller
         $paidOrdersCount = Order::where('status', 'paid')->count();
 
         // إجمالي مبيعات الكلية
-        $totalSales = Order::where('status', 'paid')
-            ->join('courses', 'orders.course_id', '=', 'courses.id')
+        $totalSales = Order::join('courses', 'orders.course_id', '=', 'courses.id')
+            ->where('orders.status', 'paid')
             ->sum('courses.price');
 
         // مبيعات كل كورس على حدة
