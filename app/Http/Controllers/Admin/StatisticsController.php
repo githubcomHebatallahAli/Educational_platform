@@ -26,9 +26,17 @@ class StatisticsController extends Controller
             ->sum('courses.price');
 
         // مبيعات كل كورس على حدة
-        $salesPerCourse = Course::withSum(['orders as total_sales' => function ($query) {
+        $salesPerCourse = Course::withCount(['orders as paid_orders_count' => function ($query) {
             $query->where('status', 'paid');
-        }], 'price')->get(['id', 'nameOfCourse']);
+        }])->get(['id', 'nameOfCourse', 'price'])->map(function ($course) {
+            return [
+                'id' => $course->id,
+                'name' => $course->nameOfCourse,
+                'price' => $course->price,
+                'paid_orders_count' => $course->paid_orders_count,
+                'total_sales' => $course->paid_orders_count * $course->price,
+            ];
+        });
 
         $gradesStatistics = Grade::withCount([
             'users as students_count', 
